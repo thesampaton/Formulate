@@ -2,6 +2,8 @@
 
 These are open questions and research from the initial exploration, not additional product commitments. The [product vision](01-product-vision.md) is the starting point; detailed contracts and launch scope remain to be designed.
 
+Active implementation decisions and scenario evidence now live in the [Parts 5–6 implementation anchor](05-06-rendering-and-workflow.md). The broader questions below remain a backlog; the first code slice does not resolve them all.
+
 ## Composition and rendering — Parts 3–5
 
 The [mental model](03-mental-model.md) establishes the vocabulary. Its linked references and [scenario rubric](03-scenarios/README.md) hold detail to consult as each contract is designed.
