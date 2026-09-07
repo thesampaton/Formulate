@@ -4,24 +4,20 @@ These are open questions and research from the initial exploration, not addition
 
 ## Composition and rendering — Parts 3–5
 
-- [Part 3 — Mental Model](03-mental-model.md) proposes the vocabulary and responsibility boundaries. The [scenario rubric](03-scenarios/README.md) applies it to the seven requested hero scenarios in pseudocode; the [pressure tests](03-mental-model-pressure-tests.md) challenge their shared relationships. The questions below now concern concrete authoring and runtime contracts for that model.
-- Define how reusable sections and pages expose configuration and connect their internal field paths and dependencies to a containing form. Reusing a section twice must not cause identity collisions.
-- Page is the logical content and completion construct in Part 3; routes, tabs, and wizard steps present it. Specify routing integration, direct navigation, and shared state across unmounted pages without introducing page-local value stores.
-- Treat ad hoc fields configured against UI controls as a normal authoring path. Library fields are optional reuse. Parts 4–5 must preserve the same bindings, types, behaviour, and completion when mixing the two or extracting an inline field for reuse; a registry must not be required for ordinary fields.
-- The [simplicity rubric](03-scenarios/simple-form.md) is a prerequisite for the API: direct fields need no Page, Section, synthetic page state, duplicate presentation list, engine setup, or custom mapper for ordinary submit. Add layout, conditions, and reuse independently. Test removal as well as addition of optional scopes, preserving domain rules without a form-mode migration.
-- The [references and relationships model](03-references-and-relationships.md) anchors local references within section/page/form authoring, separate from value paths and presentation. Specify typed handles, exposed members, external inputs, and portable identity references without requiring root lookups or a registry for normal local conditions.
-- Keep data shape, visual nesting, and workflow progression distinct, while allowing them to be composed conveniently.
-- The [layout and presentation model](03-layout-and-presentation.md) treats layout as ordered content and ordinary CSS on form/page/section presentation. Specify container and placement surfaces, primitive props/slots, state styling hooks, override behaviour, and focus integration without adding data or completion scopes for layout wrappers.
-- Establish how default schema rendering and custom React layouts share field bindings and workflow behaviour, including arrays and review pages.
-- Distinguish shadcn's installation catalog from the runtime mapping of registered identities to compatible local components. Mapping requires a value and interaction contract, not just a component name.
+The [mental model](03-mental-model.md) establishes the vocabulary. Its linked references and [scenario rubric](03-scenarios/README.md) hold detail to consult as each contract is designed.
+
+- Demonstrate the [simple-form authoring budget](03-scenarios/simple-form.md), then add and remove layout, conditions, reuse, sections, and pages without changing form architecture. Preserve needed rules and state through those changes.
+- Specify reusable field/section/page configuration, bindings, typed references, and outside inputs. Keep data shape and presentation independently changeable, including repeated uses, arrays, and review views. See [relationships](03-references-and-relationships.md).
+- Define how default rendering and custom React share behaviour, and where container, placement, primitive props, styling hooks, and focus integration apply. See [layout](03-layout-and-presentation.md).
+- Define routing/tab integration around logical Pages, with shared state across unmounted content.
+- Distinguish source installation from runtime component mapping. Compatibility requires a value and interaction contract, beyond a component name.
 
 ## Workflow semantics — Part 6
 
-- Define applicability, value retention, validation scope, navigation, and payload inclusion explicitly. Hiding a field must not silently determine all of these policies.
-- Develop the [state and completion model](03-state-and-completion.md): current requirements roll up through fields, sections, pages, and forms; visited, dirty, saved, and submitted remain separate facts. Specify scoped subscriptions, validation freshness, progress indicators, and error destinations for rules spanning pages.
-- Specify how dependency changes invalidate selections, derived values, and prior completion at every affected layer, including stale asynchronous results. Cross-page rules must remain in section/form completion when pages show only part of a section.
-- Specify reactive dependency tracking, unresolved-input behaviour, retained inactive source values, and diagnostics for unsupported feedback loops. Distinguish mutual value reads from computed-value or completion feedback; define how error correction reveals a conditionally hidden but applicable field.
-- Establish boundaries for draft storage, recovery, progress, submission handlers, and errors. React Hook Form should remain the authority for field values; backend systems own durable business execution.
+- Specify defaults and overrides for applicability, retention, validation scope, navigation, and payload inclusion. Visibility alone cannot determine them.
+- Develop scoped state subscriptions, completion freshness, progress, and correction destinations from the [state reference](03-state-and-completion.md). Preserve the distinction between completion, visits, edits, and acknowledged saves.
+- Define dependency scheduling, stale-result rejection, unresolved inputs, retained inactive values, and unsupported feedback diagnostics. Include requirements spanning pages and correction of hidden applicable fields.
+- Specify draft recovery, submission snapshots, response reconciliation, and application handoffs. React Hook Form remains the default value authority; backend services own durable execution. The [pressure tests](03-mental-model-pressure-tests.md) provide acceptance cases.
 
 ## Definitions and distribution — Parts 7–8
 
@@ -47,9 +43,11 @@ The hypothesis concerns systematic composition of behaviour: conditional section
 
 The closer architectural comparisons include [json-render](https://json-render.dev/), which defines component and action catalogs for generated UI, and [A2UI](https://a2ui.org/), which describes agent-generated interfaces with component catalogs and data binding. AI-readable composition alone is not sufficient differentiation. Evaluate whether Formulate's reusable form interactions and shared workflow semantics add value, and whether these projects should be integration surfaces rather than formats to replace.
 
-Separate three uses: a human understands and edits a definition; AI generates a definition; an agent consumes a running interaction. The last needs more than a static schema: current applicable requirements, values it may access, validation results, and named available actions. Custom React layouts must preserve that meaning. Application services remain authoritative for permissions, business validation, and durable process state; Formulate must not mirror a backend state machine independently.
+Separate three uses: a human understands and edits a definition; AI generates a definition; an agent fills a running form, potentially alongside a person. The running form should expose context attached to stable field references, derived from labels/help, value contracts, declared dependencies, current choices, evaluated requirements, and state. Add domain descriptions where meaning cannot be derived; ordinary fields should need no duplicate agent schema. The [deployment sketch](03-scenarios/cloud-deployment-wizard.md#context-for-filling-the-form) illustrates this view.
 
-Test one deployment request through a React wizard and an agent using the same interaction contract. Change the account and production requirements midway; verify that both surfaces receive consistent requirements, invalidation, and permitted next actions. Include a server rejection or request for further input. Compare against generated React plus ordinary typed APIs and a component-catalog approach. If those alternatives provide the same consistency with less machinery, narrow Formulate's scope. This experiment tests the product thesis; it does not commit an agent runtime or workflow-engine adapter to Version 0.1.
+Parts 4–7 must define how consumers inspect that context, observe changes, propose value updates, and invoke permitted actions through the shared rules. Human–agent handoffs require freshness and conflict handling: an answer based on earlier context cannot silently overwrite newer work or rely on obsolete choices. Custom React must preserve the same meaning. The application controls accessible values/actions and owns business validation and durable execution; adapter protocols remain open.
+
+Test one deployment request through a React wizard and an agent using the same interaction contract. Let the person change the account while the agent prepares a region answer; both must receive current context and consistent outcomes. Change production requirements and include a server rejection or request for further input. Compare against generated React plus ordinary typed APIs and a component-catalog approach. If those alternatives provide the same consistency with less machinery, narrow Formulate's scope. This experiment tests the product thesis; it does not commit an agent runtime or workflow-engine adapter to Version 0.1.
 
 ## Research starting points
 

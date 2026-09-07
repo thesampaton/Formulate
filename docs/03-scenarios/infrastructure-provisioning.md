@@ -1,8 +1,8 @@
 # Infrastructure provisioning (Terraform)
 
-[Scenario rubric](README.md) · [Mental model](../03-mental-model.md)
+[Scenario rubric](README.md) · [State and completion](../03-state-and-completion.md)
 
-The distinctive challenge here is repeating resource compositions and reviewing an application-generated plan. A plan is evidence about a particular configuration. Changing that configuration must invalidate the relationship between the old plan and permission to provision.
+Repeated resources feed an application-generated plan. Provisioning requires a plan matching the current configuration, including application-supplied inputs.
 
 ```text
 library section Resource
@@ -40,23 +40,22 @@ form InfrastructureRequest
 
   submit Provision:
     validate: current configuration and matching plan requirement
-    payload: accountId, region, resources snapshot + matching application plan reference
+    payload: configuration snapshot + matching application plan reference
     handler: application.requestProvisioning
 ```
 
-Every repeated Resource use has its own name and size fields. `at resources` deliberately places them in an array. The stable item identity keeps an individual resource recognisable when its current array position changes. The collection-level uniqueness rule belongs to the form, which can see all items.
+Each repeated Resource has independent fields. Stable item identity survives array reordering; the form owns the collection-wide uniqueness rule.
 
-`PreviewPlan` is an application handoff with a declared validation scope. Its result is application-owned information displayed on the Review page, not another editable field. Formulate coordinates whether the matching-plan requirement is satisfied; the application verifies the reference and authorises execution. Any retained plan content or reference does not become a second authority for infrastructure state.
+The plan is application-owned review information, not another editable field. Its matching requirement can keep Review and the form incomplete when all inputs are valid. Matching covers the connected account as well as editable values. Merely visiting Review proves neither plan currency nor human acknowledgement.
 
-The application must identify every configuration input a plan covers, including the connected account even though it is not an editable field. Matching only region and resources could accept an old plan after the account changes. Naming a Review page cannot create this contract or prove human acknowledgement; acknowledgement, if needed, is another explicit requirement.
-
-**Completion and state:** field checks feed Resource section and Configure page completion. Review reads existing instances without counting them again and has its own matching-plan requirement. The form cannot be complete while that applicable requirement is unmet, even if every input is valid. Visited pages, saved drafts, and accepted provisioning requests are separate state. Pages share the form's values and field state; their identities do not depend on routes or tab labels.
-
-| Change to apply | Required outcome |
+| Change | Required outcome |
 | --- | --- |
-| Reorder, delete, or add a resource while machine-size lookups are pending. | Values, errors, and lookups follow stable surviving item identities. A response for a removed item cannot update the new item at its former index. |
-| Change account, region, or a resource after previewing the plan. | Recheck dependent selections and mark the old plan insufficient for the current request, even if region and resources happen to be unchanged after an account switch. A late result for the earlier snapshot cannot enable Provision. |
-| Split configuration into two pages, or receive a provisioning rejection. | Field identities and payload shape survive the split. A page checks its assigned members and requirements while the whole Resource section or form may remain incomplete. Rejection preserves useful work and identifies affected requirements. Terraform state, approval, and apply remain application responsibilities. |
-| Unmount Configure, then change the connected account while Review is open. | Preserve draft values and field state, recheck dependencies, and recompute section, page, and form completion. A full document reload requires draft recovery and plan re-evaluation; previously complete pages do not certify a current plan. |
+| Reorder or delete resources during size lookups. | Results follow surviving item identities; a removed item's response cannot update its former array position. |
+| Change account, region, or a resource after preview. | Invalidate the old plan. A late result for the previous snapshot cannot enable Provision. |
+| Split a Resource across pages. | Preserve its bindings. One page may complete while the whole Resource still has unmet requirements. |
+| Unmount Configure, then change account. | Retain draft values; recheck dependent selections and plan readiness. |
+| Receive a provisioning rejection. | Identify the affected attempt and requirements while preserving useful work. |
 
-**Question for later API design:** how should an application expose a result's configuration reference so readiness checks can reject stale plans without Formulate duplicating Terraform's execution state machine?
+The application verifies the plan reference and owns authorisation, Terraform state, approval, and execution.
+
+**Later API question:** How should application results expose configuration references so readiness can reject stale plans without duplicating Terraform's execution model?

@@ -1,86 +1,53 @@
-# Part 3 — State and Completion
+# Part 3 Reference — State and Completion
 
-The [mental model](03-mental-model.md) gives fields, sections, pages, and the form a useful scope. Each scope needs a readable state view so a field can show an error, a section can show unfinished work, and a page tab can show completion. Those views share one set of values and requirements.
+[Back to the mental model](03-mental-model.md). This reference develops completion, navigation, and recovery for later API design. Names and indicators are illustrative.
 
-Sections and pages are optional. With direct fields, only field and form state are needed: no synthetic page adds identity, visit history, navigation, or completion obligations. Adding an optional scope adds a summary over existing requirements; it does not supply missing validation machinery.
+**Completion means the currently applicable requirements are satisfied against current inputs.** It can change in either direction. Visiting, editing, saving, and submitting describe other facts.
 
-The state model is the same for fields configured inline and fields created from library definitions. Reuse changes how a field is authored, not where its values live or how its requirements contribute to completion.
+## Shared values, scoped state
 
-The [references and relationships model](03-references-and-relationships.md) connects conditions to these current values and states. Those connections belong to the logical composition and persist independently of where its controls are presented.
+React Hook Form is the default value authority; Formulate coordinates requirements, navigation, and actions. Sections and pages expose summaries over that shared state. A form with direct fields needs only field and form state.
 
-The [layout model](03-layout-and-presentation.md) exposes those states through styling hooks while keeping them read-only projections. Rearranging presentations or adding CSS wrappers changes neither their requirement scope nor their completion.
-
-**Completion means the currently applicable requirements for that scope are satisfied against current inputs.** It can change in either direction. Visiting, editing, saving, and submitting describe other facts.
-
-This document proposes semantics for the scenario rubric. Property names and badge labels are illustrative; the runtime API remains to be designed.
-
-## One value set, state at each layer
-
-| Layer | State specific to this layer | State derived from its scope |
-| --- | --- | --- |
-| **Field instance** | Current value, touched state, change baseline, and the results of its validation and dependencies. | Whether this use applies, has unsaved changes, has errors or required checks pending, and is complete. |
-| **Section instance** | Its own cross-field requirements and their results. Repeated sections also have stable item membership. | Relevant member values by reference, dirty and error summaries, pending requirements, and completion of its applicable members plus section rules. |
-| **Page instance** | Stable page identity, visit history, page-specific requirements such as reviewing the current summary, and their results. | State of the fields and requirements assigned to this page. The current page and permitted destinations come from form navigation. |
-| **Form** | The shared value set and baseline, form-wide requirements, navigation coordination, draft recovery, and action/attempt state. | Dirty, error, pending, and completion summaries across all applicable form requirements, including fields outside named pages. |
-
-React Hook Form is the default authority for field values and its field-state facilities. Formulate coordinates requirements, their results, navigation, and scoped summaries through that integration. A section or page does not keep another editable copy of its values. Application services remain authoritative for persistence, permissions, and business execution.
-
-Likewise, a page's count of invalid fields is a view over the relevant field states, not an independently editable counter. A page can also fail its own requirement even when every displayed field is valid. Summaries need to include those reasons, not just descendant field errors.
-
-## Completion has a scope
-
-| Scope | What must be satisfied |
+| Scope | State and completion responsibilities |
 | --- | --- |
-| **Field** | Its applicable presence and value rules, including contextual constraints and checks required for completion. |
-| **Section** | Its applicable member requirements and its own cross-field or collection rules. |
-| **Page** | The requirements assigned to the page, including page-specific conditions. By default, presenting an entire section includes its applicable requirements; presenting selected editable fields includes those fields' requirements. |
-| **Form** | Every applicable field, section, and form rule, plus required page conditions. Each underlying requirement is included once regardless of how many views refer to it. |
+| **Field** | Value, touched/dirty state, dependencies, and validation results. Complete when this use's applicable requirements pass. |
+| **Section** | Member summaries and its own cross-field or collection rules. Complete when applicable member and group requirements pass. |
+| **Page** | Visit history, assigned requirements, and page-specific conditions such as acknowledging a summary. Complete when those requirements pass. |
+| **Form** | Shared values and baselines, navigation, draft recovery, attempts, and all applicable requirements, including required page conditions. |
 
-These are scoped rollups, not a blind walk of the visual tree. A section may span pages. Reviewing a field displays an existing instance and does not create another field or another validation rule.
+A requirement counts once even when several views reference it. Reviewing a field does not create another value or validation rule. By default, presenting a whole section includes its requirements; presenting selected editable fields includes theirs. A cross-page section rule remains in section/form completion, with an explicit page or action assignment when it should also gate navigation.
 
-A cross-page section rule still belongs to section and form completion. The definition must identify which page or action should gate on that rule if it is also a navigation requirement. It must never disappear merely because the section's fields are presented separately. A failure needs an understandable correction destination, even when its owner is a section spanning pages.
+Account and Region can belong to one DeploymentTarget section but appear on separate pages. Account's page can finish while Region, the section, and the form remain incomplete. Every page's local checks can also pass while a form-wide rule fails; that failure needs a reason and correction destination.
 
-For example, Account and Region belong to one DeploymentTarget section. Put Account on one page and Region on the next. The Account page can be complete while Region, the section, and the form are incomplete. The Region page checks the region-against-account requirement. Final submission checks the complete target. Referencing that section from Review does not make Account wait for Region before the user can continue.
-
-## What a completion indicator means
-
-Use a small, explainable completion result at every layer:
+## Completion indicators
 
 | Indication | Meaning |
 | --- | --- |
-| **Not applicable** | The scope is explicitly inapplicable under the current conditions. Show it as skipped or omit it from applicable progress; do not claim the work was completed. |
-| **Incomplete** | A current requirement is missing, failed, stale, or has not yet been checked. Expose the reason. |
-| **Checking** | No known unmet requirement blocks completion, but at least one check required for completion is still pending. |
-| **Complete** | Every applicable requirement in the scope is satisfied using current values and dependency results. |
+| **Not applicable** | This scope is explicitly inapplicable. Omit it from required progress or show it as skipped. |
+| **Incomplete** | A requirement is missing, failed, stale, or not yet checked. |
+| **Checking** | No known unmet requirement blocks completion, but a required check is pending. |
+| **Complete** | All applicable requirements pass against current inputs. |
 
-A known failure remains available while another check runs; “Checking” must not conceal it. Error display timing remains a separate presentation policy: an untouched required field can be Incomplete without immediately displaying an error. A stale result cannot establish completion, and an old successful response cannot restore completion after its inputs change.
+A known failure stays visible while another check runs. Error-display timing is separate: an untouched required field can be incomplete without immediately showing an error. Background suggestions need not block completion; required checks do. Old responses cannot establish completion after their inputs change.
 
-Only required work affects this result. A background suggestions lookup does not block an otherwise complete field unless its result is needed to establish a declared requirement. An optional empty field can be complete when its contract accepts absence. A required empty field is incomplete. A prefilled field can be complete once the applicable checks pass without being touched or visited.
+Optional empty values and valid prefills can complete without interaction when their contracts allow it. An active scope with no obligations is complete; an explicitly inactive scope is not applicable. An informational Review page adds no required work. If review matters, declare acknowledgement of the current summary rather than infer it from arrival.
 
-No observed errors is insufficient evidence: required validation may not have run. Conversely, an active scope with no applicable obligations is Complete; that differs from an explicitly inapplicable scope. An informational Review page can therefore be complete without a visit and adds no required work to a progress count. If reviewing is a requirement, declare an explicit acknowledgement of the current summary. Page arrival alone is not that acknowledgement.
+Action availability may also depend on permissions, navigation policy, or a request already in progress. An action guard affects completion only when declared as a requirement of that scope.
 
-Completion says that the declared work is satisfied. Whether an action is available can additionally depend on permissions, navigation policy, or an attempt already in progress. A complete form can have a disabled Submit action while a request is being sent.
+## Other state and save baselines
 
-An action-specific guard is not automatically a completion requirement. For example, settings may be complete but need to be saved in a particular order. If a guard should also determine page or form completion, include it explicitly in that scope, as with the Terraform example's matching-plan requirement.
-
-## Keep the other state visible
-
-| Question | State to use |
+| Question | State |
 | --- | --- |
-| Has the person interacted with this field or opened this page? | Field touched state or page visit history. |
-| Where are they now, and where can they go? | Current logical page and navigation availability. |
-| Are the relevant values different from the chosen baseline? | Dirty state, scoped to those values. |
-| Are the current requirements satisfied? | Validation results and completion. |
-| Is more information being checked? | Pending work, distinguishing required checks from background activity. |
-| Has the application accepted these values? | The acknowledged snapshot for the relevant save or submission attempt. |
+| Has the user interacted or visited? | Field touched state / page visit history. |
+| Where are they, and where can they go? | Current page / available destinations. |
+| Have values changed? | Dirty comparison against the chosen baseline. |
+| Are requirements satisfied? | Current validation results / completion. |
+| Is work pending? | Required checks, background activity, and attempts distinguished. |
+| Has the application accepted these values? | Acknowledged save/submission snapshot. |
 
-For example, a tab can show **Complete · Unsaved**, or **Needs attention** even though the page was previously visited and saved. A form may be saved as a draft while incomplete. A previously submitted form may contain newer edits which have not been submitted.
+A tab can show **Complete · Unsaved**. A draft can be saved while incomplete. A successful scoped save advances the baseline only for acknowledged values; unrelated or newer edits stay unsaved. Submission feedback belongs to its attempt and must be reconciled with subsequent edits.
 
-Dirty state compares values with a declared baseline. Initially that may be loaded values. A successful scoped save can advance the baseline for the acknowledged values; it does not mark unrelated edits, or newer edits made during that save, as saved. Exact persistence adapters belong to later design, but these distinctions must survive them.
-
-## Pages survive presentation and navigation changes
-
-The same page identities can be mapped to routes, tab keys, or wizard panels:
+## Pages, routes, and tabs
 
 ```text
 form DeploymentRequest
@@ -93,36 +60,29 @@ form DeploymentRequest
       review target
       require acknowledgement of the current target summary
 
-  workflow: sequential navigation, continuing when current page is complete
-
-  presentation, choose one:
-    routes: Account -> /request/account
-            Region  -> /request/region
-            Review  -> /request/review
-    tabs:   Account, Region, Review
+  workflow: continue when current page is complete
+  presentation: routes or tabs
 ```
 
-Switching that presentation changes neither bindings nor requirement scopes. The example keeps the same navigation policy in both presentations, so a tab click cannot bypass a guard applied to the matching route. An application may deliberately choose free navigation instead; visiting an incomplete page is then allowed without declaring its requirements complete.
+The router supplies a requested location; navigation rules determine the allowed logical destination. Back, direct URLs, tab clicks, and Next must respect the same policy for this workflow. Free navigation is also possible without declaring incomplete pages complete. When a branch makes the current page unavailable, choose a deterministic available destination and apply the declared value-retention policy.
 
-Back, forward, a direct URL, a clicked tab, and a Next action all resolve to a logical page and are reconciled with the same navigation policy. The router supplies the requested location; Formulate supplies the allowed logical destination; the application integration keeps them aligned. A changed branch must resolve a current page that is no longer available to a deterministic available destination, preserving values according to the declared retention policy.
+Unmounting page UI preserves values, dependencies, errors, and requirements. Destroying the runtime through full navigation or reload requires draft persistence to restore that work. Restoration re-evaluates requirements and navigation; stored completion is not evidence that current checks pass.
 
-Unmounting page UI must preserve applicable values, errors, dependencies, and completion in the shared form interaction. Off-screen requirements still count. A true document reload or navigation that destroys the form runtime requires draft persistence and restoration; an in-memory store alone cannot preserve it. Restoration re-evaluates requirements and navigation before presenting stored completion as current.
+## Worked completion sequence
 
-## A completion sequence to pressure-test
-
-Using the Account, Region, and Review pages above, assume valid account selection is immediate and region membership needs a check. The explicit Review acknowledgement is tied to the relevant values and requirements, so a material change revokes it.
+Assume account validation is immediate, region membership needs a check, and review acknowledgement is tied to the current target summary.
 
 | Change | Account page | Region page | Target section | Review page | Form |
 | --- | --- | --- | --- | --- | --- |
-| Start with required values empty. | Incomplete | Incomplete | Incomplete | Incomplete | Incomplete |
+| Required values empty. | Incomplete | Incomplete | Incomplete | Incomplete | Incomplete |
 | Choose a valid account. | Complete | Incomplete | Incomplete | Incomplete | Incomplete |
-| Select a region; its required check is pending. | Complete | Checking | Checking | Incomplete | Incomplete |
+| Select region; check pending. | Complete | Checking | Checking | Incomplete | Incomplete |
 | Region check passes. | Complete | Complete | Complete | Incomplete | Incomplete |
-| Acknowledge the current summary. | Complete | Complete | Complete | Complete | Complete |
-| Change account; retained region must be checked again. | Complete | Checking | Checking | Incomplete | Incomplete |
+| Acknowledge summary. | Complete | Complete | Complete | Complete | Complete |
+| Change account; recheck retained region. | Complete | Checking | Checking | Incomplete | Incomplete |
 
-If the retained region is already known to be invalid for the new account, its indication is Incomplete while replacement options load. If the user changes only route paths or tab labels, completion is unchanged. Navigating away and back does not acknowledge the new summary.
+If the retained region is already known invalid, show Incomplete while options load. Changing route paths or tab labels leaves completion unchanged; revisiting Review does not acknowledge a changed summary.
 
-Progress counts must name what they count: “2 of 3 required pages complete” describes page obligations, not a count of unique fields or proof that form-wide rules pass. Count each field once in a field summary. Inapplicable branches leave the relevant denominator, repeated items enter or leave by stable identity, and progress can decrease when requirements change. An optional informational page should not inflate a claim about completed required work.
+Progress must name its unit: “2 of 3 required pages complete” counts page obligations, not unique fields or form-wide validity. Inapplicable work leaves the denominator, repeated items enter by stable identity, and progress can decrease. Informational pages do not inflate completed required work.
 
-The [pressure tests](03-mental-model-pressure-tests.md) and [scenario sketches](03-scenarios/README.md) apply these semantics. Later prototypes must demonstrate the same state and transitions through both tabs and routes, including out-of-order checks, partial saves, and draft restoration.
+The [scenario rubric](03-scenarios/README.md) and [pressure tests](03-mental-model-pressure-tests.md) supply acceptance cases for validation freshness, partial saves, and recovery.

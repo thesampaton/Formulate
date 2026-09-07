@@ -1,26 +1,21 @@
 # Dynamic survey or questionnaire
 
-[Scenario rubric](README.md)
+[Scenario rubric](README.md) · [References](../03-references-and-relationships.md)
 
-A household survey asks shared questions, repeats member details, and reveals employment questions for employed members. Respondents can change answers, reorder members, leave, and recover a draft. The test is whether question meaning and answers survive changes to branches, presentation, and the survey definition.
-
-The following is illustrative pseudocode, not TypeScript or a proposed public API. Basic text fields configure local shadcn Input controls inline; Age and EmploymentStatus are reusable library fields. The member section owns the relationship between employment status and employment details; each repeated use resolves it within its own member.
+A household survey repeats member details and conditionally asks about employment. Answers must keep their meaning across branching, reordering, and draft recovery.
 
 ```text
 library section EmploymentDetails
   employer = field at employer
     control: Input
-    placeholder: Enter employer
     validate: required
   role = field at role
     control: Input
-    placeholder: Enter role
     validate: required
 
 library section HouseholdMember
   name = field at name
     control: Input
-    placeholder: Enter member name
     validate: required
   age = use Age at age
   employmentStatus = use EmploymentStatus at employmentStatus
@@ -48,19 +43,17 @@ form HouseholdSurvey
   submit applicable values to application.recordSurveyResponse
 ```
 
-Inline fields are ordinary instances, needing no named definition or registry entry. They share the library uses' binding, state, and completion model. Extracting a repeated question into a library later preserves its instances' identities, values, configuration, and rules.
+Each member resolves the employment condition locally. An unemployed member's employment answers remain in the draft but do not block completion or enter submission. Switching back rechecks them. Navigating away has none of those branch effects.
 
-Changing one member from employed to unemployed makes that member's employment section inapplicable. Its answers remain in the draft but neither block progression nor enter the submitted response. Other members are unaffected. Switching back rechecks the retained answers under the current requirements; an earlier completion marker does not certify them automatically. Merely navigating away from the Members page has none of these branch effects.
+`declaration` identifies a field use; `householdDescription` is its binding. Wording and page position determine neither. A materially different question requires an intentional identity and data-contract decision.
 
-`declaration` is the identity of a declared field use; `householdDescription` is its value binding. Neither depends on displayed wording or page position. Page identities are also independent of route paths and tab labels. A revised label, layout, or review view can refer to the same field. A materially different question requires an intentional identity and data-contract decision.
-
-**Completion and state:** current field requirements feed each repeated member's section completion, the assigned page's completion, and form completion. Inapplicable employment requirements do not block any of them. Review references do not duplicate fields or their requirement counts, and visiting it is not acknowledgement. An explicit review requirement can contribute its own page obligation. Touched, visited, draft-save, and submission state remain separate from completion. The form retains values, errors, and pending work when pages unmount.
-
-| Change to pressure-test | Required outcome |
+| Change | Required outcome |
 | --- | --- |
-| Enter employment answers, switch branches, and return. | Retain draft work, omit inactive answers from the payload, and re-evaluate restored requirements. Review follows the same applicability rules as data entry. |
-| Reorder members or remove one before correcting a validation error. | Answers, errors, and internal dependencies remain attached to stable member identities. The error cannot move to another person because their array index changed. |
-| Recover a draft after questions or branching rules change. | Identify its original definition version. Continue on that version or explicitly migrate to a compatible definition; never silently reinterpret old answers. Re-evaluate requirements and prior completion after recovery. |
-| Split a member's fields across pages, navigate away, then change employment status. | A page checks its assigned members and local requirements; the whole member section and form can remain incomplete. Recompute affected off-screen completion. A full document reload uses the persisted draft and re-evaluates it rather than trusting visited or saved markers. |
+| Switch employment branches and return. | Retain draft answers, omit inactive values, and re-evaluate restored requirements. Review follows the same applicability policy. |
+| Reorder or remove a member before correcting an error. | Answers, errors, and dependencies stay attached to the person, not their former array index. |
+| Recover a draft after questions or rules change. | Identify its definition version; continue that version or migrate explicitly. Re-evaluate requirements without silently reinterpreting answers. |
+| Split a member across pages, then change employment status. | Recompute affected completion, including off-screen fields. A completed page need not complete the whole member section. |
 
-**Open design question:** Who selects the recovery policy when a saved draft's definition version is unavailable or incompatible: continue an available earlier version, apply an application-supplied migration, or request the affected answers again?
+A full reload uses persisted draft data and re-evaluates it; previous completion markers cannot certify current answers. The application owns response persistence and definition-version recovery policy.
+
+**Later API question:** When a draft's definition is unavailable, how does the application choose between migration, an available earlier version, or requesting affected answers again?

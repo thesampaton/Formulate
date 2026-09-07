@@ -2,7 +2,7 @@
 
 [Scenario rubric](README.md) · [Mental model](../03-mental-model.md)
 
-This is the fullest trace through the model: a reusable region field built from UI primitives, used inside a reusable section, with two independent section instances in one form. The sketch deliberately leaves services and deployment execution in the application.
+This traces a library field built from primitives through two independent section uses, pages, and submission.
 
 ```text
 library field AWSRegion
@@ -50,20 +50,36 @@ form CloudDeployment
     handler: application.requestDeployment
 ```
 
-`AWSRegion` is the library field; `primary.region` and `recovery.region` identify its separate uses within the two section instances. Their bindings are `targets.primary.regionId` and `targets.recovery.regionId`. The section connects each region to its own account. No copy of that dependency is written in the form.
+`AWSRegion` is the definition; `primary.region` and `recovery.region` are separate uses bound at `targets.primary.regionId` and `targets.recovery.regionId`. Each section connects its region to its own account.
 
-`ProductionConfiguration` stands for another reusable section with its own fields and rules. Its applicability determines which production requirements matter. Page availability governs navigation separately. `Targets`, `Production`, and `Review` are logical identities independent of routes, tab labels, or presentation order; a wizard step is a page presented in sequence.
+Production applicability controls requirements and inclusion. Production page availability separately controls navigation. Review reads those instances and shows what will be submitted. Visiting it does not itself satisfy an acknowledgement requirement.
 
-Review reads the same instances and indicates which data will be included. It creates no field instances and does not duplicate their requirements or counts; merely opening it proves no acknowledgement. If acknowledgement is required, declare it as a Review requirement. Acceptance of `Deploy` means the application accepted the request; its services still own deployment execution.
-
-**Completion and state:** field checks feed section, page, and form completion from current applicable requirements. A page checks its assigned members and local requirements; if account and region occupy different pages, completing account's page need not complete their section or the form. Values, errors, and pending checks remain in the form across navigation; visited, touched, saved, and submitted state are separate signals.
-
-| Change to apply | Required outcome |
+| Change | Required outcome |
 | --- | --- |
-| Change primary account twice while region lookups are pending. | Only primary region is rechecked. Results must match its current account before they can affect options or validity. Recovery state is unchanged. |
-| Switch to development, then back to production. | Retained production values are excluded and do not block development submission. Returning rechecks those values and earlier completion. |
-| Put account and region on separate pages; replace the region picker; add an agent consumer. | The bindings and account dependency survive. Default React, custom React, and the agent receive the same requirements and available actions. |
-| Switch from routes to tabs, unmount Targets, then change a dependency. | Page identities and field state survive. Recheck affected section, page, and form completion, including off-screen content. A full document reload requires a persisted draft and re-evaluation; a visited marker proves nothing about current completion. |
-| Receive a server rejection or request for more input after editing the draft. | Reconcile the response with its submitted snapshot, preserve useful edits, and expose the next permitted action through the shared interaction contract. |
+| Change primary account twice during lookups. | Accept results only for its current account; recovery stays independent. |
+| Switch to development and back. | Exclude retained production values while inactive; recheck them when applicable again. |
+| Put account and region on separate pages. | Keep their bindings and dependency. One page can complete while the section remains incomplete. |
+| Replace the picker or add an agent consumer. | Expose the same requirements and available actions without reimplementing rules. |
+| Change routes to tabs and unmount Targets. | Preserve page identities and field state; dependencies still update off-screen completion. |
+| Receive a rejection after editing. | Reconcile with the submitted snapshot and preserve useful newer work. |
 
-**Question for later API design:** what is the smallest readable contract that exposes current requirements and available actions to both custom React and an agent without requiring either to reimplement the rules?
+The application owns deployment execution. Accepting a request does not mean deployment has completed.
+
+## Context for filling the form
+
+An illustrative context view of the existing field and running state:
+
+```text
+field reference: primary.region
+purpose: region for the primary deployment target
+value: empty
+depends on: primary.account, currently account A
+requirement: choose a region available to account A
+choices: current regions from application.listRegions(account A)
+completion: incomplete
+permitted edit: select a region
+```
+
+This reference identifies the same field in a grid, another page, or Review, and stays distinct from `recovery.region`. If a person changes Account after the agent reads this context, recheck its proposed selection against the current account and return updated context. Concurrent edits to Region also require reconciliation.
+
+**Later API question:** What is the smallest shared contract for inspecting current context, proposing edits, and invoking actions across human–agent handoffs?

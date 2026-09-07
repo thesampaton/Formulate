@@ -1,12 +1,8 @@
 # Employee onboarding
 
-[Scenario rubric](README.md)
+[Scenario rubric](README.md) · [Mental model](../03-mental-model.md)
 
-Employee onboarding is an original Part 9 hero scenario. This proposed example tests reusable pages, fields, bindings, and progression. The notation is not a published API.
-
-An organisation collects employment details, asks for equipment, and reviews the request. Its internal-transfer form needs the same employment interaction but continues directly to review. The reusable page should carry its presentation and requirements without hardcoding a destination in its original form.
-
-Employment groups independent inputs using existing library fields. EquipmentRequest is another existing section. EmploymentSetup receives a reference to an existing Employment instance; the host owns its binding. Connecting this reference does not copy fields or create a second value store.
+Employee onboarding and internal transfer share an employment page. The page carries its local requirements; each host chooses where Continue leads.
 
 ```text
 library section Employment
@@ -41,17 +37,17 @@ form InternalTransfer
     to application.requestInternalTransfer
 ```
 
-The page's `Continue` outcome expresses successful local progression; the host's workflow supplies its destination. Section child bindings such as `managerId` stay relative to that section's explicit root. The two forms choose different roots deliberately; reusing the page does not rename data. Its identity is independent of the route or tab label used to present it. A wizard step is this page presented in sequence.
+EmploymentSetup receives an existing section reference; it creates no copied fields. The host supplies the binding root and destination. Section child bindings remain relative to that root, while routes or tab labels do not determine page identity.
 
-**Completion and state:** current field requirements determine Employment section completion; setup checks its assigned details and local requirements. Equipment and the whole form have their own applicable requirements. Visiting Review creates no fields, duplicate counts, or acknowledgement; add an explicit requirement if acknowledgement matters. Current completion is separate from touched, visited, saved, or accepted state, and can regress when dependencies change. Values and field state live across pages at the form boundary.
+Setup completion checks employment requirements. It cannot certify Equipment or the whole onboarding form. Review reads existing values without duplicating their requirements.
 
-| Proposed change | Invariant expectations |
+| Change | Required outcome |
 | --- | --- |
-| Reuse EmploymentSetup in InternalTransfer, then customise its layout. | Both hosts retain the packaged readiness rules. The transfer host selects Review as the destination. Custom rendering presents the existing section and fields, preserving their bindings and identities. |
-| Change employment type after completing an equipment request. | Declare the equipment policy explicitly: when inapplicable, retain its draft, skip its requirements, and exclude it from submission. Returning to an applicable type rechecks retained answers. An off-screen employment page remains applicable. |
-| Unmount setup when navigating to Equipment, then return using a different route or tab label. | Preserve page and field identities, values, errors, and current completion. A full document reload needs draft persistence and re-evaluation. A completed setup page cannot certify incomplete equipment or the whole form. |
-| The application requests a different manager after submission. | Return the requirement through an explicit handoff with an error or reason attached to the relevant request. Preserve unrelated work, invalidate affected readiness, and expose an understandable correction action. Do not create another manager field to display the rejection. |
+| Reuse setup in InternalTransfer and customise its layout. | Keep its local readiness rules and existing field identities; the host still chooses Review. |
+| Change employment type after requesting equipment. | Explicitly retain the equipment draft, skip requirements, and exclude values when inapplicable. Recheck retained answers if it applies again. |
+| Unmount setup during navigation. | Keep values, errors, and current completion at the form boundary. Being off-screen does not make employment inapplicable. |
+| The application requests another manager after submission. | Attach the reason to the relevant attempt and existing manager field; preserve unrelated work and expose correction. |
 
-Formulate owns the input interaction and its next available actions. HR services own employee records, permissions, approval decisions, equipment fulfilment, and durable onboarding progress. Reaching Review or having a submission accepted must not be presented as proof that those business operations are complete.
+HR services own employee records, permissions, approvals, equipment fulfilment, and durable onboarding progress. Reaching Review or receiving request acceptance does not complete those operations.
 
-**Open design question:** Can the eventual page authoring API make receiving an existing section and conveniently creating a locally bound section equally readable, while preserving one clear identity and binding for each field?
+**Later API question:** Can a reusable page receive an existing section or create a locally bound one with equally clear authoring?

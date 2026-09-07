@@ -1,10 +1,8 @@
 # Construction procurement
 
-[Scenario rubric](README.md)
+[Scenario rubric](README.md) · [State and completion](../03-state-and-completion.md)
 
-A site manager requests materials, reviews estimated costs, and submits for purchasing. The application owns catalogue access, authoritative prices, approvals, and purchase orders. This tests repeated sections, structured field values, and responses arriving after edits.
-
-The notation is illustrative pseudocode, not a published API. `Money` exposes one object-valued field contract using amount and currency controls. `LineItem` exposes separate material, quantity, and unit-budget fields: each has its own binding and can be presented independently. Application estimates are review information.
+A material request combines repeated line sections and structured field values. Money is one field contract with two controls; a LineItem has independently bound material, quantity, and budget fields.
 
 ```text
 library field Money
@@ -22,7 +20,7 @@ library section LineItem
   quantity = use Quantity at quantity
     validation: positive quantity
   unitBudget = use Money at unitBudget
-    label: "Maximum unit budget"
+    label: Maximum unit budget
   require: material, quantity, unitBudget
 
   on material.value or quantity.value or section.project changing:
@@ -43,23 +41,24 @@ form MaterialRequest
     review project, lines
     show application estimates with their currencies
   workflow: Request -> Review
+
   submit RequestPurchase:
     validate: project, line requirements, and at least one line
     payload: project ID + material, quantity, unit budget, and request line ID per line
     handler: application.requestPurchase
 ```
 
-The estimate is advisory information, not a guarantee that purchasing will accept that price. For this example, an unavailable estimate permits submission: preserve the inputs, mark the estimate unavailable, and offer a retry. Estimates are excluded from the payload. Request line IDs must let the application identify submitted lines; UI array indexes cannot supply that contract. Totals must retain currency meaning; amounts in different currencies cannot silently be added together.
+Estimates are advisory application information. In this example, unavailable estimates offer retry but do not block completion or submission; they are excluded from the payload. Mixed-currency amounts cannot silently become one total.
 
-Review reads existing line instances without duplicating field instances or their requirement counts. Visiting it does not prove acknowledgement; declare a requirement if needed. Moving quantity beside unit budget creates no new field. Reusing `LineItem` carries its internal estimate dependency; the caller supplies services and project input. Request and Review are logical pages whose identities survive route or tab-label changes.
+The section packages estimate dependencies; its caller supplies project and services. Review reads existing instances. Submitted line IDs must identify those lines to the application; array positions cannot provide that contract.
 
-**Completion and state:** each field reports current checks; each line section, page, and the form derives completion from applicable members and requirements. Page checks cover its assigned members and local requirements. An unavailable advisory estimate does not make valid inputs incomplete in this example. Touched, visited, saved, and submitted state remain separate from completion. Form values and field state survive page navigation and unmounting.
-
-| Change to pressure-test | Required outcome |
+| Change | Required outcome |
 | --- | --- |
-| Reorder or delete lines while estimates are pending. | Values and errors follow stable item identities. Removed-item results are discarded; surviving results never follow an obsolete array index. |
-| Change project or quantity before a lookup completes. | Previous estimates are stale. Only a response matching the current item and inputs can become current; errors from superseded requests cannot replace current status. |
-| Receive a price or availability rejection after submission and further editing. | Associate it with the submitted snapshot and stable line identity. Preserve newer edits and require reconciliation; do not attach an old rejection to whichever line now occupies that index. |
-| Visit Review, navigate back to edit quantity, then return with Request unmounted. | Preserve field state and recompute affected line, page, and form completion; pending advisory estimates remain a separate signal. A full document reload restores a persisted draft and re-evaluates requirements and estimates rather than trusting earlier completion. |
+| Reorder or delete lines during estimates. | Responses follow stable surviving identities; removed-item results are discarded. |
+| Change project or quantity before a result arrives. | Only matching current inputs can produce a current estimate. Superseded errors cannot replace current status. |
+| Receive a price rejection after further editing. | Associate it with the submitted snapshot and line identity, preserve newer edits, and require reconciliation. |
+| Edit quantity after Review, then navigate away. | Recompute affected completion; the advisory estimate remains a separate signal even when Request unmounts. |
 
-**Open design question:** What response contract should the application use to identify the submitted line, relevant input revision, and affected fields so that stale lookup results and submission errors can be reconciled consistently?
+The application owns catalogue access, authoritative prices, approvals, and purchase orders.
+
+**Later API question:** What response contract identifies the submitted line, input revision, and affected fields for consistent reconciliation?

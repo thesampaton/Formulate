@@ -1,8 +1,8 @@
-# Focused Example — A Simple Form Stays Simple
+# A simple form stays simple
 
-**A form can contain fields directly. Pages, sections, and library definitions are optional.** This example tests the smallest useful authoring path through the [mental model](../03-mental-model.md), alongside the larger [scenario rubric](README.md).
+[Scenario rubric](README.md) · [Mental model](../03-mental-model.md)
 
-## The baseline
+**A form can contain fields directly. Pages, sections, and library definitions are optional.**
 
 ```text
 form SignIn submit application.signIn
@@ -21,35 +21,29 @@ form SignIn submit application.signIn
     label: Sign in
 ```
 
-This shorthand is a rubric, not a proposed API. In this simple case, `field email` supplies one authored value key from which binding and default field identity can be inferred. It needs no separate alias, ID, registration, or presentation declaration. Ordered inline children supply presentation order. More explicit bindings and references remain available when the composition needs them.
+This illustrates the authoring bar, not chosen syntax. Each field needs one value key; ordered children supply presentation. `action submit` is the rendered submit control connected to the handler.
 
-`action submit` is the ordinary rendered submit control connected to the form's handler, not another action-registry declaration.
+Fields participate directly in form validation, errors, and completion. Submit checks applicable requirements and passes `email` and `password` to `application.signIn`. Ordinary binding, label/error associations, focus integration, and submission defaults come from the field integration. No synthetic page needs configuration.
 
-The two fields participate directly in form validation, errors, and completion. Submit checks the applicable requirements and hands the current `email` and `password` values to `application.signIn`. The form records that attempt and its result; the application handles sign-in. No synthetic page needs an authored identity, visit state, completion indicator, or navigation policy.
+## Add only what changes
 
-A compatible renderer provides the ordinary binding, label/help/error associations, and focus integration. Documented defaults handle the ordinary value engine, validation/error timing, and submission path. Authors supply labels and actual requirements; they should not have to redeclare those integration defaults or invent retention, draft, or navigation policies for this baseline. A bare Input without the field integration remains an ordinary control.
+Each row is an independent addition to the same form.
 
-## Grow only where the requirement grows
-
-Each row is a small change to the same form, rather than a prerequisite for the next row.
-
-| Change | What should need authoring |
+| Requirement | Expected authoring |
 | --- | --- |
-| Put fields in a CSS row. | Add a class/style to the existing container or an ordinary layout wrapper. No Section or second ordering list. |
-| Disclose one advanced field. | Declare a checkbox and the extra field inline; give the field `visible when showAdvanced.value`. The direct reference needs no group or registry. Disclosure preserves its requirements; a hidden error still needs a reachable correction path. |
-| Reuse the email field elsewhere. | Extract its configuration into a library field, preserving this use's binding, identity, state, and rules. Other fields stay inline. |
-| Reuse related fields and their rules. | Extract an ordinary component, or introduce a Section when the group needs semantic identity, requirements, or state. Reuse alone and visual rows need no Section. |
-| Split the experience into two pages. | Add page presentations and the required navigation. Preserve existing fields, values, dependencies, and domain rules. Add page requirements only where the new experience calls for them. |
-| Remove pages or a section. | Keep fields and rehome still-needed rules, conditions, retention/inclusion policies, and inherited defaults. Intentionally remove obsolete navigation/visit obligations. Removing a scope must not silently change remaining behaviour. |
-| Show a server rejection. | Attach the handler's feedback to the relevant attempt and fields or form, preserving entered values. No architectural rewrite. |
+| Put fields in a CSS row. | Add a container class or ordinary layout wrapper. |
+| Disclose an advanced field. | Add a checkbox and `visible when showAdvanced.value` on that field. Keep hidden errors reachable for correction. |
+| Reuse Email. | Extract its configuration; preserve this use's binding and behaviour. Other fields stay inline. |
+| Reuse related fields. | Extract an ordinary component; add a Section only when the group needs semantic identity, requirements, or state. |
+| Split into pages. | Add page presentation and navigation while preserving fields, dependencies, and domain rules. |
+| Remove pages or a section. | Remove obsolete navigation; relocate still-needed rules, conditions, policies, and defaults. |
+| Show a server rejection. | Attach feedback to its attempt and affected fields or form, preserving entered values. |
 
-## The acceptance budget
+## Acceptance budget
 
-For the baseline, require:
+- **Zero authored Pages, Sections, library definitions, registry entries, separate references, payload mapper, or duplicate presentation lists.**
+- **One value key per field; each rule declared once.**
+- One submit connection and rendered submit control.
+- Field and form errors/completion without an extra configuration or value store.
 
-- **Zero authored Pages, Sections, library definitions, registry entries, separate reference declarations, or duplicate presentation lists.**
-- **One authored value key per field; each rule declared once.**
-- One submit connection and one submit action, with normal integration defaults already available.
-- Field and form errors/completion without an extra completion configuration or value store.
-
-Later API prototypes must demonstrate these properties with real code and useful inference. Count independent edits when adding and removing the features above; concise pseudocode is not measured implementation ease. The [pressure tests](../03-mental-model-pressure-tests.md) must continue to pass as the form grows or shrinks.
+Actual API prototypes must meet this bar. Measure required concepts and independent edits when growing or shrinking the form; short pseudocode alone does not prove easy authoring.
