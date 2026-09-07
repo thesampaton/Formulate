@@ -1,6 +1,7 @@
 // Compile-time API checks, included in pnpm typecheck; never rendered.
-import { createFormulate, defaultComponents, defineFieldControl, Field, useFieldControl } from "@formulate/react";
+import { createFormulate, defaultComponents, defineFieldControl, defineForm, Field, useFieldControl, useFormulate } from "@formulate/react";
 import type { Control } from "react-hook-form";
+import { z } from "zod";
 
 const Choice = defineFieldControl<string>()(function Choice({ options }: { options: string[] }) {
   const field = useFieldControl<string>();
@@ -9,6 +10,7 @@ const Choice = defineFieldControl<string>()(function Choice({ options }: { optio
 const custom = createFormulate({ components: { ...defaultComponents, choice: Choice } });
 
 export function checkFieldTypes(control: Control<{ email: string; enabled: boolean; count: number }, unknown>) {
+  <Field name="email" label="Email" component="input" />;
   <Field control={control} name="email" label="Email" component="input" componentProps={{ type: "email" }} />;
   <custom.Field control={control} name="email" label="Email" component="choice" componentProps={{ options: ["a", "b"] }} />;
   // @ts-expect-error Unknown component keys must fail.
@@ -27,4 +29,45 @@ export function checkFieldTypes(control: Control<{ email: string; enabled: boole
   <Field control={control} name="email" label="Email" component="input"><span /></Field>;
   // @ts-expect-error Field names must belong to this form.
   <Field control={control} name="missing" label="Missing" component="input" />;
+}
+
+const Details = defineForm({
+  email: { schema: z.email(), defaultValue: "", label: "Email", component: "input", componentProps: { type: "email" } },
+  count: { schema: z.string().transform(Number), defaultValue: "0", label: "Count", component: "input" },
+});
+
+export function DefinitionTypes() {
+  const form = Details.useForm({ defaultValues: { email: "person@example.com" } });
+  const explicit = useFormulate(Details, { defaultValues: { email: "person@example.com" } });
+  const explicitCount: string = explicit.getValues("count");
+  const email: string = form.getValues("email");
+  const editingCount: string = form.getValues("count");
+  form.handleSubmit((values) => {
+    const parsedCount: number = values.count;
+    return Promise.resolve(parsedCount);
+  });
+  <Details.Field name="email" componentProps={{ autoComplete: "email" }} />;
+  <Details.Fields />;
+  // @ts-expect-error Typed definitions check field names even without explicit control.
+  <Details.Field name="missing" />;
+  // @ts-expect-error Per-use props belong to the declared control.
+  <Details.Field name="email" componentProps={{ options: [] }} />;
+  // @ts-expect-error A definition does not permit presentation-time binding changes.
+  <Details.Field name="email" componentProps={{ name: "count" }} />;
+  // @ts-expect-error Defaults use the editing type, not the parsed output type.
+  defineForm({ count: { schema: z.string().transform(Number), defaultValue: 0, label: "Count", component: "input" } });
+  // @ts-expect-error Component contracts must match the schema editing type.
+  defineForm({ enabled: { schema: z.boolean(), defaultValue: false, label: "Enabled", component: "input" } });
+  // @ts-expect-error Components are checked against the configured catalogue.
+  defineForm({ email: { schema: z.string(), defaultValue: "", label: "Email", component: "missing" } });
+  // @ts-expect-error Controls with required props must receive them in the declaration.
+  custom.defineForm({ choice: { schema: z.string(), defaultValue: "", label: "Choice", component: "choice" } });
+  custom.defineForm({ choice: { schema: z.string(), defaultValue: "a", label: "Choice", component: "choice", componentProps: { options: ["a", "b"] } } });
+  // @ts-expect-error Every possible editing value must be supported, including undefined.
+  defineForm({ email: { schema: z.string().optional(), defaultValue: undefined, label: "Email", component: "input" } });
+  // @ts-expect-error Prefills must use editing types, even when output is numeric.
+  Details.useForm({ defaultValues: { count: 2 } });
+  // @ts-expect-error The definition-bound hook checks prefill keys.
+  Details.useForm({ defaultValues: { missing: "value" } });
+  return <p>{email}{editingCount}{explicitCount}</p>;
 }

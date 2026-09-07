@@ -23,6 +23,8 @@ pnpm check # TypeScript, interaction tests, package build, example build
 
 The [@formulate/react package](packages/react/README.md) provides `Form`, `Field`, `Section`, `Page`, and `useFormulate`. Examples use React and Tailwind CSS 4 with no Next.js dependency. The [local control map](examples/react/src/formulate.ts) supplies styled controls, with per-use Tailwind overrides through `className`. UI source distribution through shadcn remains design work.
 
+The examples use `defineForm` to declare each field's schema, editing default, and presentation once. `Definition.useForm()` creates its runtime; static prefills preserve untouched defaults. Render all fields in declaration order or place individual typed fields in JSX. Field connections come from Form context by default; an explicit RHF `control` remains available.
+
 ## Design and implementation
 
 - [Part 1 — Product Vision](docs/01-product-vision.md): the product direction.

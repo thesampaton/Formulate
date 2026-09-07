@@ -1,32 +1,53 @@
 import { useEffect, useRef, useState } from "react";
 import type { FieldErrors, FieldPath } from "react-hook-form";
 import { useWatch } from "react-hook-form";
-import { Form, Page, Section, useFormulate } from "@formulate/react";
+import { Form, Page, Section } from "@formulate/react";
 import { z } from "zod";
-import { Field } from "./formulate";
+import { defineForm } from "./formulate";
 import { NumberControl } from "./controls";
+import { SubmitButton } from "./submit-button";
 
-const settingsSchema = z.object({
-  showAdvanced: z.boolean(),
-  retries: z.number({ error: "Enter a retry count." }).int("Use a whole number.").min(0, "Use 0 to 10 retries.").max(10, "Use 0 to 10 retries."),
-  timeoutSeconds: z.number({ error: "Enter a timeout." }).positive("Timeout must be greater than zero."),
+const RequestSettings = defineForm({
+  showAdvanced: {
+    schema: z.boolean(),
+    defaultValue: false,
+    label: "Show advanced options",
+    component: "checkbox",
+    className: "grid-cols-[18px_1fr] items-center [&>label]:col-start-2",
+  },
+  retries: {
+    schema: z.number({ error: "Enter a retry count." }).int("Use a whole number.").min(0, "Use 0 to 10 retries.").max(10, "Use 0 to 10 retries."),
+    defaultValue: 3,
+    label: "Retries",
+    description: "A whole number from 0 to 10.",
+    component: "number",
+    componentProps: { min: 0, max: 10, step: 1 },
+  },
+  timeoutSeconds: {
+    schema: z.number({ error: "Enter a timeout." }).positive("Timeout must be greater than zero."),
+    defaultValue: 30,
+    label: "Timeout (seconds)",
+    description: "Any number greater than zero.",
+    component: "number",
+    componentProps: { step: "any" },
+  },
 });
 
-type Settings = z.output<typeof settingsSchema>;
+type Settings = z.output<typeof RequestSettings.schema>;
 export type RequestConfiguration = { configuration: Pick<Settings, "retries" | "timeoutSeconds"> };
 
 export function AdvancedOptions({ onSave }: { onSave: (payload: RequestConfiguration) => Promise<void> | void }) {
-  const form = useFormulate(settingsSchema, {
-    defaultValues: { showAdvanced: false, retries: 3, timeoutSeconds: 30 },
+  const form = RequestSettings.useForm({
     shouldFocusError: false,
   });
   const [page, setPage] = useState<"settings" | "review">("settings");
   const [focusTarget, setFocusTarget] = useState<FieldPath<Settings> | "heading" | null>(null);
   const [saved, setSaved] = useState<RequestConfiguration | null>(null);
   const reviewHeading = useRef<HTMLDivElement>(null);
-  const showAdvanced = useWatch({ control: form.control, name: "showAdvanced" });
-  const retries = useWatch({ control: form.control, name: "retries" });
-  const timeoutSeconds = useWatch({ control: form.control, name: "timeoutSeconds" });
+  const [showAdvanced, retries, timeoutSeconds] = useWatch({
+    control: form.control,
+    name: ["showAdvanced", "retries", "timeoutSeconds"],
+  });
 
   // Navigation/reveal commits first; the target editor must exist before focusing.
   useEffect(() => {
@@ -61,22 +82,18 @@ export function AdvancedOptions({ onSave }: { onSave: (payload: RequestConfigura
       </p>
       <Page id="settings" title="Request settings" active={page === "settings"}>
         <p>Start with the defaults, or adjust how requests retry and time out.</p>
-        <Field control={form.control} name="showAdvanced" label="Show advanced options"
-          className="grid-cols-[18px_1fr] items-center [&>label]:col-start-2" component="checkbox" />
+        <RequestSettings.Field name="showAdvanced" />
         {showAdvanced ? (
           <Section title="Advanced options" description="These settings still apply when this section is hidden.">
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <Field control={form.control} name="retries" label="Retries" description="A whole number from 0 to 10."
-                component="number" componentProps={{ min: 0, max: 10, step: 1 }} />
-              <Field control={form.control} name="timeoutSeconds" label="Timeout (seconds)" description="Any number greater than zero.">
+              <RequestSettings.Field name="retries" />
+              <RequestSettings.Field name="timeoutSeconds">
                 <NumberControl step="any" className="tabular-nums" />
-              </Field>
+              </RequestSettings.Field>
             </div>
           </Section>
         ) : null}
-        <button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Checking…" : "Review settings"}
-        </button>
+        <SubmitButton pendingLabel="Checking…">Review settings</SubmitButton>
       </Page>
       <Page id="review" title="Review settings" active={page === "review"}>
         <div ref={reviewHeading} tabIndex={-1} role="group" aria-label="Configuration summary" className="review-summary">
@@ -91,9 +108,7 @@ export function AdvancedOptions({ onSave }: { onSave: (payload: RequestConfigura
             setPage("settings");
             setFocusTarget("showAdvanced");
           }}>Back to settings</button>
-          <button type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? "Saving…" : "Save configuration"}
-          </button>
+          <SubmitButton pendingLabel="Saving…">Save configuration</SubmitButton>
         </div>
       </Page>
       {saved ? (

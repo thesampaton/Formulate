@@ -2,17 +2,26 @@
 
 import { useId } from "react";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
-import { useController } from "react-hook-form";
+import { useController, useFormContext } from "react-hook-form";
 import type { Control, FieldPath, FieldValues } from "react-hook-form";
 
 import { FieldContext } from "./field-context.js";
 
 export type FieldRootProps<Values extends FieldValues, Name extends FieldPath<Values>, Output = Values> =
   Omit<ComponentPropsWithoutRef<"div">, "children"> & {
-    control: Control<Values, unknown, Output>;
+    /** RHF control override. Defaults to the parent Form's control; supply this for standalone fields or another runtime. */
+    control?: Control<Values, unknown, Output>;
+    /** Path of the editing value in the form. */
     name: Name;
+    /** Visible label, associated with the connected control for accessibility. */
     label: ReactNode;
+    /** Help text associated with the control through aria-describedby. */
     description?: ReactNode;
+    /** Classes for the outer field wrapper. Use componentProps.className or the child's className to style the control. */
+    className?: string;
+    /** Inline styles for the outer field wrapper, rather than the control. */
+    style?: ComponentPropsWithoutRef<"div">["style"];
+    /** Connected control content receiving this field's value, events, and accessibility attributes. */
     children: ReactNode;
   };
 
@@ -28,7 +37,10 @@ export function FieldRoot<Values extends FieldValues, Name extends FieldPath<Val
 }: FieldRootProps<Values, Name, Output>) {
   const generatedId = useId();
   const controlId = id ?? `formulate-${generatedId}`;
-  const { field, fieldState } = useController<Values, Name, Output>({ name, control });
+  const form = useFormContext<Values, unknown, Output>();
+  const resolvedControl = control ?? form?.control;
+  if (!resolvedControl) throw new Error(`Field "${name}" needs a parent Form or an explicit control.`);
+  const { field, fieldState } = useController<Values, Name, Output>({ name, control: resolvedControl });
   const descriptionId = description != null ? `${controlId}-description` : undefined;
   const errorId = fieldState.error ? `${controlId}-error` : undefined;
   const describedBy = [descriptionId, errorId].filter(Boolean).join(" ") || undefined;
