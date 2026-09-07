@@ -75,3 +75,5 @@ Layout uses ordered content and ordinary CSS on a form, page, section, or plain 
 ## Applying the model
 
 The [seven hero scenarios](03-scenarios/README.md) test reuse, dependencies, pages, and submission in context. The [pressure tests](03-mental-model-pressure-tests.md) hold the edge cases for later API prototypes. These references support the model; they are not prerequisites for defining a form.
+
+[Part 4 — Registry and Libraries](04-registry.md) describes the Formulate primitives, how to build reusable libraries with them, and how those libraries can be distributed.

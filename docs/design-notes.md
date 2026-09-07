@@ -6,6 +6,8 @@ These are open questions and research from the initial exploration, not addition
 
 The [mental model](03-mental-model.md) establishes the vocabulary. Its linked references and [scenario rubric](03-scenarios/README.md) hold detail to consult as each contract is designed.
 
+[Part 4 — Registry and Libraries](04-registry.md) provides a primitive catalogue, library authoring examples, and initial entity shapes. Rendering and workflow prototypes will refine those contracts.
+
 - Demonstrate the [simple-form authoring budget](03-scenarios/simple-form.md), then add and remove layout, conditions, reuse, sections, and pages without changing form architecture. Preserve needed rules and state through those changes.
 - Specify reusable field/section/page configuration, bindings, typed references, and outside inputs. Keep data shape and presentation independently changeable, including repeated uses, arrays, and review views. See [relationships](03-references-and-relationships.md).
 - Define how default rendering and custom React share behaviour, and where container, placement, primitive props, styling hooks, and focus integration apply. See [layout](03-layout-and-presentation.md).
@@ -20,6 +22,8 @@ The [mental model](03-mental-model.md) establishes the vocabulary. Its linked re
 - Specify draft recovery, submission snapshots, response reconciliation, and application handoffs. React Hook Form remains the default value authority; backend services own durable execution. The [pressure tests](03-mental-model-pressure-tests.md) provide acceptance cases.
 
 ## Definitions and distribution — Parts 7–8
+
+Continue from the [Part 4 distribution sketch](04-registry-distribution.md): independent registries declare Formulate dependencies alongside other items. Verify both general application consumption and v0 import/setup using runnable library examples.
 
 - Define the relationship between typed authoring and portable definitions, including named application capabilities and runtime validation. Avoid promising lossless serialization of arbitrary functions or Zod behaviour.
 - Decide which coordination contracts remain runtime packages and which fields, layouts, sections, and workflow components are source-installed.
