@@ -50,7 +50,9 @@ Use `control={form.control}` for a standalone field, or to explicitly select ano
 | --- | --- |
 | `useFormulate(schemaOrDefinition, options?)` | Typed RHF runtime with a Zod resolver, `onBlur` validation by default, and `shouldUnregister: false`. Definitions supply editing defaults. The schema-first path still accepts RHF options, including explicit defaults. |
 | `defineForm(fields)` | Derives `.schema`, `.defaultValues`, `.useForm(options?)`, typed `.Field`, and ordered `.Fields` from field declarations. Each declaration supplies its schema, editing default, label, and mapped control or connected children. |
-| `Form` | Accepts `form`, `onSubmit`, and optional `onInvalid`; provides RHF context and a native form. Validates before calling the handler, blocks overlapping attempts, and shows a generic retryable error if the handler throws. `submissionErrorMessage` overrides that message. Standard form attributes are supported. |
+| `Form` | Accepts `form`, final `onSubmit`, optional `onInvalid`, and optional `navigation: { id, fields, onValid }`. Provides RHF/action context and a native form. Checks the navigation scope or validates/parses the whole final submission, blocks overlapping attempts, and shows generic retryable feedback for a thrown check/handler. `submissionErrorMessage` overrides that message. |
+| `useFormNavigation({ form, initialPage, destinations })` | Returns `page`, `revision`, `goTo`, `goToField`, and `correct`. Destinations map editor paths to pages and optional synchronous reveal callbacks. Focus follows the committed render; the host defines scopes and allowed actions. |
+| `useFormActionStatus()` | Reads `{ isPending }` from the enclosing Form, covering scoped checks and final submission through the awaited callback. Use for pending labels and disabled action UI. |
 | `Field` | Accepts optional `control`, `name`, `label`, optional `description`, and either `component`/`componentProps` or connected children. Connects value, change, blur, ref, label, description, and errors. `className`/`style` apply to the outer field. Optional `id` overrides the control ID. |
 | `createFormulate({ components })` | Returns Field and defineForm configured with an application-owned component map. Call once at module scope. Keys, component props, and editing value compatibility are checked by TypeScript. Configuration contains UI, not values or validation rules. |
 | `InputControl`, `NumberControl`, `CheckboxControl` | Connected native controls for string, number, and boolean editing values. The default Field maps them to `input`, `number`, and `checkbox`. Usable as children too. |
@@ -114,7 +116,58 @@ const form = Contact.useForm({
 
 This is a shallow merge by field: a supplied structured object or array replaces that field's value as a whole. Explicit empty strings, false, zero, null, and undefined are overrides, not requests to fall back. The merged values establish the initial/reset baseline, without mutating the definition. They are not reapplied on rerender or editor remount; use RHF's `reset` or reactive `values` option for intentional later updates. This same merge applies to `useFormulate(Contact, options)`. Schema-first defaults and async default-value loaders retain RHF's replacement semantics; async loaders should return the complete desired record and editors should wait until loading finishes.
 
-The [example SubmitButton](../../examples/react/src/submit-button.tsx) reads submission state from context, sets `type="submit"`, disables itself while pending, and accepts a `pendingLabel`. It is shared application UI, not a new package primitive. Native buttons and local shadcn buttons remain supported.
+The [example SubmitButton](../../examples/react/src/submit-button.tsx) reads `useFormActionStatus()` from context, sets `type="submit"`, disables itself while checking or submitting, and accepts a `pendingLabel`. It is shared application UI, not a new package primitive. Native buttons and local shadcn buttons remain supported. RHF's `isSubmitting` does not cover scoped navigation through `trigger`; `isSubmitSuccessful` and submission counts are not navigation/completion indicators.
+
+## Scoped navigation and correction
+
+Keep one form runtime mounted. Disable RHF's automatic error focus when the host coordinates reveal and page changes. For example, using the advanced example's definition:
+
+```tsx
+const form = RequestSettings.useForm({ shouldFocusError: false });
+const navigation = useFormNavigation<Settings, "settings" | "destination" | "review">({
+  form,
+  initialPage: "settings",
+  destinations: [
+    { name: "retries", page: "settings", reveal: () => form.setValue("showAdvanced", true) },
+    { name: "timeoutSeconds", page: "settings", reveal: () => form.setValue("showAdvanced", true) },
+    { name: "showAdvanced", page: "settings" },
+    { name: "endpoint", page: "destination" },
+  ],
+});
+
+<Form form={form}
+  navigation={navigation.page === "review" ? undefined : {
+    id: navigation.revision,
+    fields: navigation.page === "settings"
+      ? ["showAdvanced", "retries", "timeoutSeconds"]
+      : ["endpoint"],
+    onValid: () => {
+      if (navigation.page === "settings") navigation.goToField("endpoint");
+      else navigation.goTo("review");
+    },
+  }}
+  onInvalid={(errors) => {
+    if (!navigation.correct(errors)) {
+      form.setError("root.submit", { message: "Review the form errors before continuing." });
+    }
+  }}
+  onSubmit={saveConfiguration}
+>
+  {/* Page.active follows navigation.page; use a native submit button for Next and Save. */}
+</Form>
+```
+
+The [complete example](../../examples/react/src/advanced-options.tsx) includes all pages, mapped review edit links, and focus on the review summary. `goTo(page, focus?)` permits an optional post-commit focus callback, such as focusing a heading ref. `goToField(name)` reveals and focuses a mapped editor without validating, so the host can use it for Back or edit links. Both return behavior and available page names are typed. `initialPage` only initializes the hook; later location changes use its methods.
+
+Destinations are in correction priority order and use explicit RHF editor paths, including nested paths. They are separate from validation scope. `correct(errors)` returns false when no destination matches, allowing form-level fallback feedback; `goToField` likewise returns false for an unmapped path. This slice maps an error and its editor to the same path. Separate group-error targets, unavailable-page fallback, portals, and async/suspended revelation remain open. The reveal callback must arrange for the control to mount in the same committed update; there is no polling or async readiness protocol.
+
+`Form.navigation.fields` gates **error paths**, not an independently executed schema. RHF's resolver still runs against the full form. An object path includes descendant errors; use an explicit correction handler for object scopes or unmounted editors. Only errors within the requested scope are sent to navigation's `onInvalid`. An empty scope permits navigation immediately without a validation run. Cross-field rules follow the schema's execution semantics; assign their error path to a scope when they should gate that action. A form-level rule outside the scope still runs at final submission. For Zod form-level feedback, leave the issue path empty; RHF reserves `root` for application errors and clears that namespace during submission.
+
+Navigation's `onValid` receives **no payload**: passing one scope does not establish a valid full parsed result. Omitting `navigation` restores full validation and parsed `onSubmit` output. Rendering Review never submits automatically or marks the form complete.
+
+Form suppresses validation callbacks after a value change/reset, a changed navigation ID/scope, a different runtime, or unmounting. `navigation.revision` changes even when returning to the same page; using it as the action ID prevents an old check from moving that new visit. If external policy changes the meaning of an action without changing its fields, change its ID as well. Use `shouldFocusError: false` with the correction helper to avoid independent RHF focus after obsolete validation.
+
+This is cancellation of navigation/correction callbacks, **not** cancellation of the resolver or an already-started application callback. A resolver can still finish and update RHF errors. Form prevents overlapping attempts and releases pending UI when the operation settles; it does not clear newer errors or restore an old snapshot. Validators, remote requests, and async callbacks still need application-owned cancellation/reconciliation if required. Rules, values, and validation errors remain in RHF/Zod, and the helper exposes no page completion or workflow graph.
 
 ## Configure once, select by name
 
@@ -193,6 +246,6 @@ The example's theme defines semantic tokens such as `border-input`, `bg-backgrou
 
 There is no package stylesheet. Style the wrappers with normal props and the `data-formulate` markers (`form`, `field`, `label`, `description`, `error`, `submission-error`, `section`, `page`). Fields expose `data-invalid`; pages expose `data-page`. Error UI uses `role="alert"`. Defaults currently use h2 for Page and h3 for Section; richer heading/slot customization remains open.
 
-Hidden fields stay applicable. Hosts must reveal/navigate before requesting focus in `onInvalid`; see [advanced options](../../examples/react/src/advanced-options.tsx). The default simple form uses RHF's normal error focus. Keep one form runtime mounted while changing pages.
+Hidden fields stay applicable. The correction hook can reveal/navigate before focusing in `onInvalid`; see [advanced options](../../examples/react/src/advanced-options.tsx). The default simple form uses RHF's normal error focus. Keep one form runtime mounted while changing pages.
 
 See the [implementation anchor](../../docs/05-06-rendering-and-workflow.md) for intentional limits and the next iterations.

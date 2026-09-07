@@ -55,12 +55,25 @@ describe("simple-form scenario", () => {
 });
 
 describe("advanced-options scenario", () => {
+  async function finishDestination(user: ReturnType<typeof userEvent.setup>) {
+    const endpoint = await screen.findByLabelText("Request URL");
+    await user.clear(endpoint);
+    await user.type(endpoint, "https://api.example.com");
+    await user.click(screen.getByRole("button", { name: "Review settings" }));
+  }
+
   it("accepts undisclosed defaults, reviews without registering editors, and omits the UI toggle from the payload", async () => {
     const user = userEvent.setup();
     const onSave = vi.fn();
     render(<AdvancedOptions onSave={onSave} />);
     expect(screen.queryByLabelText("Retries")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Review settings" }));
+    await user.click(screen.getByRole("button", { name: "Next: destination" }));
+    const endpoint = await screen.findByLabelText("Request URL");
+    expect(endpoint).toHaveFocus();
+    expect(endpoint).toHaveValue("");
+    expect(endpoint).not.toHaveAttribute("aria-invalid", "true");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    await finishDestination(user);
     const summary = await screen.findByRole("group", { name: "Configuration summary" });
     expect(summary).toHaveFocus();
     expect(within(summary).getByText("3")).toBeInTheDocument();
@@ -69,7 +82,7 @@ describe("advanced-options scenario", () => {
     expect(onSave).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Save configuration" }));
     await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
-    expect(onSave).toHaveBeenCalledWith({ configuration: { retries: 3, timeoutSeconds: 30 } });
+    expect(onSave).toHaveBeenCalledWith({ configuration: { retries: 3, timeoutSeconds: 30, endpoint: "https://api.example.com" } });
   });
 
   it("reveals and focuses invalid applicable fields after their section has unmounted", async () => {
@@ -81,7 +94,7 @@ describe("advanced-options scenario", () => {
     await user.type(screen.getByLabelText("Retries"), "11");
     await user.click(screen.getByLabelText("Show advanced options"));
     expect(screen.queryByLabelText("Retries")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Review settings" }));
+    await user.click(screen.getByRole("button", { name: "Next: destination" }));
     const retries = await screen.findByLabelText("Retries");
     await waitFor(() => expect(retries).toHaveFocus());
     expect(retries).toHaveValue(11);
@@ -90,13 +103,16 @@ describe("advanced-options scenario", () => {
     expect(onSave).not.toHaveBeenCalled();
     await user.clear(retries);
     await user.type(retries, "5");
-    await user.click(screen.getByRole("button", { name: "Review settings" }));
-    await user.click(await screen.findByRole("button", { name: "Back to settings" }));
+    await user.click(screen.getByRole("button", { name: "Next: destination" }));
+    await finishDestination(user);
+    await user.click(await screen.findByRole("button", { name: "Edit retries" }));
     expect(screen.getByLabelText("Retries")).toHaveValue(5);
-    expect(screen.getByLabelText("Show advanced options")).toHaveFocus();
+    expect(screen.getByLabelText("Retries")).toHaveFocus();
+    await user.click(screen.getByRole("button", { name: "Next: destination" }));
+    expect(await screen.findByLabelText("Request URL")).toHaveValue("https://api.example.com");
     await user.click(screen.getByRole("button", { name: "Review settings" }));
     await user.click(await screen.findByRole("button", { name: "Save configuration" }));
-    expect(onSave).toHaveBeenCalledWith({ configuration: { retries: 5, timeoutSeconds: 30 } });
+    expect(onSave).toHaveBeenCalledWith({ configuration: { retries: 5, timeoutSeconds: 30, endpoint: "https://api.example.com" } });
   });
 
   it("treats clearing a numeric input as invalid and routes Enter through review before saving", async () => {
@@ -111,9 +127,10 @@ describe("advanced-options scenario", () => {
     expect(timeout).toHaveFocus();
     expect(onSave).not.toHaveBeenCalled();
     await user.type(timeout, "12.5{Enter}");
+    await finishDestination(user);
     await screen.findByRole("group", { name: "Configuration summary" });
     expect(onSave).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Save configuration" }));
-    expect(onSave).toHaveBeenCalledWith({ configuration: { retries: 3, timeoutSeconds: 12.5 } });
+    expect(onSave).toHaveBeenCalledWith({ configuration: { retries: 3, timeoutSeconds: 12.5, endpoint: "https://api.example.com" } });
   });
 });

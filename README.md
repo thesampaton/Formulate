@@ -15,7 +15,7 @@ pnpm install
 pnpm dev
 ```
 
-Open the local URL printed by Vite. The examples cover [simple sign-in](examples/react/src/simple-form.tsx) and [advanced options](examples/react/src/advanced-options.tsx), including disclosure, a settings/review flow, and application-owned submission. Demo handlers perform no network requests or persistence.
+Open the local URL printed by Vite. The examples cover [simple sign-in](examples/react/src/simple-form.tsx) and [advanced options](examples/react/src/advanced-options.tsx), including disclosure, scoped Settings → Destination → Review navigation, and application-owned submission. Demo handlers perform no network requests or persistence.
 
 The third example, [email confirmation](examples/react/src/email-confirmation.tsx), tests reusable field configuration and cross-field validation, with flat and explicitly nested bindings.
 
@@ -26,6 +26,8 @@ pnpm check # TypeScript, interaction tests, package build, example build
 The [@formulate/react package](packages/react/README.md) provides `Form`, `Field`, `Section`, `Page`, and `useFormulate`. Examples use React and Tailwind CSS 4 with no Next.js dependency. The [local control map](examples/react/src/formulate.ts) supplies styled controls, with per-use Tailwind overrides through `className`. UI source distribution through shadcn remains design work.
 
 The examples use `defineForm` to declare each field's schema, editing default, and presentation once. `Definition.useForm()` creates its runtime; static prefills preserve untouched defaults. Render all fields in declaration order or place individual typed fields in JSX. Field connections come from Form context by default; an explicit RHF `control` remains available.
+
+`useFormNavigation` coordinates explicit correction destinations and focus. `Form.navigation` checks the current action's field paths; final submission still validates the whole form. `useFormActionStatus` supplies pending state for both checking and saving. Page completion and a workflow graph remain design work.
 
 ## Design and implementation
 

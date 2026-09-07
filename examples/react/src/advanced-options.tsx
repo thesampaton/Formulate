@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import type { FieldErrors, FieldPath } from "react-hook-form";
+import { useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { useWatch } from "react-hook-form";
-import { Form, Page, Section } from "@formulate/react";
+import { Form, Page, Section, useFormActionStatus, useFormNavigation } from "@formulate/react";
 import { z } from "zod";
 import { defineForm } from "./formulate";
 import { NumberControl } from "./controls";
@@ -31,54 +31,67 @@ const RequestSettings = defineForm({
     component: "number",
     componentProps: { step: "any" },
   },
+  endpoint: {
+    schema: z.url("Enter a valid request URL."),
+    defaultValue: "",
+    label: "Request URL",
+    description: "The destination for requests. This demo does not send a request.",
+    component: "input",
+    componentProps: { type: "url", placeholder: "https://api.example.com" },
+  },
 });
 
 type Settings = z.output<typeof RequestSettings.schema>;
-export type RequestConfiguration = { configuration: Pick<Settings, "retries" | "timeoutSeconds"> };
+export type RequestConfiguration = { configuration: Pick<Settings, "retries" | "timeoutSeconds" | "endpoint"> };
+
+function EditButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
+  const { isPending } = useFormActionStatus();
+  return <button type="button" className="secondary" disabled={isPending} onClick={onClick}>{children}</button>;
+}
 
 export function AdvancedOptions({ onSave }: { onSave: (payload: RequestConfiguration) => Promise<void> | void }) {
   const form = RequestSettings.useForm({
     shouldFocusError: false,
   });
-  const [page, setPage] = useState<"settings" | "review">("settings");
-  const [focusTarget, setFocusTarget] = useState<FieldPath<Settings> | "heading" | null>(null);
+  const navigation = useFormNavigation<Settings, "settings" | "destination" | "review">({
+    form,
+    initialPage: "settings",
+    destinations: [
+      { name: "retries", page: "settings", reveal: () => form.setValue("showAdvanced", true) },
+      { name: "timeoutSeconds", page: "settings", reveal: () => form.setValue("showAdvanced", true) },
+      { name: "showAdvanced", page: "settings" },
+      { name: "endpoint", page: "destination" },
+    ],
+  });
+  const { page } = navigation;
   const [saved, setSaved] = useState<RequestConfiguration | null>(null);
   const reviewHeading = useRef<HTMLDivElement>(null);
-  const [showAdvanced, retries, timeoutSeconds] = useWatch({
+  const [showAdvanced, retries, timeoutSeconds, endpoint] = useWatch({
     control: form.control,
-    name: ["showAdvanced", "retries", "timeoutSeconds"],
+    name: ["showAdvanced", "retries", "timeoutSeconds", "endpoint"],
   });
 
-  // Navigation/reveal commits first; the target editor must exist before focusing.
-  useEffect(() => {
-    if (!focusTarget) return;
-    if (focusTarget === "heading") reviewHeading.current?.focus();
-    else form.setFocus(focusTarget);
-    setFocusTarget(null);
-  }, [focusTarget, page, showAdvanced, form.setFocus]);
-
-  function correct(errors: FieldErrors<Settings>) {
-    const target = errors.retries ? "retries" : errors.timeoutSeconds ? "timeoutSeconds" : "showAdvanced";
-    setPage("settings");
-    if (target !== "showAdvanced") form.setValue("showAdvanced", true);
-    setFocusTarget(target);
-  }
-
   return (
-    <Form form={form} onInvalid={correct} onSubmit={async ({ retries, timeoutSeconds }) => {
-      // Enter on the editing page follows the same guard as the Review button.
-      if (page === "settings") {
-        setPage("review");
-        setFocusTarget("heading");
-        return;
-      }
-      const payload = { configuration: { retries, timeoutSeconds } };
-      setSaved(null);
-      await onSave(payload);
-      setSaved(payload);
-    }}>
+    <Form form={form}
+      navigation={page === "review" ? undefined : {
+        id: navigation.revision,
+        fields: page === "settings" ? ["showAdvanced", "retries", "timeoutSeconds"] : ["endpoint"],
+        onValid: () => {
+          if (page === "settings") navigation.goToField("endpoint");
+          else navigation.goTo("review", () => reviewHeading.current?.focus());
+        },
+      }}
+      onInvalid={(errors) => {
+        if (!navigation.correct(errors)) form.setError("root.submit", { message: "Review the form errors before continuing." });
+      }}
+      onSubmit={async ({ retries, timeoutSeconds, endpoint }) => {
+        const payload = { configuration: { retries, timeoutSeconds, endpoint } };
+        setSaved(null);
+        await onSave(payload);
+        setSaved(payload);
+      }}>
       <p className="step-indicator" aria-live="polite">
-        Step {page === "settings" ? "1" : "2"} of 2 · {page === "settings" ? "Settings" : "Review"}
+        Step {page === "settings" ? "1" : page === "destination" ? "2" : "3"} of 3 · {page === "settings" ? "Settings" : page === "destination" ? "Destination" : "Review"}
       </p>
       <Page id="settings" title="Request settings" active={page === "settings"}>
         <p>Start with the defaults, or adjust how requests retry and time out.</p>
@@ -93,21 +106,28 @@ export function AdvancedOptions({ onSave }: { onSave: (payload: RequestConfigura
             </div>
           </Section>
         ) : null}
-        <SubmitButton pendingLabel="Checking…">Review settings</SubmitButton>
+        <SubmitButton pendingLabel="Checking…">Next: destination</SubmitButton>
+      </Page>
+      <Page id="destination" title="Request destination" active={page === "destination"}>
+        <p>Choose where requests will go.</p>
+        <RequestSettings.Field name="endpoint" />
+        <div className="actions">
+          <button type="button" className="secondary" onClick={() => navigation.goToField("showAdvanced")}>Back to settings</button>
+          <SubmitButton pendingLabel="Checking…">Review settings</SubmitButton>
+        </div>
       </Page>
       <Page id="review" title="Review settings" active={page === "review"}>
         <div ref={reviewHeading} tabIndex={-1} role="group" aria-label="Configuration summary" className="review-summary">
           <p>These values will be used for every request.</p>
           <dl>
+            <div><dt>Request URL</dt><dd className="break-all">{endpoint}</dd></div>
             <div><dt>Retries</dt><dd>{retries}</dd></div>
             <div><dt>Timeout</dt><dd>{timeoutSeconds} seconds</dd></div>
           </dl>
         </div>
         <div className="actions">
-          <button type="button" className="secondary" disabled={form.formState.isSubmitting} onClick={() => {
-            setPage("settings");
-            setFocusTarget("showAdvanced");
-          }}>Back to settings</button>
+          <EditButton onClick={() => navigation.goToField("retries")}>Edit retries</EditButton>
+          <EditButton onClick={() => navigation.goToField("endpoint")}>Edit destination</EditButton>
           <SubmitButton pendingLabel="Saving…">Save configuration</SubmitButton>
         </div>
       </Page>
