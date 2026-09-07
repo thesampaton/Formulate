@@ -38,6 +38,8 @@ This interaction model connects to application services and durable engines such
 
 ## What guides the APIs
 
+These commitments are developed in [Part 2 — Design Principles](02-design-principles.md).
+
 - **Composition at every level.** Fields, layouts, sections, steps, and behaviours work together and remain independently reusable.
 - **Explicit and readable.** A definition makes structure, dependencies, and progression understandable to a person or an AI.
 - **Typed end to end.** Preserve types through values, component mappings, workflow rules, and submission; validate externally supplied definitions at runtime.
