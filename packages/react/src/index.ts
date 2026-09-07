@@ -1,7 +1,10 @@
 "use client";
 
 export { Form } from "./form.js";
-export type { FormProps } from "./form.js";
+export type { FormProps, FormNavigationAction } from "./form.js";
+export { useFormActionStatus } from "./form-action-status.js";
+export { useFormNavigation } from "./use-form-navigation.js";
+export type { CorrectionDestination, FormNavigationOptions, FormNavigation } from "./use-form-navigation.js";
 export { Field, createFormulate, defaultComponents, defineForm } from "./create-formulate.js";
 export type { FieldProps, ConfiguredFieldProps, FieldComponentMap } from "./create-formulate.js";
 export { InputControl, NumberControl, CheckboxControl, defineFieldControl } from "./controls.js";

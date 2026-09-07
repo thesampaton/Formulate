@@ -1,5 +1,6 @@
 // Compile-time API checks, included in pnpm typecheck; never rendered.
-import { createFormulate, defaultComponents, defineFieldControl, defineForm, Field, useFieldControl, useFormulate } from "@formulate/react";
+import { createFormulate, defaultComponents, defineFieldControl, defineForm, Field, useFieldControl, useFormulate, useFormNavigation } from "@formulate/react";
+import type { FormNavigationAction } from "@formulate/react";
 import type { Control } from "react-hook-form";
 import { z } from "zod";
 import { Email } from "../examples/react/src/email";
@@ -91,5 +92,28 @@ export function PressureTestTypes() {
   <Field control={nested.control} name="contact.email" label="Email" component="number" />;
   // @ts-expect-error Refining a definition does not remove editing-type checks.
   useFormulate(emailConfirmationBoundary, { defaultValues: { confirmEmail: 4 } });
+  return null;
+}
+
+export function NavigationTypes() {
+  const form = Details.useForm();
+  type Editing = z.input<typeof Details.schema>;
+  const navigation = useFormNavigation<Editing, "details" | "review">({
+    form, initialPage: "details", destinations: [{ name: "email", page: "details" }],
+  });
+  navigation.goTo("review");
+  navigation.goToField("email");
+  const action: FormNavigationAction<Editing> = {
+    id: navigation.revision, fields: ["email", "count"], onValid: () => navigation.goTo("review"),
+  };
+  // @ts-expect-error Host page names remain typed.
+  navigation.goTo("missing");
+  // @ts-expect-error Editor destinations use editing paths.
+  navigation.goToField("missing");
+  // @ts-expect-error Scopes cannot reference unknown paths.
+  const wrongScope: FormNavigationAction<Editing> = { ...action, fields: ["missing"] };
+  // @ts-expect-error A scoped action cannot claim to receive validated form output.
+  const wrongHandler: FormNavigationAction<Editing> = { ...action, onValid: (values: z.output<typeof Details.schema>) => { void values; } };
+  void wrongScope; void wrongHandler;
   return null;
 }
