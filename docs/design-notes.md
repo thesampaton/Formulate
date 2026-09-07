@@ -4,15 +4,23 @@ These are open questions and research from the initial exploration, not addition
 
 ## Composition and rendering — Parts 3–5
 
-- Define how reusable sections and steps expose configuration and connect their internal field paths and dependencies to a containing workflow. Reusing a section twice must not cause identity collisions.
+- [Part 3 — Mental Model](03-mental-model.md) proposes the vocabulary and responsibility boundaries. The [scenario rubric](03-scenarios/README.md) applies it to the seven requested hero scenarios in pseudocode; the [pressure tests](03-mental-model-pressure-tests.md) challenge their shared relationships. The questions below now concern concrete authoring and runtime contracts for that model.
+- Define how reusable sections and pages expose configuration and connect their internal field paths and dependencies to a containing form. Reusing a section twice must not cause identity collisions.
+- Page is the logical content and completion construct in Part 3; routes, tabs, and wizard steps present it. Specify routing integration, direct navigation, and shared state across unmounted pages without introducing page-local value stores.
+- Treat ad hoc fields configured against UI controls as a normal authoring path. Library fields are optional reuse. Parts 4–5 must preserve the same bindings, types, behaviour, and completion when mixing the two or extracting an inline field for reuse; a registry must not be required for ordinary fields.
+- The [simplicity rubric](03-scenarios/simple-form.md) is a prerequisite for the API: direct fields need no Page, Section, synthetic page state, duplicate presentation list, engine setup, or custom mapper for ordinary submit. Add layout, conditions, and reuse independently. Test removal as well as addition of optional scopes, preserving domain rules without a form-mode migration.
+- The [references and relationships model](03-references-and-relationships.md) anchors local references within section/page/form authoring, separate from value paths and presentation. Specify typed handles, exposed members, external inputs, and portable identity references without requiring root lookups or a registry for normal local conditions.
 - Keep data shape, visual nesting, and workflow progression distinct, while allowing them to be composed conveniently.
+- The [layout and presentation model](03-layout-and-presentation.md) treats layout as ordered content and ordinary CSS on form/page/section presentation. Specify container and placement surfaces, primitive props/slots, state styling hooks, override behaviour, and focus integration without adding data or completion scopes for layout wrappers.
 - Establish how default schema rendering and custom React layouts share field bindings and workflow behaviour, including arrays and review pages.
 - Distinguish shadcn's installation catalog from the runtime mapping of registered identities to compatible local components. Mapping requires a value and interaction contract, not just a component name.
 
 ## Workflow semantics — Part 6
 
 - Define applicability, value retention, validation scope, navigation, and payload inclusion explicitly. Hiding a field must not silently determine all of these policies.
-- Specify how dependency changes invalidate selections, derived values, and prior step completion, including stale asynchronous results.
+- Develop the [state and completion model](03-state-and-completion.md): current requirements roll up through fields, sections, pages, and forms; visited, dirty, saved, and submitted remain separate facts. Specify scoped subscriptions, validation freshness, progress indicators, and error destinations for rules spanning pages.
+- Specify how dependency changes invalidate selections, derived values, and prior completion at every affected layer, including stale asynchronous results. Cross-page rules must remain in section/form completion when pages show only part of a section.
+- Specify reactive dependency tracking, unresolved-input behaviour, retained inactive source values, and diagnostics for unsupported feedback loops. Distinguish mutual value reads from computed-value or completion feedback; define how error correction reveals a conditionally hidden but applicable field.
 - Establish boundaries for draft storage, recovery, progress, submission handlers, and errors. React Hook Form should remain the authority for field values; backend systems own durable business execution.
 
 ## Definitions and distribution — Parts 7–8
