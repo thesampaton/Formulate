@@ -47,3 +47,18 @@ Each row is an independent addition to the same form.
 - Field and form errors/completion without an extra configuration or value store.
 
 Actual API prototypes must meet this bar. Measure required concepts and independent edits when growing or shrinking the form; short pseudocode alone does not prove easy authoring.
+
+## Definition-helper pressure test
+
+The executable [email-confirmation example](../../examples/react/src/email-confirmation.tsx) adds one relationship: both valid email addresses must match exactly. It compares flat declarations with explicit nested bindings. The [shared Email configuration](../../examples/react/src/email.ts) is also reused by sign-in without changing its behaviour.
+
+Acceptance invariants, covered by [interaction tests](../../tests/definition-pressure.test.tsx):
+
+- Reusing Email creates independent values and accessible control IDs. A per-use label or autocomplete override leaves the source declaration intact.
+- A mismatch blocks submission and associates the relationship error with the confirmation editor; correction focuses that editor.
+- Changing the original email after a successful confirmation invalidates the relationship on the next submission.
+- The rule runs before the confirmation editor first mounts and after it unmounts. Values survive unmounting.
+- Rerendering preserves entered values and control identity. Simultaneous form instances stay independent.
+- Nesting under `contact` changes the payload only through explicit schema/default/binding paths. A Section alone introduces no data object.
+
+The flat form still renders declaration order through `Fields`. Form-level refinement currently uses an explicit `{ schema, defaultValues }` boundary with `useFormulate`; the original bound hook does not acquire that rule. The nested variant exposes the schema-first authoring cost: shape, defaults, and field paths are explicit in separate places. These are measured limits, not claims that the complete Part 4 composition API exists. Switching comparison modes starts a fresh form and is not a draft-migration feature.

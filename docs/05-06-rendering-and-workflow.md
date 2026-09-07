@@ -9,6 +9,7 @@ Pair changes to this document with changes to the package, a scenario, and evide
 - [Package](../packages/react/README.md): `Form`, `Field`, `Section`, `Page`, `useFormulate`, and the initial `defineForm` authoring helper.
 - [Simple form](../examples/react/src/simple-form.tsx): two direct fields, Zod validation, accessible errors, submission, and retry.
 - [Advanced options](../examples/react/src/advanced-options.tsx): the smallest behavioural step beyond the simple form. A boolean discloses a Section; Settings → Review exercises Page. These are the optional additions explicitly described in [the scenario](03-scenarios/advanced-options.md).
+- [Email confirmation](../examples/react/src/email-confirmation.tsx): pressure-tests reusable Email configuration, a cross-field requirement, and explicit nested bindings against the schema-first baseline. See [scenario invariants](03-scenarios/simple-form.md#definition-helper-pressure-test).
 - [Interaction tests](../tests/scenarios.test.tsx) and [primitive integration test](../tests/primitives.test.tsx): runnable evidence via `pnpm check`.
 
 React 19 + TypeScript, RHF + Zod, Vite and Tailwind CSS 4 for the example app, and local connected HTML controls. The runtime package emits ESM and declarations without a Tailwind dependency. No router or framework-specific integration is needed for this slice. The private workspace package is a starting distribution boundary, not a final decision about which UI files should be installed through a registry.
@@ -112,11 +113,30 @@ Verification now includes twelve interaction tests, with new coverage for partia
 
 ### Follow-up order
 
-1. **Pressure-test the first definition helper.** Evaluate the current declaration/Fields/Field split before expanding it. Next useful cases are a reusable Email, cross-field form requirements, and explicit nested bindings; preserve typing and current runtime lifetime. The existing schema-first API is the baseline comparison.
+1. **Pressure-test the first definition helper — completed for this slice.** Email reuse, cross-field requirements, explicit nested bindings, typing, and runtime lifetime now have executable evidence; see the findings below. A bound schema-customization API remains a measured ergonomic gap, not an implemented capability.
 2. **Extract only the coordination demonstrated here.** Decide whether correction destinations and page action scopes justify a hook. Add a third editing page only when needed to prove scoped validation; do not build a workflow graph to navigate two pages.
 3. **Add customer onboarding as the next scenario.** Reuse Address twice with explicit bindings, independent country/postcode dependencies, and review readers. This should drive group requirements, local references, and conditional policies.
 4. **Choose the next pressure test together.** Arrays, async choices, or draft recovery; update the appropriate row above and add evidence before expanding scope.
 
 For each iteration: identify one scenario invariant, make the smallest code change, add a meaningful interaction check, and update this anchor's status and remaining decisions. The [Part 4 helpers](04-library-authoring.md) remain proposals beyond the deliberately narrower defineForm helper implemented here.
+
+### Definition-helper pressure test
+
+The [third example](../examples/react/src/email-confirmation.tsx) compares a declaration-backed email confirmation with explicit `contact.email` / `contact.confirmEmail` bindings. Both use the same Zod requirement. The nested form wraps the refined object schema, which also prefixes the confirmation error path correctly. Switching modes deliberately creates a fresh runtime; rerendering either mode preserves its runtime and editors.
+
+| Case | Evidence and decision |
+| --- | --- |
+| Reuse Email without sharing values. | [Email](../examples/react/src/email.ts) is ordinary configuration, used by sign-in and both confirmation bindings. Each placement supplies its own name. Tests verify independent values, unique IDs, and local presentation overrides without mutating the shared declaration. Keep plain configuration; no field-library primitive is needed yet. |
+| Preserve typing after extraction. | An extracted object's string literals widen without contextual typing. `component: "input" as const` and `componentProps satisfies InputControlProps` preserve the adapter contract. Compile-time cases reject incompatible defaults, controls, and nested paths. This is real extraction friction that a future typed declaration helper could address. |
+| Validate a relationship across fields. | Refine `EmailConfirmation.schema` once at module scope, then pass `{ schema, defaultValues }` to `useFormulate`. Generated Fields and individually placed Field retain their presentation and name typing. Tests cover mismatch feedback/focus, correction, and invalidation after changing the original email. |
+| Validate without mounted editors. | A cross-field test begins with the confirmation editor never mounted, corrects it, unmounts it, then changes the original email. Submission rejects the new mismatch and retains the confirmation value. No rule depends on a mounted control. |
+| Bind nested data explicitly. | The schema-first variant declares its object schema, editing defaults, and typed RHF paths. Section supplies presentation only. Tests assert the exact nested submission payload and the same correction behaviour as the flat form. Keep this baseline until repeated group composition supplies stronger evidence for a scope helper. |
+| Preserve runtime lifetime. | Both example definitions/schemas live at module scope. Tests retain edited values and the same DOM control across rerenders, and isolate two simultaneous form uses. |
+
+**Measured limit:** a refined schema does not update the original definition or its bound `useForm()` hook. The example explicitly selects the refined boundary through `useFormulate`; calling `EmailConfirmation.useForm()` would omit the equality rule. A future schema-customization API should preserve the bound hook, name typing, and parsed-output inference together. This slice exercises a refinement that preserves input/output shape; shape-changing form transforms with definition-bound controls remain unproven.
+
+Submission rechecks the whole relationship. There is no dependency scheduler to eagerly refresh a sibling's error on every edit, and no generic hidden-error navigation in this pressure test. The existing advanced-options scenario remains the evidence for reveal/focus coordination.
+
+Verification: `pnpm check` passes TypeScript, **16 interaction tests**, and both builds. The four new tests cover both authoring paths (including Strict Mode), unmounted cross-field requirements, and declaration reuse across runtimes. Existing sign-in tests also pass after extracting Email. A browser walkthrough verified mismatch feedback, correction, flat/nested payloads, and keyboard/pointer error focus for the nested form; the console was clear. No core runtime API was expanded; the package guide now documents the demonstrated composition boundary. **Next: correction destinations and page action scopes** (follow-up 2).
 
 Implementation references: [RHF Controller contract](https://github.com/react-hook-form/react-hook-form/blob/master/src/useController.ts) and [Vite setup requirements](https://vite.dev/guide/). The checked-in lockfile records the versions exercised by this prototype.

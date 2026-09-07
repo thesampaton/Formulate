@@ -3,14 +3,12 @@ import { Form } from "@formulate/react";
 import { z } from "zod";
 import { defineForm } from "./formulate";
 import { SubmitButton } from "./submit-button";
+import { Email } from "./email";
 
 const SignIn = defineForm({
   email: {
-    schema: z.email("Enter a valid email address."),
-    defaultValue: "",
-    label: "Email",
-    component: "input",
-    componentProps: { type: "email", autoComplete: "username", placeholder: "you@example.com", className: "h-11" },
+    ...Email,
+    componentProps: { ...Email.componentProps, autoComplete: "username", className: "h-11" },
   },
   password: {
     schema: z.string().min(1, "Enter your password."),

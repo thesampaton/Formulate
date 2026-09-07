@@ -75,6 +75,33 @@ Use `control={form.control}` for a standalone field, or to explicitly select ano
 
 These are alternative presentations. The definition helper currently accepts flat identifier keys. Use the existing schema-first API for nested RHF paths, cross-field rules, and other compositions not covered by this helper. Generated `.schema` and `.defaultValues` remain available for inspection. This is not JSON Schema auto-rendering or the full Part 4 definition/reference model.
 
+### Reuse and form-level rules
+
+Extract a declaration as ordinary configuration. Preserve the component literal with `as const`, and check extracted control props with `satisfies InputControlProps` (or your adapter's props type). See the [shared Email](../../examples/react/src/email.ts), reused in sign-in and confirmation. Spread overrides into a new declaration; each use's key supplies its own binding and values.
+
+Cross-field rules can refine the generated schema at module scope:
+
+```tsx
+const Confirmation = defineForm({
+  email: Email,
+  confirmEmail: { ...Email, label: "Confirm email" },
+});
+const confirmationBoundary = {
+  schema: Confirmation.schema.refine(
+    (values) => values.email === values.confirmEmail,
+    { path: ["confirmEmail"], message: "Email addresses must match." },
+  ),
+  defaultValues: Confirmation.defaultValues,
+};
+// In a React component:
+const form = useFormulate(confirmationBoundary);
+// Inside <Form form={form} ...>: <Confirmation.Fields />
+```
+
+The refined schema validates at the form boundary, even without mounted editors. This does **not** modify `Confirmation` or its bound `useForm()` hook: select `confirmationBoundary` explicitly to include the relationship. This example preserves the schema's input/output shape; it does not establish a contract for shape-changing form transforms with bound Fields. Submission checks the relationship again after either value changes; eager sibling-error updates would need explicit coordination.
+
+For nested bindings, compose a Zod object and use schema-first defaults plus typed `Field control={form.control} name="contact.email"`. The [comparison example](../../examples/react/src/email-confirmation.tsx) demonstrates exact nested payloads and error paths. Sections add no paths, and neither variant introduces another value store. A bound schema-customization API and reusable binding scopes remain open.
+
 Defaults describe editing values, before parsing. A schema that accepts strings and produces numbers needs a string default and a string-capable control. The built-in input does not accept `undefined`; use an empty string editing contract or an adapter that explicitly supports absence. Defaults are checked for TypeScript compatibility at authoring time and validated by the resolver at runtime; an incomplete form may intentionally start invalid.
 
 Static prefills override only the supplied fields, preserving the other declared defaults:

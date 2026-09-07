@@ -17,6 +17,8 @@ pnpm dev
 
 Open the local URL printed by Vite. The examples cover [simple sign-in](examples/react/src/simple-form.tsx) and [advanced options](examples/react/src/advanced-options.tsx), including disclosure, a settings/review flow, and application-owned submission. Demo handlers perform no network requests or persistence.
 
+The third example, [email confirmation](examples/react/src/email-confirmation.tsx), tests reusable field configuration and cross-field validation, with flat and explicitly nested bindings.
+
 ```sh
 pnpm check # TypeScript, interaction tests, package build, example build
 ```

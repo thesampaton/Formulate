@@ -2,6 +2,8 @@
 import { createFormulate, defaultComponents, defineFieldControl, defineForm, Field, useFieldControl, useFormulate } from "@formulate/react";
 import type { Control } from "react-hook-form";
 import { z } from "zod";
+import { Email } from "../examples/react/src/email";
+import { EmailConfirmation, emailConfirmationBoundary, nestedEmailConfirmationSchema } from "../examples/react/src/email-confirmation";
 
 const Choice = defineFieldControl<string>()(function Choice({ options }: { options: string[] }) {
   const field = useFieldControl<string>();
@@ -70,4 +72,24 @@ export function DefinitionTypes() {
   // @ts-expect-error The definition-bound hook checks prefill keys.
   Details.useForm({ defaultValues: { missing: "value" } });
   return <p>{email}{editingCount}{explicitCount}</p>;
+}
+
+export function PressureTestTypes() {
+  const flat = useFormulate(emailConfirmationBoundary);
+  const nested = useFormulate(nestedEmailConfirmationSchema);
+  <EmailConfirmation.Field control={flat.control} name="confirmEmail" componentProps={{ autoComplete: "off" }} />;
+  <Field control={nested.control} name="contact.email" label={Email.label} component={Email.component} componentProps={Email.componentProps} />;
+  flat.handleSubmit((values) => { const email: string = values.confirmEmail; void email; });
+  nested.handleSubmit((values) => { const email: string = values.contact.email; void email; });
+  // @ts-expect-error Reuse still validates the editing default against the email schema.
+  defineForm({ email: { ...Email, defaultValue: false } });
+  // @ts-expect-error Reuse still validates the control's editing contract.
+  defineForm({ email: { ...Email, component: "checkbox" } });
+  // @ts-expect-error Explicit bindings check the nested path.
+  <Field control={nested.control} name="contact.missing" label="Email" component="input" />;
+  // @ts-expect-error Explicit bindings check the nested editing type.
+  <Field control={nested.control} name="contact.email" label="Email" component="number" />;
+  // @ts-expect-error Refining a definition does not remove editing-type checks.
+  useFormulate(emailConfirmationBoundary, { defaultValues: { confirmEmail: 4 } });
+  return null;
 }
