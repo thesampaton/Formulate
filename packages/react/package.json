@@ -1,0 +1,31 @@
+{
+  "name": "@formulate/react",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Experimental Formulate composition primitives for React 19",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-hook-form": "^7.87.0",
+    "zod": "^4.0.0"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.9.1"
+  }
+}
