@@ -2,7 +2,7 @@ import { Form, Section, useFormulate } from "@formulate/react";
 import { z } from "zod";
 import { EmailConfirmation } from "../../examples/react/src/email-confirmation";
 import { Email } from "../../examples/react/src/email";
-import { Field } from "../../examples/react/src/formulate";
+import { Field } from "../../examples/react/src/lib/formulate-config";
 import { SubmitButton } from "../../examples/react/src/submit-button";
 
 // Schema-first regression fixture: nesting must preserve the same requirement,

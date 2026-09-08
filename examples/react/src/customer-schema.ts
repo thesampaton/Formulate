@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { Address } from "./address";
 import { Email } from "./email";
-import { defineForm } from "./formulate";
+import { Stack } from "./components/formulate/layouts";
+import { defineForm } from "@/lib/formulate-config";
 
 type DeliveryPolicy = { deliverySameAsBilling: boolean };
 export function deliverySource(values: DeliveryPolicy) {
@@ -13,10 +14,11 @@ export const Customer = defineForm({
   billingAddress: Address,
   deliverySameAsBilling: {
     schema: z.boolean(), defaultValue: true, label: "Delivery same as billing", component: "checkbox",
-    className: "grid-cols-[18px_1fr] items-center [&>label]:col-start-2",
+    orientation: "horizontal",
   },
   deliveryAddress: Address,
 }, {
+  layout: Stack,
   schema: (schema) => {
     // The inactive draft keeps its editing shape but suspends domain requirements.
     const draft = z.object({ street: z.string(), countryCode: z.string(), postcode: z.string() });

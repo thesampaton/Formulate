@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { InputControlProps } from "@formulate/react";
+import type { InputControlProps } from "@/components/formulate/controls";
 
 // Shared configuration, with no binding or live state. Each use owns its name.
 // Preserve the component literal when extracting a declaration from defineForm.

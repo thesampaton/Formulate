@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
       "@formulate/react": fileURLToPath(new URL("../../packages/react/src/index.ts", import.meta.url)),
     },
   },

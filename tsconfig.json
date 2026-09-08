@@ -2,7 +2,7 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "paths": { "@formulate/react": ["packages/react/src/index.ts"] }
+    "paths": { "@formulate/react": ["packages/react/src/index.ts"], "@/*": ["examples/react/src/*"] }
   },
   "include": ["tests", "vitest.config.ts"]
 }

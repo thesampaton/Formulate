@@ -1,7 +1,8 @@
 import { Section } from "@formulate/react";
-import type { ReactNode } from "react";
+import type { SectionPresentationProps } from "@formulate/react";
+import { Row, Stack } from "./components/formulate/layouts";
 import { z } from "zod";
-import { defineSection } from "./formulate";
+import { defineSection } from "@/lib/formulate-config";
 
 export const countries = [
   { value: "AU", label: "Australia" },
@@ -32,6 +33,7 @@ export const Address = defineSection({
   },
 }, {
   title: "Address",
+  layout: Stack,
   schema: (schema) => schema.superRefine(({ countryCode, postcode }, context) => {
     const format = postcodeFormats[countryCode];
     if (!format.pattern.test(postcode)) context.addIssue({ code: "custom", path: ["postcode"], message: format.message });
@@ -41,17 +43,17 @@ export const Address = defineSection({
 export type AddressValues = z.input<typeof Address.schema>;
 
 // Presentation uses local names; the enclosing section use supplies the binding.
-function AddressFields({ title }: { title: ReactNode }) {
+function AddressFields({ title, layout }: SectionPresentationProps) {
   const country = Address.useWatch("countryCode");
   const trigger = Address.useTrigger();
-  return <Section title={title}>
+  return <Section title={title} layout={layout}>
     <Address.Field name="street" label={<>{title} street</>} />
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+    <Row>
       <Address.Field name="countryCode" label={<>{title} country</>}
         componentProps={{ onValueChange: () => { void trigger("postcode"); } }} />
       <Address.Field name="postcode" label={<>{title} postcode</>}
         description={country === "US" ? "Demo format: 5 digits." : "Demo format: 4 digits."} />
-    </div>
+    </Row>
   </Section>;
 }
 

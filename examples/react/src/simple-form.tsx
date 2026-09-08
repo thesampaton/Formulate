@@ -1,7 +1,7 @@
+import { Stack } from "./components/formulate/layouts";
 import { useState } from "react";
-import { Form } from "@formulate/react";
 import { z } from "zod";
-import { defineForm } from "./formulate";
+import { defineForm } from "@/lib/formulate-config";
 import { SubmitButton } from "./submit-button";
 import { Email } from "./email";
 
@@ -17,7 +17,7 @@ const SignIn = defineForm({
     component: "input",
     componentProps: { type: "password", autoComplete: "current-password", className: "h-11" },
   },
-});
+}, { layout: Stack });
 
 export type SignInValues = z.output<typeof SignIn.schema>;
 
@@ -26,7 +26,7 @@ export function SimpleForm({ onSignIn }: { onSignIn: (values: SignInValues) => P
   const form = SignIn.useForm();
 
   return (
-    <Form form={form} onSubmit={async (values) => {
+    <SignIn.Form form={form} onSubmit={async (values) => {
       setSubmitted(false);
       await onSignIn(values);
       setSubmitted(true);
@@ -34,6 +34,6 @@ export function SimpleForm({ onSignIn }: { onSignIn: (values: SignInValues) => P
       <SignIn.Fields />
       <SubmitButton pendingLabel="Signing in…">Sign in</SubmitButton>
       {submitted ? <p role="status">Demo sign-in accepted. No credentials were sent or saved.</p> : null}
-    </Form>
+    </SignIn.Form>
   );
 }

@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useId, useState } from "react";
 import hljs from "highlight.js/lib/core";
 import typescript from "highlight.js/lib/languages/typescript";
@@ -25,9 +26,9 @@ export default function CodePanel({ example }: { example: ExampleName }) {
     </div>
     <p className="code-description">The form and its definitions, taken from this example. Shared controls and imports are omitted.</p>
     <div className="code-views" role="group" aria-label="Code excerpts">
-      {snippets.map(({ label }) => <button key={label} type="button"
+      {snippets.map(({ label }) => <Button variant="ghost" key={label} type="button"
         aria-pressed={snippet.label === label} aria-controls={`${id}-source`}
-        onClick={() => setSelected(label)}>{label}</button>)}
+        onClick={() => setSelected(label)}>{label}</Button>)}
     </div>
     <div className="code-file"><span>{snippet.filename}</span><span>{snippet.code.split("\n").length} lines</span></div>
     <pre key={`${example}-${snippet.label}`} id={`${id}-source`} className="code-source" role="region" tabIndex={0}

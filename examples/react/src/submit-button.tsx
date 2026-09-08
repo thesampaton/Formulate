@@ -1,7 +1,8 @@
+import { Button } from "@/components/ui/button";
 import type { ComponentProps, ReactNode } from "react";
 import { useFormActionStatus } from "@formulate/react";
 
-type SubmitButtonProps = Omit<ComponentProps<"button">, "type"> & {
+type SubmitButtonProps = Omit<ComponentProps<typeof Button>, "type"> & {
   pendingLabel?: ReactNode;
 };
 
@@ -9,8 +10,8 @@ type SubmitButtonProps = Omit<ComponentProps<"button">, "type"> & {
 export function SubmitButton({ children, pendingLabel, disabled, ...props }: SubmitButtonProps) {
   const { isPending } = useFormActionStatus();
   return (
-    <button {...props} type="submit" disabled={disabled || isPending}>
+    <Button {...props} type="submit" disabled={disabled || isPending}>
       {isPending ? pendingLabel ?? children : children}
-    </button>
+    </Button>
   );
 }

@@ -1,16 +1,17 @@
+import { Button } from "@/components/ui/button";
+import { Stack } from "./components/formulate/layouts";
 import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useWatch } from "react-hook-form";
-import { Form, Page, useFormActionStatus, useFormNavigation } from "@formulate/react";
+import { Page, useFormActionStatus, useFormNavigation } from "@formulate/react";
 import { AddressSummary } from "./address";
 import { Customer, customerDefaults, deliverySource } from "./customer-schema";
 import type { CustomerPayload, CustomerValues } from "./customer-schema";
-import { PolicyCheckboxControl } from "./controls";
 import { SubmitButton } from "./submit-button";
 
 function EditButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
   const { isPending } = useFormActionStatus();
-  return <button type="button" className="secondary" disabled={isPending} onClick={onClick}>{children}</button>;
+  return <Button type="button" variant="outline" disabled={isPending} onClick={onClick}>{children}</Button>;
 }
 
 export function CustomerOnboarding({ onCreate, defaultValues = customerDefaults }: {
@@ -30,7 +31,7 @@ export function CustomerOnboarding({ onCreate, defaultValues = customerDefaults 
   const reviewHeading = useRef<HTMLDivElement>(null);
   const [saved, setSaved] = useState<CustomerPayload | null>(null);
 
-  return <Form form={form}
+  return <Customer.Form form={form}
     navigation={navigation.page === "review" ? undefined : {
       id: navigation.revision,
       fields: ["email", "billingAddress", "deliverySameAsBilling", "deliveryAddress"],
@@ -45,18 +46,17 @@ export function CustomerOnboarding({ onCreate, defaultValues = customerDefaults 
       setSaved(payload);
     }}>
     <p className="step-indicator" aria-live="polite">Step {navigation.page === "details" ? "1 of 2 · Details" : "2 of 2 · Review"}</p>
-    <Page id="customer-details" title="Customer details" active={navigation.page === "details"}>
+    <Page layout={Stack} id="customer-details" title="Customer details" active={navigation.page === "details"}>
       <p>Choose billing and delivery addresses. This demo checks postcode formats for two countries.</p>
       <Customer.Field name="email" />
       <Customer.Section name="billingAddress" title="Billing address" />
-      <Customer.Field name="deliverySameAsBilling">
-        <PolicyCheckboxControl onValueChange={() => { void form.trigger("deliveryAddress"); }} />
-      </Customer.Field>
+      <Customer.Field name="deliverySameAsBilling"
+        componentProps={{ onValueChange: () => { void form.trigger("deliveryAddress"); } }} />
       {deliverySameAsBilling ? <p>Delivery uses your current billing address. Any separate delivery address is kept for later.</p> :
         <Customer.Section name="deliveryAddress" title="Delivery address" />}
       <SubmitButton pendingLabel="Checking…">Review customer</SubmitButton>
     </Page>
-    <Page id="customer-review" title="Review customer" active={navigation.page === "review"}>
+    <Page layout={Stack} id="customer-review" title="Review customer" active={navigation.page === "review"}>
       <div ref={reviewHeading} tabIndex={-1} role="group" aria-label="Customer summary" className="review-summary">
         <dl>
           <div><dt>Email</dt><dd>{email}</dd></div>
@@ -72,5 +72,5 @@ export function CustomerOnboarding({ onCreate, defaultValues = customerDefaults 
       </div>
     </Page>
     {saved ? <div role="status" className="result"><p>Demo creation accepted. Last submitted payload:</p><pre>{JSON.stringify(saved, null, 2)}</pre></div> : null}
-  </Form>;
+  </Customer.Form>;
 }

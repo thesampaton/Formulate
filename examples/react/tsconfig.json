@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "paths": { "@formulate/react": ["../../packages/react/src/index.ts"] }
+    "paths": { "@formulate/react": ["../../packages/react/src/index.ts"], "@/*": ["./src/*"] }
   },
   "include": ["src", "vite.config.ts"]
 }

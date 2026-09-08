@@ -1,0 +1,167 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "formulate",
+  "homepage": "http://localhost:5173",
+  "items": [
+    {
+      "name": "core",
+      "type": "registry:lib",
+      "title": "Formulate core",
+      "description": "Form, field, page, section, definitions and layout composition with React Hook Form and Zod.",
+      "dependencies": [
+        "react-hook-form@^7.87.0",
+        "zod@^4.0.0",
+        "@hookform/resolvers@^5.9.1"
+      ],
+      "files": [
+        {
+          "path": "packages/react/src/controls.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/controls.tsx"
+        },
+        {
+          "path": "packages/react/src/create-formulate.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/create-formulate.tsx"
+        },
+        {
+          "path": "packages/react/src/define-form.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/define-form.tsx"
+        },
+        {
+          "path": "packages/react/src/definition-scope.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/definition-scope.tsx"
+        },
+        {
+          "path": "packages/react/src/field-context.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/field-context.ts"
+        },
+        {
+          "path": "packages/react/src/field.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/field.tsx"
+        },
+        {
+          "path": "packages/react/src/form-action-status.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/form-action-status.ts"
+        },
+        {
+          "path": "packages/react/src/form.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/form.tsx"
+        },
+        {
+          "path": "packages/react/src/index.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/index.ts"
+        },
+        {
+          "path": "packages/react/src/layout.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/layout.tsx"
+        },
+        {
+          "path": "packages/react/src/page.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/page.tsx"
+        },
+        {
+          "path": "packages/react/src/section.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/section.tsx"
+        },
+        {
+          "path": "packages/react/src/use-form-navigation.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/use-form-navigation.ts"
+        },
+        {
+          "path": "packages/react/src/use-formulate.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/use-formulate.ts"
+        }
+      ]
+    },
+    {
+      "name": "layouts",
+      "type": "registry:component",
+      "title": "Form layouts",
+      "description": "Reusable Stack and wrapping Row layouts for form, page and section bodies.",
+      "dependencies": [
+        "cn@^0.2.6",
+        "class-variance-authority@^0.7.1"
+      ],
+      "registryDependencies": [
+        "field"
+      ],
+      "files": [
+        {
+          "path": "examples/react/src/components/formulate/layouts.tsx",
+          "type": "registry:component",
+          "target": "@components/formulate/layouts.tsx"
+        }
+      ]
+    },
+    {
+      "name": "shadcn",
+      "type": "registry:lib",
+      "title": "Formulate with shadcn",
+      "description": "Connected local controls and shadcn Field presentation, with a configured definition factory.",
+      "dependencies": [
+        "class-variance-authority@^0.7.1",
+        "lucide-react@^1.42.0",
+        "cn@^0.2.6"
+      ],
+      "registryDependencies": [
+        "@formulate/core",
+        "field",
+        "input",
+        "checkbox",
+        "select"
+      ],
+      "files": [
+        {
+          "path": "examples/react/src/components/formulate/controls.tsx",
+          "type": "registry:component",
+          "target": "@components/formulate/controls.tsx"
+        },
+        {
+          "path": "examples/react/src/components/formulate/field-presentation.tsx",
+          "type": "registry:component",
+          "target": "@components/formulate/field-presentation.tsx"
+        },
+        {
+          "path": "examples/react/src/lib/formulate-config.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate-config.ts"
+        }
+      ]
+    },
+    {
+      "name": "name",
+      "type": "registry:component",
+      "title": "Name",
+      "description": "Reusable first and last name fields in a semantic fieldset, sharing a responsive row.",
+      "dependencies": [
+        "zod@^4.0.0"
+      ],
+      "registryDependencies": [
+        "@formulate/core",
+        "@formulate/shadcn",
+        "@formulate/layouts",
+        "field"
+      ],
+      "files": [
+        {
+          "path": "examples/react/src/name.tsx",
+          "type": "registry:component",
+          "target": "@components/formulate/name.tsx"
+        }
+      ]
+    }
+  ]
+}

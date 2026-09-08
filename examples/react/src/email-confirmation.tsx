@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Form } from "@formulate/react";
 import type { z } from "zod";
-import { defineForm } from "./formulate";
+import { defineForm } from "@/lib/formulate-config";
 import { Email } from "./email";
 import { SubmitButton } from "./submit-button";
 

@@ -1,10 +1,12 @@
+import { Button } from "@/components/ui/button";
+import { Stack, Row } from "./components/formulate/layouts";
 import { useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useWatch } from "react-hook-form";
-import { Form, Page, Section, useFormActionStatus, useFormNavigation } from "@formulate/react";
+import { Page, Section, useFormActionStatus, useFormNavigation } from "@formulate/react";
 import { z } from "zod";
-import { defineForm } from "./formulate";
-import { NumberControl } from "./controls";
+import { defineForm } from "@/lib/formulate-config";
+import { NumberControl } from "@/components/formulate/controls";
 import { SubmitButton } from "./submit-button";
 
 const RequestSettings = defineForm({
@@ -13,7 +15,7 @@ const RequestSettings = defineForm({
     defaultValue: false,
     label: "Show advanced options",
     component: "checkbox",
-    className: "grid-cols-[18px_1fr] items-center [&>label]:col-start-2",
+    orientation: "horizontal",
   },
   retries: {
     schema: z.number({ error: "Enter a retry count." }).int("Use a whole number.").min(0, "Use 0 to 10 retries.").max(10, "Use 0 to 10 retries."),
@@ -39,14 +41,14 @@ const RequestSettings = defineForm({
     component: "input",
     componentProps: { type: "url", placeholder: "https://api.example.com" },
   },
-});
+}, { layout: Stack });
 
 type Settings = z.output<typeof RequestSettings.schema>;
 export type RequestConfiguration = { configuration: Pick<Settings, "retries" | "timeoutSeconds" | "endpoint"> };
 
 function EditButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
   const { isPending } = useFormActionStatus();
-  return <button type="button" className="secondary" disabled={isPending} onClick={onClick}>{children}</button>;
+  return <Button type="button" variant="outline" disabled={isPending} onClick={onClick}>{children}</Button>;
 }
 
 export function AdvancedOptions({ onSave }: { onSave: (payload: RequestConfiguration) => Promise<void> | void }) {
@@ -72,7 +74,7 @@ export function AdvancedOptions({ onSave }: { onSave: (payload: RequestConfigura
   });
 
   return (
-    <Form form={form}
+    <RequestSettings.Form form={form}
       navigation={page === "review" ? undefined : {
         id: navigation.revision,
         fields: page === "settings" ? ["showAdvanced", "retries", "timeoutSeconds"] : ["endpoint"],
@@ -93,30 +95,30 @@ export function AdvancedOptions({ onSave }: { onSave: (payload: RequestConfigura
       <p className="step-indicator" aria-live="polite">
         Step {page === "settings" ? "1" : page === "destination" ? "2" : "3"} of 3 · {page === "settings" ? "Settings" : page === "destination" ? "Destination" : "Review"}
       </p>
-      <Page id="settings" title="Request settings" active={page === "settings"}>
+      <Page layout={Stack} id="settings" title="Request settings" active={page === "settings"}>
         <p>Start with the defaults, or adjust how requests retry and time out.</p>
         <RequestSettings.Field name="showAdvanced" />
         {showAdvanced ? (
-          <Section title="Advanced options" description="These settings still apply when this section is hidden.">
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <Section layout={Stack} title="Advanced options" description="These settings still apply when this section is hidden.">
+            <Row>
               <RequestSettings.Field name="retries" />
               <RequestSettings.Field name="timeoutSeconds">
                 <NumberControl step="any" className="tabular-nums" />
               </RequestSettings.Field>
-            </div>
+            </Row>
           </Section>
         ) : null}
         <SubmitButton pendingLabel="Checking…">Next: destination</SubmitButton>
       </Page>
-      <Page id="destination" title="Request destination" active={page === "destination"}>
+      <Page layout={Stack} id="destination" title="Request destination" active={page === "destination"}>
         <p>Choose where requests will go.</p>
         <RequestSettings.Field name="endpoint" />
         <div className="actions">
-          <button type="button" className="secondary" onClick={() => navigation.goToField("showAdvanced")}>Back to settings</button>
+          <Button type="button" variant="outline" onClick={() => navigation.goToField("showAdvanced")}>Back to settings</Button>
           <SubmitButton pendingLabel="Checking…">Review settings</SubmitButton>
         </div>
       </Page>
-      <Page id="review" title="Review settings" active={page === "review"}>
+      <Page layout={Stack} id="review" title="Review settings" active={page === "review"}>
         <div ref={reviewHeading} tabIndex={-1} role="group" aria-label="Configuration summary" className="review-summary">
           <p>These values will be used for every request.</p>
           <dl>
@@ -137,6 +139,6 @@ export function AdvancedOptions({ onSave }: { onSave: (payload: RequestConfigura
           <pre>{JSON.stringify(saved, null, 2)}</pre>
         </div>
       ) : null}
-    </Form>
+    </RequestSettings.Form>
   );
 }
