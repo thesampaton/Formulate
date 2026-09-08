@@ -4,6 +4,35 @@
 
 **Layout arranges existing content.** It is optional presentation configuration on a form, page, section, or plain wrapper; it adds no data or completion scope.
 
+## Implemented composition API
+
+A layout is a module-level React component accepting `children`. The same component can be supplied to `Form`, `Page`, or `Section` using `layout={Stack}`, or reused directly around a few children. Layouts arrange each container's body; Page and Section headings and descriptions stay outside it. Form submission errors stay outside the form body layout.
+
+```tsx
+const Customer = defineForm({ name: Name, email: Email }, { layout: Stack });
+
+function CustomerForm() {
+  const form = Customer.useForm();
+  return <Customer.Form form={form} onSubmit={saveCustomer}>
+    <Page id="details" title="Details" layout={Stack}>
+      <Customer.Section name="name" />
+      <Customer.Field name="email" />
+      <button type="submit">Save</button>
+    </Page>
+  </Customer.Form>;
+}
+```
+
+`defineForm` supplies its default to `Definition.Form`. A plain `Form` uses only its own `layout` prop; `Definition.Fields` continues to render ordered members without a wrapper. `defineSection` supplies its default to each `Definition.Section` or `Bind` use. An explicit layout replaces the definition default; `layout={null}` removes it. Parent layouts arrange their direct children and do not become implicit defaults for descendants.
+
+Custom section renderers receive `{ title, layout }` and forward the layout to a Section or `LayoutBody`. Explicit section children replace the full presentation and are wrapped in the selected layout. Declare layout components at module scope; creating a new component type during render can remount its fields. Responsive CSS changes preserve the mounted controls and focus.
+
+The [local layouts](../examples/react/src/components/formulate/layouts.tsx) build on shadcn `FieldGroup`. `Stack` provides consistent body spacing. `Row` uses wrapping flex children with a preferred minimum of 14rem, so first and last name share available width and stack when the actual container is too narrow—even in a narrow panel on a wide screen. Callers can create a different layout component or adjust the local source. Reading and Tab order follow JSX order.
+
+The [Name definition](../examples/react/src/name.tsx) is a reusable group of fields, using the existing section binding contract, shadcn `FieldSet`/`FieldLegend`, and a default Row layout. A row alone adds no binding; declaring `name: Name` supplies `name.firstName` and `name.lastName`. Reusing the definition at another key creates independent values and IDs. No separate field-group entity is needed.
+
+Field `orientation` is a separate concern: shadcn uses it to arrange the label and control *inside one field*. It does not place sibling fields next to each other. The local configured `fieldPresentation` uses shadcn Field, FieldContent, FieldLabel, FieldDescription and FieldError while Formulate retains binding, error IDs and focus refs. [shadcn Field](https://ui.shadcn.com/docs/components/radix/field).
+
 ## Styling targets
 
 | Target | Responsibility |
@@ -53,7 +82,7 @@ Hiding with CSS does not change applicability, validation, retention, or inclusi
 
 ## Reuse and overrides
 
-Library fields can supply control defaults; sections/pages can supply layout defaults. Callers adapt each use through the appropriate target. Later APIs must specify whether configuration extends or replaces defaults; the CSS cascade still resolves styles, and appending a class does not guarantee an override.
+Library fields can supply control defaults; reusable form/section definitions and ordinary page components can supply layout defaults. Callers adapt each use through the appropriate target. The `layout` prop replaces the default component; CSS classes still follow the cascade, and appending a class does not guarantee an override.
 
 A replacement renderer accepts only its supported props and slots. Adapting Input to a compound picker may require changing props while preserving the value contract. Prop forwarding must preserve value binding, change/blur coordination, accessible associations, and focus integration.
 

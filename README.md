@@ -17,13 +17,15 @@ pnpm dev
 
 Open the local URL printed by Vite. The examples cover [simple sign-in](examples/react/src/simple-form.tsx) and [advanced options](examples/react/src/advanced-options.tsx), including disclosure, scoped Settings → Destination → Review navigation, and application-owned submission. Demo handlers perform no network requests or persistence.
 
+The fifth example, [reusable layouts](examples/react/src/responsive-layout.tsx), demonstrates a shared Name group with first and last name in a responsive row. Form, Page and Section accept reusable layout components; form and section definitions can supply defaults.
+
 The third example, [email confirmation](examples/react/src/email-confirmation.tsx), tests reusable field configuration and cross-field validation, with flat and explicitly nested bindings.
 
 ```sh
 pnpm check # TypeScript, interaction tests, package build, example build
 ```
 
-The [@formulate/react package](packages/react/README.md) provides `Form`, `Field`, `Section`, `Page`, and `useFormulate`. Examples use React and Tailwind CSS 4 with no Next.js dependency. The [local control map](examples/react/src/formulate.ts) supplies styled controls, with per-use Tailwind overrides through `className`. UI source distribution through shadcn remains design work.
+The [@formulate/react package](packages/react/README.md) provides `Form`, `Field`, `Section`, `Page`, and `useFormulate`. Examples use React and Tailwind CSS 4 with no Next.js dependency. The [local control map](examples/react/src/lib/formulate-config.ts) supplies styled controls, with per-use Tailwind overrides through `className`. The UI uses locally installed shadcn Field, Input, Checkbox, Select, Button and Slider components. A [local source registry](docs/registry-development.md) installs the runtime, layouts and reusable groups into another codebase.
 
 The examples use `defineForm` to declare each field's schema, editing default, and presentation once. `Definition.useForm()` creates its runtime; static prefills preserve untouched defaults. Render all fields in declaration order or place individual typed fields in JSX. Field connections come from Form context by default; an explicit RHF `control` remains available.
 

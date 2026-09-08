@@ -31,6 +31,28 @@ Each field key is declared once. `defineForm` builds the Zod object schema and R
 
 For a custom layout, use `<Contact.Field name="email" />`. Its label, component, and control props come from the declaration; its RHF connection comes from the enclosing Form. Both components are created once when `defineForm` runs. Define forms at module scope and treat their configuration as immutable. Reusing a definition in multiple Form instances creates independent values and control IDs.
 
+## Reusable layouts
+
+`Form`, `Page` and `Section` accept `layout={SomeLayout}`, where `SomeLayout` is a stable React component accepting children. It arranges the body; page/section headings and descriptions, and form submission errors, remain outside it. The same component can be reused directly as a wrapper. Layouts add no form state or field paths.
+
+```tsx
+const Contact = defineForm({ name: Name, email: Email }, { layout: Stack });
+
+function ContactForm() {
+  const form = Contact.useForm();
+  return <Contact.Form form={form} onSubmit={saveContact}>
+    <Contact.Fields />
+    <button type="submit">Save</button>
+  </Contact.Form>;
+}
+```
+
+`Definition.Form` uses the definition's default layout. Plain `Form` does not infer defaults from its runtime. `defineSection` also accepts a default layout; each Section/Bind use may replace it. Omission uses the default, and `layout={null}` removes it. Parent layouts do not implicitly propagate into child sections or pages. `Definition.Fields` still renders without a wrapper.
+
+Custom section `render` components receive `{ title, layout }`. Forward the layout to `Section` or `<LayoutBody layout={layout}>`; explicit section children replace the full presentation and are wrapped in the selected layout. Define layout components at module scope to keep component identity stable during edits.
+
+The [local Stack/Row](../../examples/react/src/components/formulate/layouts.tsx) and [Name group](../../examples/react/src/name.tsx) use shadcn FieldGroup and FieldSet. They can be installed through the [source registry](../../docs/registry-development.md). Row arranges sibling fields; a field's `orientation` arranges its own label and control. `createFormulate({ components, fieldPresentation })` lets local UI own field markup while the runtime supplies the binding and accessible IDs. Its optional per-field `presentation` override accepts the same `FieldPresentationProps` contract.
+
 ## Context and explicit control
 
 `control` is RHF's runtime connection, not a choice of UI component. It defaults to the enclosing Form's context. This works for the ordinary Field too:
@@ -49,14 +71,14 @@ Use `control={form.control}` for a standalone field, or to explicitly select ano
 | Export | Responsibility |
 | --- | --- |
 | `useFormulate(schemaOrDefinition, options?)` | Typed RHF runtime with a Zod resolver, `onBlur` validation by default, and `shouldUnregister: false`. Definitions supply editing defaults. The schema-first path still accepts RHF options, including explicit defaults. |
-| `defineForm(members, options?)` | Derives schema, defaults, useForm, Field, Fields, Section/Subsection, local watch/trigger hooks, and fieldNames. Members can be fields or reusable sections; the schema option preserves editing shape while customizing validation/output. |
+| `defineForm(members, options?)` | Derives schema, defaults, useForm, Form, Field, Fields, Section/Subsection, local watch/trigger hooks, and fieldNames. Members can be fields or reusable sections; the schema option preserves editing shape while customizing validation/output. |
 | `defineSection(members, options?)` | The same recursive member model, with a default title and optional presentation component. Local helpers inherit the section use; Bind supports explicit typed member maps. No separate form runtime. |
 | `SectionBindings<Members, Values>` | Maps local members to host paths with compatible reading and writing types. Inferred by Bind; usable with satisfies for extracted mappings. |
 | `Form` | Accepts `form`, final `onSubmit`, optional `onInvalid`, and optional `navigation: { id, fields, onValid }`. Provides RHF/action context and a native form. Checks the navigation scope or validates/parses the whole final submission, blocks overlapping attempts, and shows generic retryable feedback for a thrown check/handler. `submissionErrorMessage` overrides that message. |
 | `useFormNavigation({ form, initialPage, destinations })` | Returns `page`, `revision`, `goTo`, `goToField`, and `correct`. Destinations map editor paths to pages and optional synchronous reveal callbacks. Focus follows the committed render; the host defines scopes and allowed actions. |
 | `useFormActionStatus()` | Reads `{ isPending }` from the enclosing Form, covering scoped checks and final submission through the awaited callback. Use for pending labels and disabled action UI. |
 | `Field` | Accepts optional `control`, `name`, `label`, optional `description`, and either `component`/`componentProps` or connected children. Connects value, change, blur, ref, label, description, and errors. `className`/`style` apply to the outer field. Optional `id` overrides the control ID. |
-| `createFormulate({ components })` | Returns Field, defineForm, and defineSection configured with an application-owned component map. Call once at module scope. Keys, component props, and editing value compatibility are checked by TypeScript. Configuration contains UI, not values or validation rules. |
+| `createFormulate({ components, fieldPresentation? })` | Returns Field, defineForm, and defineSection configured with an application-owned component map. Call once at module scope. Keys, component props, and editing value compatibility are checked by TypeScript. Configuration contains UI, not values or validation rules. |
 | `InputControl`, `NumberControl`, `CheckboxControl` | Connected native controls for string, number, and boolean editing values. The default Field maps them to `input`, `number`, and `checkbox`. Usable as children too. |
 | `defineFieldControl<Value>()`, `useFieldControl<Value>()` | Adapter-author tools: declare the accepted editing type and read the enclosing Field's binding. No second controller registration. |
 | `Section` | Named semantic group with `title`, optional `description`, children, and section attributes. Can nest; adds no value object. Group requirements/completion are not implemented. |
@@ -226,7 +248,7 @@ Local event handlers refresh named error paths; the resolver still evaluates the
 
 ## Configure once, select by name
 
-The [example scaffold](../../examples/react/src/formulate.ts) exports configured Field, defineForm, and defineSection helpers. There is no provider to configure for every form and no switch statement to extend.
+The [example scaffold](../../examples/react/src/lib/formulate-config.ts) exports configured Field, defineForm, and defineSection helpers. There is no provider to configure for every form and no switch statement to extend.
 
 ```tsx
 import { createFormulate, defaultComponents } from "@formulate/react";
@@ -275,11 +297,11 @@ export const LocalInputControl = defineFieldControl<string>()(
 
 Definitions and fields with an explicit typed control reject mismatched editing value types. All mapped fields check unknown keys, unsupported props, and missing required props at compile time. TypeScript cannot infer a wrapped child's value contract through arbitrary JSX; that composition path is the adapter author's responsibility. Built-in controls report incompatible runtime values, and controls used outside a Field throw an actionable error. This is not validation of a remotely supplied UI schema.
 
-Built-in number controls convert empty text to `NaN`, which Zod rejects. An input needing richer intermediate text should keep a string editing contract and parse explicitly. Built-in control props cannot override the managed binding, change/blur handlers, or accessible associations. Put interaction customizations inside a local adapter. No shadcn registry installer or compound-control adapter ships yet.
+Built-in number controls convert empty text to `NaN`, which Zod rejects. An input needing richer intermediate text should keep a string editing contract and parse explicitly. Built-in control props cannot override the managed binding, change/blur handlers, or accessible associations. Put interaction customizations inside a local adapter. The example app provides registry-installed shadcn controls and a compound Select adapter; see [registry development](../../docs/registry-development.md).
 
 ## Styling and focus
 
-The example scaffold uses Tailwind CSS 4 through the Vite plugin. Its [local controls](../../examples/react/src/controls.tsx) apply utility defaults and use `tailwind-merge` so caller classes override conflicting defaults. The Formulate runtime has no Tailwind dependency; a local shadcn component can use its own class-merging helper at the same boundary.
+The example scaffold uses Tailwind CSS 4 through the Vite plugin. Its [local controls](../../examples/react/src/components/formulate/controls.tsx) bind registry-installed shadcn exports; those UI components own styling and class merging. Adapter props derive from the installed exports. The Formulate runtime has no Tailwind dependency; a local shadcn component can use its own class-merging helper at the same boundary.
 
 ```tsx
 <Field
