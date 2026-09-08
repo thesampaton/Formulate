@@ -155,6 +155,16 @@ const TypedCustomer = defineForm({ details: TypedDetails, enabled: { schema: z.b
 
 export function SectionTypes() {
   const form = TypedCustomer.useForm();
+  <TypedCustomer.Form form={form} layout={null} onSubmit={(values) => {
+    const visits: number = values.saved.address.visits;
+    // @ts-expect-error The definition's Form also exposes only parsed output.
+    values.enabled;
+    void visits;
+  }} />;
+  // @ts-expect-error Layouts are components, not string registry keys.
+  <TypedCustomer.Form form={form} onSubmit={() => undefined} layout="stack" />;
+  // @ts-expect-error A layout must work with children alone.
+  <TypedCustomer.Section name="details" layout={(_: { required: string }) => null} />;
   <TypedCustomer.Section name="details"><TypedDetails.Subsection name="address"><TypedAddress.Field name="street" /></TypedDetails.Subsection></TypedCustomer.Section>;
   // @ts-expect-error Sections are not single writable fields.
   <TypedCustomer.Field name="details" />;

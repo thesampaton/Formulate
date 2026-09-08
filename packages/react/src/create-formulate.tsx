@@ -1,11 +1,11 @@
 "use client";
 
 import { createElement } from "react";
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, ComponentType, ReactNode } from "react";
 import type { FieldPath, FieldPathValue, FieldValues } from "react-hook-form";
 import { createDefinitionFactories } from "./define-form.js";
 import { FieldRoot } from "./field.js";
-import type { FieldRootProps } from "./field.js";
+import type { FieldRootProps, FieldPresentationProps } from "./field.js";
 import { CheckboxControl, InputControl, NumberControl } from "./controls.js";
 import type { ControlValue, FieldControlComponent } from "./controls.js";
 
@@ -42,14 +42,17 @@ export type ConfiguredFieldProps<Values extends FieldValues, Name extends FieldP
   Omit<FieldRootProps<Values, Name, Output>, "children"> & ControlSelection<FieldPathValue<NoInfer<Values>, NoInfer<Name>>, Components>;
 
 /** Call once at module scope. Configuration selects UI, never values or rules. */
-export function createFormulate<const Components extends FieldComponentMap>({ components }: { components: Components }) {
+export function createFormulate<const Components extends FieldComponentMap>({ components, fieldPresentation }: {
+  components: Components;
+  fieldPresentation?: ComponentType<FieldPresentationProps>;
+}) {
   function Field<Values extends FieldValues, Name extends FieldPath<Values>, Output = Values>(
     { component, componentProps, children, ...props }: ConfiguredFieldProps<Values, Name, Output, Components>,
   ) {
-    if (component === undefined) return <FieldRoot {...props}>{children}</FieldRoot>;
+    if (component === undefined) return <FieldRoot presentation={fieldPresentation} {...props}>{children}</FieldRoot>;
     const Component = Object.hasOwn(components, component) ? components[component] : undefined;
     if (!Component) throw new Error(`Unknown Formulate field component: "${component}".`);
-    return <FieldRoot {...props}>{createElement(Component, componentProps)}</FieldRoot>;
+    return <FieldRoot presentation={fieldPresentation} {...props}>{createElement(Component, componentProps)}</FieldRoot>;
   }
   return { Field, ...createDefinitionFactories<Components>(Field) };
 }

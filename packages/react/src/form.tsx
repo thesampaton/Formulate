@@ -5,6 +5,8 @@ import type { ComponentPropsWithoutRef, FormEvent } from "react";
 import { FormProvider, set } from "react-hook-form";
 import type { FieldErrors, FieldPath, FieldValues, SubmitErrorHandler, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { FormActionStatusContext } from "./form-action-status.js";
+import { LayoutBody } from "./layout.js";
+import type { LayoutProps } from "./layout.js";
 
 export type FormNavigationAction<Input extends FieldValues> = {
   /** Identity of this page visit/action. Change it to cancel a previous check; use useFormNavigation().revision. */
@@ -16,7 +18,7 @@ export type FormNavigationAction<Input extends FieldValues> = {
 };
 
 export type FormProps<Input extends FieldValues, Output extends FieldValues = Input> =
-  Omit<ComponentPropsWithoutRef<"form">, "onSubmit" | "onInvalid" | "noValidate"> & {
+  Omit<ComponentPropsWithoutRef<"form">, "onSubmit" | "onInvalid" | "noValidate"> & LayoutProps & {
     form: UseFormReturn<Input, unknown, Output>;
     onSubmit: SubmitHandler<Output>;
     onInvalid?: SubmitErrorHandler<Input>;
@@ -32,6 +34,7 @@ export function Form<Input extends FieldValues, Output extends FieldValues = Inp
   navigation,
   submissionErrorMessage = "Unable to submit. Please try again.",
   children,
+  layout,
   ...props
 }: FormProps<Input, Output>) {
   const pending = useRef(false);
@@ -111,7 +114,7 @@ export function Form<Input extends FieldValues, Output extends FieldValues = Inp
     <FormProvider {...form}>
       <FormActionStatusContext value={{ isPending }}>
         <form {...props} noValidate onSubmit={submit} aria-busy={isPending} data-formulate="form">
-          {children}
+          <LayoutBody layout={layout}>{children}</LayoutBody>
           {errors.root?.submit?.message ? (
             <p role="alert" data-formulate="submission-error">{errors.root.submit.message}</p>
           ) : null}

@@ -8,6 +8,10 @@ import { z } from "zod";
 import type { ConfiguredFieldProps, ControlSelection, FieldComponentMap } from "./create-formulate.js";
 import type { FieldRootProps } from "./field.js";
 import { Section as SectionShell } from "./section.js";
+import { Form as FormShell } from "./form.js";
+import type { FormProps } from "./form.js";
+import { LayoutBody } from "./layout.js";
+import type { LayoutProps } from "./layout.js";
 import { DefinitionScopeContext, useDefinitionScope } from "./definition-scope.js";
 import type { DefinitionScope, SectionBindings } from "./definition-scope.js";
 import { useFormulate } from "./use-formulate.js";
@@ -21,7 +25,7 @@ export type FormDefinition<Input extends FieldValues, Output extends FieldValues
 };
 
 const sectionRuntime = Symbol("section-definition");
-type SectionPresentationProps = { title: ReactNode };
+export type SectionPresentationProps = { title: ReactNode } & LayoutProps;
 type SectionToken = {
   schema: z.ZodType<FieldValues, FieldValues>;
   defaultValues: FieldValues;
@@ -29,7 +33,7 @@ type SectionToken = {
   [sectionRuntime]: {
     identity: symbol;
     title?: ReactNode;
-    render: (props: { scope: DefinitionScope; title?: ReactNode; children?: ReactNode }) => ReactElement;
+    render: (props: { scope: DefinitionScope; title?: ReactNode; children?: ReactNode } & LayoutProps) => ReactElement;
   };
 };
 type FieldSchema = { schema: z.ZodType };
@@ -40,7 +44,7 @@ type Inputs<Members extends Declarations> = z.input<FormSchema<Members>>;
 type Defaults<Members extends Declarations> = { [Key in keyof Members]: z.input<Members[Key]["schema"]> };
 type FieldKeys<Members extends Declarations> = { [Key in keyof Members]: Members[Key] extends SectionToken ? never : Key }[keyof Members] & string;
 type SectionKeys<Members extends Declarations> = { [Key in keyof Members]: Members[Key] extends SectionToken ? Key : never }[keyof Members] & string;
-type Presentation = Pick<FieldRootProps<FieldValues, string>, "label" | "description" | "className" | "style">;
+type Presentation = Pick<FieldRootProps<FieldValues, string>, "label" | "description" | "className" | "style" | "orientation" | "presentation">;
 type Declaration<Schema extends z.ZodType, Components extends FieldComponentMap> = Presentation & {
   schema: Schema;
   defaultValue: NoInfer<z.input<Schema>>;
@@ -56,11 +60,11 @@ type DefinedFieldProps<Members extends Declarations, Name extends FieldKeys<Memb
     label?: ReactNode;
   } & ({ componentProps?: DefaultControlProps<Members[Name], Components>; children?: never } | { children: ReactNode; componentProps?: never });
 type WithoutControl<Props> = Props extends unknown ? Omit<Props, "control"> : never;
-type SectionUseProps<Name extends string> = { name: Name; title?: ReactNode; children?: ReactNode };
+type SectionUseProps<Name extends string> = { name: Name; title?: ReactNode; children?: ReactNode } & LayoutProps;
 type FieldRenderer<Components extends FieldComponentMap> =
   <Values extends FieldValues, Name extends FieldPath<Values>, Output = Values>(props: ConfiguredFieldProps<Values, Name, Output, Components>) => ReactNode;
 
-type DefinitionOptions<Members extends Declarations, Schema extends z.ZodType<FieldValues, FieldValues>> = {
+type DefinitionOptions<Members extends Declarations, Schema extends z.ZodType<FieldValues, FieldValues>> = LayoutProps & {
   /** Customize validation/output while preserving the complete declared editing shape. */
   schema?: (schema: FormSchema<Members>) => Schema & (
     [z.input<Schema>] extends [Inputs<Members>] ? [Inputs<Members>] extends [z.input<Schema>] ? unknown : never : never
@@ -73,6 +77,8 @@ export type DefinedForm<Members extends Declarations, Components extends FieldCo
   /** All declared leaf field paths, including section descendants, in declaration order. */
   fieldNames: readonly FieldPath<Inputs<Members>>[];
   useForm: (options?: FormulateOptions<Inputs<Members>, z.output<Schema>>) => UseFormReturn<Inputs<Members>, unknown, z.output<Schema>>;
+  /** Form shell with this definition's default layout. An explicit layout replaces it. */
+  Form: (props: FormProps<Inputs<Members>, z.output<Schema>>) => ReactElement;
   /** Renders a local field, inheriting the form runtime and any section binding. */
   Field: <Name extends FieldKeys<Members>>(props: DefinedFieldProps<Members, Name, z.output<Schema>, Components>) => ReactElement;
   /** Renders members in declaration order, including nested sections. */
@@ -88,7 +94,7 @@ export type DefinedForm<Members extends Declarations, Components extends FieldCo
 };
 
 export type DefinedSection<Members extends Declarations, Components extends FieldComponentMap, Schema extends z.ZodType<FieldValues, FieldValues> = FormSchema<Members>> =
-  Omit<DefinedForm<Members, Components, Schema>, "useForm" | "Field" | "Fields"> & Pick<SectionToken, typeof sectionRuntime> & {
+  Omit<DefinedForm<Members, Components, Schema>, "useForm" | "Form" | "Field" | "Fields"> & Pick<SectionToken, typeof sectionRuntime> & {
     /** Renders a local field using the runtime and binding supplied by this section use. */
     Field: <Name extends FieldKeys<Members>>(props: WithoutControl<DefinedFieldProps<Members, Name, z.output<Schema>, Components>>) => ReactElement;
     /** Renders local members in order, using the current section binding. */
@@ -99,7 +105,7 @@ export type DefinedSection<Members extends Declarations, Components extends Fiel
       bindings: SectionBindings<Inputs<Members>, NoInfer<Values>>;
       title?: ReactNode;
       children?: ReactNode;
-    }) => ReactElement;
+    } & LayoutProps) => ReactElement;
   };
 /** A subsection is a section used inside another section, not a separate entity. */
 export type DefinedSubsection<Members extends Declarations, Components extends FieldComponentMap, Schema extends z.ZodType<FieldValues, FieldValues> = FormSchema<Members>> = DefinedSection<Members, Components, Schema>;
@@ -127,7 +133,7 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
     schema?: (schema: z.ZodObject<any>) => z.ZodType<FieldValues, FieldValues>;
     title?: ReactNode;
     render?: ComponentType<SectionPresentationProps>;
-  } = {}) {
+  } & LayoutProps = {}) {
     const identity = Symbol(kind);
     const entries = Object.entries(members);
     for (const [name] of entries) {
@@ -152,14 +158,14 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
         : { componentProps: { ...(presentation.componentProps ?? {}), ...componentProps } };
       return <RenderField {...presentation} {...overrides} name={scope.resolve(name)} control={scope.control} {...selection} />;
     }
-    function SectionView({ name, title, children, control }: SectionUseProps<string> & { control?: Control<any, unknown, any> }) {
+    function SectionView({ name, title, children, control, layout }: SectionUseProps<string> & { control?: Control<any, unknown, any> }) {
       const parent = useDefinitionScope(identity, kind, control);
       const member = Object.hasOwn(members, name) ? members[name] : undefined;
       if (!member || !isSection(member)) throw new Error(`Unknown defined section: "${name}".`);
       return member[sectionRuntime].render({
         scope: { identity: member[sectionRuntime].identity, control: parent.control, parent: parent.parent,
           resolve: (local) => parent.resolve(`${name}.${local}`) },
-        title: title ?? member[sectionRuntime].title ?? name, children,
+        title: title ?? member[sectionRuntime].title ?? name, children, layout,
       });
     }
     function FieldsView({ control }: { control?: Control<any, unknown, any> }) {
@@ -177,25 +183,28 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
       const trigger = scope.form.trigger;
       return (name: string | readonly string[]) => trigger(typeof name === "string" ? scope.resolve(name) : name.map(scope.resolve));
     }
-    function renderUse({ scope, title = options.title ?? "Section", children }: { scope: DefinitionScope; title?: ReactNode; children?: ReactNode }) {
+    function renderUse({ scope, title = options.title ?? "Section", children, layout = options.layout }: { scope: DefinitionScope; title?: ReactNode; children?: ReactNode } & LayoutProps) {
       const Presentation = options.render;
       return <DefinitionScopeContext value={scope}>
-        {children !== undefined ? children : Presentation ? <Presentation title={title} /> :
-          <SectionShell title={title}><FieldsView /></SectionShell>}
+        {children !== undefined ? <LayoutBody layout={layout}>{children}</LayoutBody> : Presentation ? <Presentation title={title} layout={layout} /> :
+          <SectionShell title={title} layout={layout}><FieldsView /></SectionShell>}
       </DefinitionScopeContext>;
     }
-    function Bind({ control, bindings, title, children }: { control: Control<any, unknown, any>; bindings: Record<string, string>; title?: ReactNode; children?: ReactNode }) {
+    function Bind({ control, bindings, title, children, layout }: { control: Control<any, unknown, any>; bindings: Record<string, string>; title?: ReactNode; children?: ReactNode } & LayoutProps) {
       const parent = useContext(DefinitionScopeContext);
       for (const [name] of entries) if (!Object.hasOwn(bindings, name) || !bindings[name]) throw new Error(`Missing section binding: "${name}".`);
       return renderUse({ scope: { identity, control, parent, resolve: (name) => {
         const [head, ...tail] = name.split(".");
         return [bindings[head!]!, ...tail].join(".");
-      } }, title, children });
+      } }, title, children, layout });
     }
     function useDefinedForm(formOptions?: FormulateOptions<FieldValues, FieldValues>) {
       return useFormulate({ schema, defaultValues }, formOptions);
     }
-    return { schema, defaultValues, fieldNames, Field, Fields: FieldsView, Section: SectionView, Subsection: SectionView,
+    function FormView({ layout = options.layout, ...props }: FormProps<FieldValues, FieldValues>) {
+      return <FormShell {...props} layout={layout} />;
+    }
+    return { schema, defaultValues, fieldNames, Form: FormView, Field, Fields: FieldsView, Section: SectionView, Subsection: SectionView,
       useWatch: useDefinedWatch, useTrigger: useDefinedTrigger, useForm: useDefinedForm, Bind,
       [sectionRuntime]: { identity, title: options.title, render: renderUse } };
   }
