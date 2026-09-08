@@ -4,7 +4,7 @@
 
 **A library is a collection of reusable definitions built with Formulate's primitives.** Start with source exports that work in an application. A registry can distribute those exports individually or in useful groups.
 
-The examples below are proposed authoring notation. Helpers, imports, and renderer/schema adapters will be specified in later phases. They illustrate the mechanism rather than executable APIs.
+The examples below are proposed authoring notation. A narrower executable defineForm/defineSection API now supports recursive members, local bindings, presentation components, and schema customization; see the [package guide](../packages/react/README.md#reusable-sections-and-subsections). The sketches here also include future references, requirements, and publication contracts.
 
 ## 1. Define a field
 
@@ -43,6 +43,8 @@ export const ContactDetails = defineSection({
 ```
 
 Each member key supplies its default local binding and reference. Declaration order supplies default presentation order. The caller can arrange those references differently while preserving membership and rules.
+
+Members may also be section uses. For example, CustomerDetails can contain ContactDetails and two independent Address uses; Address can itself contain further sections. These are all sections. “Subsection” is an optional name for that parent-child relationship, and any future alias or convenience helper must use the same section contract. The parent supplies each child's binding; adding a visual nesting level alone does not add a payload object.
 
 Two uses of ContactDetails have independent values and connections:
 

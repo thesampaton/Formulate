@@ -110,6 +110,10 @@ No deep-merge algorithm should be treated as the semantic definition of composit
 
 ## Section: members and their connections
 
+The current [package API](../packages/react/README.md#reusable-sections-and-subsections) implements a narrower defineSection slice: recursive declarations, typed bindings, local rendering/watch/trigger helpers, and schema customization. The requirement/reference records below remain the broader model.
+
+A section's members can be fields or other sections. The same SectionDefinition and SectionUse contracts apply at every nesting level. A child section may be called a **subsection** for readability; it has no separate entity discriminator, runtime behaviour, or binding rules. If useful, names such as SubsectionDefinition and SubsectionUse can be aliases of the corresponding Section types, rather than additional contracts.
+
 ```ts
 type SectionDefinition = Definition<"section", {
   members: MemberDeclarations
@@ -132,6 +136,8 @@ type SectionUse = {
 ```
 
 Bindings route child values; the section does not register an additional writable object over those children. Without an explicit object binding, semantic grouping alone creates no nested payload. When local member keys would collide, the caller supplies distinct bindings or object prefixes.
+
+This also applies recursively: a parent routes a child section's bindings, and that child routes its own members. Each section use keeps its local member references and relationships. A reusable Address section can therefore be used inside a CustomerDetails section without changing the Address definition or requiring a special subsection implementation.
 
 `expose` states which internal references the caller can connect or present. Inline authoring can use local references directly. Two extracted uses resolve the same local names to different instances.
 

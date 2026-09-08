@@ -28,11 +28,13 @@ Each field is declared once, with one value key. Normal integration supplies bin
 | **UI primitive** | A shadcn or HTML building block such as Input, Select, or Checkbox. It supplies the control's appearance and interaction. |
 | **Field instance** | One configured field in a form, with an identity, value binding, validation, and dependencies. It connects a control to form behaviour. |
 | **Library field — optional** | A reusable field definition packaging a control, value contract, rules, and defaults. Each use creates its own field instance. |
-| **Section — optional** | Related fields composed as a named group, with shared rules, dependencies, layout, or completion. Sections can nest or repeat. |
+| **Section — optional** | Related fields and sections composed as a named group, with shared rules, dependencies, layout, or completion. Sections can nest or repeat. |
 | **Page — optional** | A named part of the experience with content, navigation, and a completion scope. It can appear as a route, tab, or wizard step. |
 | **Form** | The shared boundary for values, requirements, state, and actions across the whole interaction. |
 
 A form contains fields, optionally grouped into sections. Pages organise how that content is visited. Either construct works without the other: a page can show direct fields, and a section can appear in an unpaginated form. A section can also span pages while keeping its internal relationships. A review page shows existing values.
+
+A section can contain other sections, using the same composition model at every level. “Subsection” describes a section's placement within another section; it is not a separate entity kind. Any subsection type alias or authoring convenience must preserve the same Section contract. Nesting sections does not itself create nested data; bindings remain explicit.
 
 For example, a library `CostCentre` field packages its picker and validation. Requesting and billing each use a separate instance, with independent values and errors. A field can contain several controls under one value contract, such as a DateRange; a section groups independently bound fields.
 

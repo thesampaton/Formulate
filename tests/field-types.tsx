@@ -1,5 +1,5 @@
 // Compile-time API checks, included in pnpm typecheck; never rendered.
-import { createFormulate, defaultComponents, defineFieldControl, defineForm, Field, useFieldControl, useFormulate, useFormNavigation } from "@formulate/react";
+import { createFormulate, defaultComponents, defineFieldControl, defineForm, defineSection, Field, useFieldControl, useFormulate, useFormNavigation } from "@formulate/react";
 import type { FormNavigationAction } from "@formulate/react";
 import type { Control } from "react-hook-form";
 import { z } from "zod";
@@ -115,5 +115,49 @@ export function NavigationTypes() {
   // @ts-expect-error A scoped action cannot claim to receive validated form output.
   const wrongHandler: FormNavigationAction<Editing> = { ...action, onValid: (values: z.output<typeof Details.schema>) => { void values; } };
   void wrongScope; void wrongHandler;
+  return null;
+}
+
+const TypedAddress = defineSection({
+  street: { schema: z.string(), defaultValue: "", label: "Street", component: "input" },
+  visits: { schema: z.string().transform(Number), defaultValue: "0", label: "Visits", component: "input" },
+});
+const TypedDetails = defineSection({ address: TypedAddress });
+const TypedCustomer = defineForm({ details: TypedDetails, enabled: { schema: z.boolean(), defaultValue: false, label: "Enabled", component: "checkbox" } }, {
+  schema: (schema) => schema.transform(({ details }) => ({ saved: details })),
+});
+
+export function SectionTypes() {
+  const form = TypedCustomer.useForm();
+  <TypedCustomer.Section name="details"><TypedDetails.Subsection name="address"><TypedAddress.Field name="street" /></TypedDetails.Subsection></TypedCustomer.Section>;
+  // @ts-expect-error Sections are not single writable fields.
+  <TypedCustomer.Field name="details" />;
+  // @ts-expect-error A scalar field is not a section.
+  <TypedCustomer.Section name="enabled" />;
+  // @ts-expect-error A section member inherits its runtime at the section boundary.
+  <TypedAddress.Field name="street" control={form.control} />;
+  // @ts-expect-error Local field names remain typed.
+  <TypedAddress.Field name="missing" />;
+  // @ts-expect-error Local field controls retain their editing props.
+  <TypedAddress.Field name="street" componentProps={{ options: ["x"] }} />;
+  // @ts-expect-error Local references cannot use host paths.
+  TypedAddress.useWatch("details.address.street");
+  // @ts-expect-error Checks use existing local paths.
+  TypedAddress.useTrigger()("missing");
+  // @ts-expect-error Nested defaults use editing types, not parsed numbers.
+  TypedCustomer.useForm({ defaultValues: { details: { address: { visits: 2 } } } });
+  // @ts-expect-error Schema customization must preserve the editing shape.
+  defineForm({ name: { schema: z.string(), defaultValue: "", label: "Name", component: "input" } }, { schema: () => z.object({ other: z.string() }) });
+  form.handleSubmit((values) => {
+    const visits: number = values.saved.address.visits;
+    // @ts-expect-error The customized output omits editing-only fields.
+    values.enabled;
+    void visits;
+  });
+  const host = useFormulate(z.object({ narrow: z.literal("fixed"), street: z.string(), count: z.number() }));
+  // @ts-expect-error A general string editor cannot write to a literal-only host binding.
+  <TypedAddress.Bind control={host.control} bindings={{ street: "narrow", visits: "street" }} />;
+  // @ts-expect-error Binding uses editing string, not transformed number.
+  <TypedAddress.Bind control={host.control} bindings={{ street: "street", visits: "count" }} />;
   return null;
 }
