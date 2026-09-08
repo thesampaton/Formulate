@@ -4,7 +4,13 @@ import type { FormNavigationAction } from "@formulate/react";
 import type { Control } from "react-hook-form";
 import { z } from "zod";
 import { Email } from "../examples/react/src/email";
-import { EmailConfirmation, emailConfirmationBoundary, nestedEmailConfirmationSchema } from "../examples/react/src/email-confirmation";
+import { EmailConfirmation } from "../examples/react/src/email-confirmation";
+import { nestedEmailConfirmationSchema } from "./fixtures/nested-email-confirmation";
+import { Address } from "../examples/react/src/address";
+import type { SectionBindings } from "@formulate/react";
+import type { AddressValues } from "../examples/react/src/address";
+import { customerSchema } from "../examples/react/src/customer-schema";
+import type { CustomerValues } from "../examples/react/src/customer-schema";
 
 const Choice = defineFieldControl<string>()(function Choice({ options }: { options: string[] }) {
   const field = useFieldControl<string>();
@@ -76,7 +82,7 @@ export function DefinitionTypes() {
 }
 
 export function PressureTestTypes() {
-  const flat = useFormulate(emailConfirmationBoundary);
+  const flat = EmailConfirmation.useForm();
   const nested = useFormulate(nestedEmailConfirmationSchema);
   <EmailConfirmation.Field control={flat.control} name="confirmEmail" componentProps={{ autoComplete: "off" }} />;
   <Field control={nested.control} name="contact.email" label={Email.label} component={Email.component} componentProps={Email.componentProps} />;
@@ -91,7 +97,7 @@ export function PressureTestTypes() {
   // @ts-expect-error Explicit bindings check the nested editing type.
   <Field control={nested.control} name="contact.email" label="Email" component="number" />;
   // @ts-expect-error Refining a definition does not remove editing-type checks.
-  useFormulate(emailConfirmationBoundary, { defaultValues: { confirmEmail: 4 } });
+  EmailConfirmation.useForm({ defaultValues: { confirmEmail: 4 } });
   return null;
 }
 
@@ -115,6 +121,26 @@ export function NavigationTypes() {
   // @ts-expect-error A scoped action cannot claim to receive validated form output.
   const wrongHandler: FormNavigationAction<Editing> = { ...action, onValid: (values: z.output<typeof Details.schema>) => { void values; } };
   void wrongScope; void wrongHandler;
+  return null;
+}
+export function CustomerTypes() {
+  const form = useFormulate(customerSchema);
+  const billingBindings = { street: "billingAddress.street", countryCode: "billingAddress.countryCode", postcode: "billingAddress.postcode" } as const;
+  <Address.Bind control={form.control} bindings={billingBindings} title="Billing" />;
+  // Reuse also accepts unrelated, flat caller paths.
+  const flat = useFormulate(z.object({ street: z.string(), country: z.string(), postal: z.string() }));
+  <Address.Bind control={flat.control} bindings={{ street: "street", countryCode: "country", postcode: "postal" }} title="Address" />;
+  // @ts-expect-error Reusable group members cannot bind to a boolean editor.
+  const wrongType: SectionBindings<AddressValues, CustomerValues> = { ...billingBindings, street: "deliverySameAsBilling" };
+  // @ts-expect-error Reusable group members must name existing editing paths.
+  const wrongPath: SectionBindings<AddressValues, CustomerValues> = { ...billingBindings, postcode: "billingAddress.missing" };
+  form.handleSubmit((payload) => {
+    const country: "AU" | "US" = payload.deliveryAddress.countryCode;
+    // @ts-expect-error Parsed payload excludes the applicability toggle.
+    payload.deliverySameAsBilling;
+    void country;
+  });
+  void wrongType; void wrongPath;
   return null;
 }
 

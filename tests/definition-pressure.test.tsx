@@ -2,14 +2,15 @@ import { StrictMode, useState } from "react";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
-import { Form, useFormulate } from "@formulate/react";
+import { Form } from "@formulate/react";
 import {
-  EmailConfirmation, emailConfirmationBoundary, FlatEmailConfirmation, NestedEmailConfirmation,
+  EmailConfirmation, EmailConfirmationForm,
 } from "../examples/react/src/email-confirmation";
+import { NestedEmailConfirmation } from "./fixtures/nested-email-confirmation";
 import { Email } from "../examples/react/src/email";
 
 it.each([
-  { name: "declaration-backed", Component: FlatEmailConfirmation, payload: { email: "first@example.com", confirmEmail: "first@example.com" } },
+  { name: "declaration-backed", Component: EmailConfirmationForm, payload: { email: "first@example.com", confirmEmail: "first@example.com" } },
   { name: "explicit nested", Component: NestedEmailConfirmation, payload: { contact: { email: "first@example.com", confirmEmail: "first@example.com" } } },
 ])("validates cross-field rules, focuses correction, and preserves runtime identity with $name bindings", async ({ Component, payload }) => {
   const user = userEvent.setup();
@@ -47,7 +48,7 @@ it.each([
 it("keeps a cross-field requirement active before its editor mounts and after it unmounts", async () => {
   const onConfirm = vi.fn();
   function Example() {
-    const form = useFormulate(emailConfirmationBoundary, { defaultValues: { email: "first@example.com", confirmEmail: "other@example.com" } });
+    const form = EmailConfirmation.useForm({ defaultValues: { email: "first@example.com", confirmEmail: "other@example.com" } });
     const [shown, setShown] = useState(false);
     return <Form form={form} onSubmit={onConfirm}>
       <EmailConfirmation.Field name="email" />
@@ -82,8 +83,8 @@ it("keeps a cross-field requirement active before its editor mounts and after it
 it("isolates reused declarations across form runtimes and preserves per-use presentation", async () => {
   const user = userEvent.setup();
   render(<>
-    <div role="group" aria-label="First"><FlatEmailConfirmation onConfirm={vi.fn()} /></div>
-    <div role="group" aria-label="Second"><FlatEmailConfirmation onConfirm={vi.fn()} /></div>
+    <div role="group" aria-label="First"><EmailConfirmationForm onConfirm={vi.fn()} /></div>
+    <div role="group" aria-label="Second"><EmailConfirmationForm onConfirm={vi.fn()} /></div>
   </>);
   const first = within(screen.getByRole("group", { name: "First" }));
   const second = within(screen.getByRole("group", { name: "Second" }));

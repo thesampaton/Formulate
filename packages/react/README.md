@@ -49,12 +49,14 @@ Use `control={form.control}` for a standalone field, or to explicitly select ano
 | Export | Responsibility |
 | --- | --- |
 | `useFormulate(schemaOrDefinition, options?)` | Typed RHF runtime with a Zod resolver, `onBlur` validation by default, and `shouldUnregister: false`. Definitions supply editing defaults. The schema-first path still accepts RHF options, including explicit defaults. |
-| `defineForm(fields)` | Derives `.schema`, `.defaultValues`, `.useForm(options?)`, typed `.Field`, and ordered `.Fields` from field declarations. Each declaration supplies its schema, editing default, label, and mapped control or connected children. |
+| `defineForm(members, options?)` | Derives schema, defaults, useForm, Field, Fields, Section/Subsection, local watch/trigger hooks, and fieldNames. Members can be fields or reusable sections; the schema option preserves editing shape while customizing validation/output. |
+| `defineSection(members, options?)` | The same recursive member model, with a default title and optional presentation component. Local helpers inherit the section use; Bind supports explicit typed member maps. No separate form runtime. |
+| `SectionBindings<Members, Values>` | Maps local members to host paths with compatible reading and writing types. Inferred by Bind; usable with satisfies for extracted mappings. |
 | `Form` | Accepts `form`, final `onSubmit`, optional `onInvalid`, and optional `navigation: { id, fields, onValid }`. Provides RHF/action context and a native form. Checks the navigation scope or validates/parses the whole final submission, blocks overlapping attempts, and shows generic retryable feedback for a thrown check/handler. `submissionErrorMessage` overrides that message. |
 | `useFormNavigation({ form, initialPage, destinations })` | Returns `page`, `revision`, `goTo`, `goToField`, and `correct`. Destinations map editor paths to pages and optional synchronous reveal callbacks. Focus follows the committed render; the host defines scopes and allowed actions. |
 | `useFormActionStatus()` | Reads `{ isPending }` from the enclosing Form, covering scoped checks and final submission through the awaited callback. Use for pending labels and disabled action UI. |
 | `Field` | Accepts optional `control`, `name`, `label`, optional `description`, and either `component`/`componentProps` or connected children. Connects value, change, blur, ref, label, description, and errors. `className`/`style` apply to the outer field. Optional `id` overrides the control ID. |
-| `createFormulate({ components })` | Returns Field and defineForm configured with an application-owned component map. Call once at module scope. Keys, component props, and editing value compatibility are checked by TypeScript. Configuration contains UI, not values or validation rules. |
+| `createFormulate({ components })` | Returns Field, defineForm, and defineSection configured with an application-owned component map. Call once at module scope. Keys, component props, and editing value compatibility are checked by TypeScript. Configuration contains UI, not values or validation rules. |
 | `InputControl`, `NumberControl`, `CheckboxControl` | Connected native controls for string, number, and boolean editing values. The default Field maps them to `input`, `number`, and `checkbox`. Usable as children too. |
 | `defineFieldControl<Value>()`, `useFieldControl<Value>()` | Adapter-author tools: declare the accepted editing type and read the enclosing Field's binding. No second controller registration. |
 | `Section` | Named semantic group with `title`, optional `description`, children, and section attributes. Can nest; adds no value object. Group requirements/completion are not implemented. |
@@ -75,34 +77,30 @@ Use `control={form.control}` for a standalone field, or to explicitly select ano
 </Contact.Field>
 ```
 
-These are alternative presentations. The definition helper currently accepts flat identifier keys. Use the existing schema-first API for nested RHF paths, cross-field rules, and other compositions not covered by this helper. Generated `.schema` and `.defaultValues` remain available for inspection. This is not JSON Schema auto-rendering or the full Part 4 definition/reference model.
+These are alternative presentations. Member keys are local identifiers; declare a section member to introduce a nested object binding. The schema-first API remains available for arbitrary RHF paths and other compositions. Generated `.schema` and `.defaultValues` remain available for inspection. This is not JSON Schema auto-rendering or the full Part 4 definition/reference model.
 
 ### Reuse and form-level rules
 
 Extract a declaration as ordinary configuration. Preserve the component literal with `as const`, and check extracted control props with `satisfies InputControlProps` (or your adapter's props type). See the [shared Email](../../examples/react/src/email.ts), reused in sign-in and confirmation. Spread overrides into a new declaration; each use's key supplies its own binding and values.
 
-Cross-field rules can refine the generated schema at module scope:
+Cross-field rules can customize the generated schema at module scope while retaining the bound hook:
 
 ```tsx
 const Confirmation = defineForm({
   email: Email,
   confirmEmail: { ...Email, label: "Confirm email" },
-});
-const confirmationBoundary = {
-  schema: Confirmation.schema.refine(
+}, {
+  schema: (schema) => schema.refine(
     (values) => values.email === values.confirmEmail,
     { path: ["confirmEmail"], message: "Email addresses must match." },
   ),
-  defaultValues: Confirmation.defaultValues,
-};
-// In a React component:
-const form = useFormulate(confirmationBoundary);
-// Inside <Form form={form} ...>: <Confirmation.Fields />
+});
+const form = Confirmation.useForm();
 ```
 
-The refined schema validates at the form boundary, even without mounted editors. This does **not** modify `Confirmation` or its bound `useForm()` hook: select `confirmationBoundary` explicitly to include the relationship. This example preserves the schema's input/output shape; it does not establish a contract for shape-changing form transforms with bound Fields. Submission checks the relationship again after either value changes; eager sibling-error updates would need explicit coordination.
+The schema option must preserve the complete declared editing shape. It can refine or transform the accepted output; useForm and submission infer that output while Field and defaults keep their editing types. Requirements remain in the boundary schema when editors unmount. The [email-confirmation example](../../examples/react/src/email-confirmation.tsx) uses this schema option and its bound hook. External refinement still works via `useFormulate({ schema, defaultValues })`, but does not modify the original definition's hook.
 
-For nested bindings, compose a Zod object and use schema-first defaults plus typed `Field control={form.control} name="contact.email"`. The [comparison example](../../examples/react/src/email-confirmation.tsx) demonstrates exact nested payloads and error paths. Sections add no paths, and neither variant introduces another value store. A bound schema-customization API and reusable binding scopes remain open.
+For nested bindings, use section declarations below or compose a Zod object with schema-first defaults and typed `Field control={form.control} name="contact.email"`. A plain Section presentation wrapper adds no paths. Declaring a section member explicitly creates its object binding. Neither path introduces another value store.
 
 Defaults describe editing values, before parsing. A schema that accepts strings and produces numbers needs a string default and a string-capable control. The built-in input does not accept `undefined`; use an empty string editing contract or an adapter that explicitly supports absence. Defaults are checked for TypeScript compatibility at authoring time and validated by the resolver at runtime; an incomplete form may intentionally start invalid.
 
@@ -169,9 +167,66 @@ Form suppresses validation callbacks after a value change/reset, a changed navig
 
 This is cancellation of navigation/correction callbacks, **not** cancellation of the resolver or an already-started application callback. A resolver can still finish and update RHF errors. Form prevents overlapping attempts and releases pending UI when the operation settles; it does not clear newer errors or restore an old snapshot. Validators, remote requests, and async callbacks still need application-owned cancellation/reconciliation if required. Rules, values, and validation errors remain in RHF/Zod, and the helper exposes no page completion or workflow graph.
 
+## Reusable sections and subsections
+
+[Address](../../examples/react/src/address.tsx) is now a `defineSection` declaration. Each field supplies its schema, default, label, and control once. Its presentation uses local names and hooks:
+
+```tsx
+function AddressFields({ title }: { title: ReactNode }) {
+  const country = Address.useWatch("countryCode");
+  const trigger = Address.useTrigger();
+  return <Section title={title}>
+    <Address.Field name="street" />
+    <Address.Field name="countryCode"
+      componentProps={{ onValueChange: () => { void trigger("postcode"); } }} />
+    <Address.Field name="postcode"
+      description={country === "US" ? "5 digits" : "4 digits"} />
+  </Section>;
+}
+```
+
+The section's options accept `render: AddressFields`, a default `title`, and a `schema` customization callback. Without a custom renderer, the use renders a Section shell and its members in declaration order. Its title defaults to the definition title or the declared member name. Pass children to a particular use to supply another arrangement. Presentation components and definitions belong at module scope; passing render as a component preserves React hook semantics.
+
+The host declares each use once:
+
+```tsx
+const Customer = defineForm({ billingAddress: Address, deliveryAddress: Address });
+// Inside the Form created with Customer.useForm():
+<Customer.Section name="billingAddress" title="Billing address" />
+<Customer.Section name="deliveryAddress" title="Delivery address" />
+```
+
+A section can contain more sections with the identical contract:
+
+```tsx
+const Details = defineSection({ address: Address });
+const Registration = defineForm({ details: Details });
+// Custom placement; the address fields bind at details.address.*:
+<Registration.Section name="details">
+  <Details.Subsection name="address" title="Address" />
+</Registration.Section>
+```
+
+`Subsection` is the same function as `Section`; `DefinedSubsection` aliases `DefinedSection`. Child binding composes recursively, without registering an additional writable object. Field accepts local field keys; Section accepts local section keys. Watch/trigger hooks resolve local editing paths in the matching definition's nearest use. Section members require that use and inherit its control; their Field/Fields helpers do not accept control overrides. Root definition fields still support explicit control overrides. Definition hooks must run below Form and, for sections, below the matching section use. The component that creates Form can continue using RHF hooks with its explicit form.control.
+
+For unusual host shapes, `Address.Bind` accepts one typed `control` and a `SectionBindings` map at the boundary:
+
+```tsx
+const bindings = {
+  street: "shippingStreet", countryCode: "country", postcode: "postalCode",
+} satisfies SectionBindings<AddressValues, HostValues>;
+<Address.Bind control={form.control} bindings={bindings} title="Delivery" />
+```
+
+Compatibility is checked in both directions because editors read and write. A string editor cannot bind to a boolean, an optional string contract, or a narrower literal contract. Nested section members can map to compatible host objects; their descendants resolve relative to that mapping. Bind changes binding only: validation must be composed into the host schema. useTrigger requires the enclosing Form to own that control. `fieldNames` supplies declared leaf paths, including descendants, for explicit navigation scopes or correction destinations; it does not infer page membership.
+
+The [customer boundary](../../examples/react/src/customer-schema.ts) uses a discriminated union in its schema option to suspend manual delivery requirements while retaining its string editing shape. It then constructs validated delivery from billing or the manual source and excludes the toggle. The host uses Customer.useForm and its typed fields/sections throughout. Review and edit links select the active source; no effect copies billing into the manual draft.
+
+Local event handlers refresh named error paths; the resolver still evaluates the whole schema. Programmatic/off-screen edits need an explicit trigger for immediate error refresh. Automatic dependency scheduling, section completion, server field-error reconciliation, and a general applicability API remain open.
+
 ## Configure once, select by name
 
-The [example scaffold](../../examples/react/src/formulate.ts) exports configured Field and defineForm helpers. There is no provider to configure for every form and no switch statement to extend.
+The [example scaffold](../../examples/react/src/formulate.ts) exports configured Field, defineForm, and defineSection helpers. There is no provider to configure for every form and no switch statement to extend.
 
 ```tsx
 import { createFormulate, defaultComponents } from "@formulate/react";

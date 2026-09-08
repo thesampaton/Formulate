@@ -50,7 +50,7 @@ Actual API prototypes must meet this bar. Measure required concepts and independ
 
 ## Definition-helper pressure test
 
-The executable [email-confirmation example](../../examples/react/src/email-confirmation.tsx) adds one relationship: both valid email addresses must match exactly. It compares flat declarations with explicit nested bindings. The [shared Email configuration](../../examples/react/src/email.ts) is also reused by sign-in without changing its behaviour.
+The executable [email-confirmation example](../../examples/react/src/email-confirmation.tsx) adds one relationship: both valid email addresses must match exactly. The visible example focuses on field reuse and the matching rule. A [test fixture](../../tests/fixtures/nested-email-confirmation.tsx) preserves the comparison with explicit nested bindings. The [shared Email configuration](../../examples/react/src/email.ts) is also reused by sign-in without changing its behaviour.
 
 Acceptance invariants, covered by [interaction tests](../../tests/definition-pressure.test.tsx):
 
@@ -61,4 +61,4 @@ Acceptance invariants, covered by [interaction tests](../../tests/definition-pre
 - Rerendering preserves entered values and control identity. Simultaneous form instances stay independent.
 - Nesting under `contact` changes the payload only through explicit schema/default/binding paths. A Section alone introduces no data object.
 
-The flat form still renders declaration order through `Fields`. Form-level refinement currently uses an explicit `{ schema, defaultValues }` boundary with `useFormulate`; the original bound hook does not acquire that rule. The nested variant exposes the schema-first authoring cost: shape, defaults, and field paths are explicit in separate places. These are measured limits, not claims that the complete Part 4 composition API exists. Switching comparison modes starts a fresh form and is not a draft-migration feature.
+The example renders declaration order through `Fields`. Its schema option declares the equality rule once, and the bound `useForm()` hook includes it. The schema-first nested case remains in tests to verify nested error paths and exact payloads. There is no comparison toggle in the visible form; customer onboarding demonstrates section composition.

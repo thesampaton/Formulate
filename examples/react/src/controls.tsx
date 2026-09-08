@@ -3,6 +3,7 @@ import {
   InputControl as BaseInputControl,
   NumberControl as BaseNumberControl,
   defineFieldControl,
+  useFieldControl,
 } from "@formulate/react";
 import type { CheckboxControlProps, InputControlProps, NumberControlProps } from "@formulate/react";
 import { twMerge } from "tailwind-merge";
@@ -24,4 +25,27 @@ export const CheckboxControl = defineFieldControl<boolean>()(function CheckboxCo
     "col-start-1 row-start-1 m-0 size-4 accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50",
     className,
   )} />;
+});
+
+export const SelectControl = defineFieldControl<string>()(function SelectControl({ options, onValueChange }: {
+  options: readonly { value: string; label: string }[];
+  onValueChange?: (value: string) => void;
+}) {
+  const field = useFieldControl<string>();
+  if (typeof field.value !== "string") throw new Error(`Field "${field.name}": SelectControl requires a string editing value.`);
+  return <select {...field} className={inputClasses} onChange={(event) => {
+    field.onChange(event.target.value);
+    onValueChange?.(event.target.value);
+  }}>{options.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}</select>;
+});
+
+export const PolicyCheckboxControl = defineFieldControl<boolean>()(function PolicyCheckboxControl({ onValueChange }: {
+  onValueChange: (value: boolean) => void;
+}) {
+  const { value, onChange, ...field } = useFieldControl<boolean>();
+  if (typeof value !== "boolean") throw new Error(`Field "${field.name}": PolicyCheckboxControl requires a boolean editing value.`);
+  return <input {...field} type="checkbox" checked={value} className="col-start-1 row-start-1 m-0 size-4 accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50" onChange={(event) => {
+    onChange(event.target.checked);
+    onValueChange(event.target.checked);
+  }} />;
 });

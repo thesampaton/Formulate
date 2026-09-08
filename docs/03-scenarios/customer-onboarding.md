@@ -48,3 +48,15 @@ Address contains separately bound fields, mixing inline street configuration wit
 The application owns customer creation, eligibility, and persistence. An accepted request need not mean onboarding has finished.
 
 **Later API question:** How can a derived payload value such as delivery-from-billing expose its source, validation, and error destination clearly, without introducing another editable field?
+
+## Executable slice — September 2026
+
+The [customer example](../../examples/react/src/customer-onboarding.tsx) now implements Details → Review → a local demo creation handler. The model above includes future capabilities; the running example does not expose address, page, or form completion.
+
+- [Address](../../examples/react/src/address.tsx) is a reusable defineSection declaration. Customer declares billingAddress and deliveryAddress uses, then renders Customer.Section by name. Address.Field and its local watch/trigger helpers inherit each use’s runtime and binding. No per-use control, member map, or postcode callback is required. Sections may contain further sections using the same contract.
+- Country changes refresh only that address's postcode error path through an event handler. RHF still evaluates the whole boundary schema; there is no independent requirement executor.
+- [The boundary schema](../../examples/react/src/customer-schema.ts) is supplied through Customer’s schema option, preserving its bound useForm hook and editing types. It validates email, billing, and effective delivery. While delivery comes from billing, the manual draft stays in RHF with its requirements suspended and is excluded from output. Switching back restores the draft and rechecks its requirements.
+- Review reads current values. “Edit delivery” focuses billing when billing supplies delivery, otherwise manual delivery. Shared-source validation reports a billing issue once at the editable source path. Final submission trims output and excludes the toggle without changing edits.
+- [Five tests](../../tests/customer-onboarding.test.tsx) cover independent dependencies and runtimes, correction focus, retention/restoration, exact derived/separate payloads, and boundary validation without editors. Compile-time checks cover reusable binding paths and output typing.
+
+The postcode checks intentionally support only two demo formats. Programmatic or off-screen changes require an explicit check for immediate error refresh; every final submission revalidates current values. Automatic dependency scheduling and completion propagation, splitting Details into further pages, different delivery-only requirements, and attempt-owned server email errors remain future pressure tests. Creation is application-owned; the demo response does not mean onboarding is complete.
