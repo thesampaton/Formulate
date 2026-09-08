@@ -11,6 +11,7 @@ Pair changes to this document with changes to the package, a scenario, and evide
 - [Advanced options](../examples/react/src/advanced-options.tsx): a boolean discloses a Section; Settings → Destination → Review now proves scoped navigation across two editing pages. Request URL starts empty, so Settings can pass while the form remains invalid. See [the scenario](03-scenarios/advanced-options.md).
 - [Email confirmation](../examples/react/src/email-confirmation.tsx): demonstrates reusable Email configuration and a cross-field requirement. Explicit nested bindings remain covered by a test fixture. See [scenario invariants](03-scenarios/simple-form.md#definition-helper-pressure-test).
 - [Customer onboarding](../examples/react/src/customer-onboarding.tsx): reuses Address twice, rechecks local postcode dependencies, retains an inactive delivery draft, and derives delivery from billing with source-aware review links. See [the scenario](03-scenarios/customer-onboarding.md) and [tests](../tests/customer-onboarding.test.tsx).
+- [Example code panel](../examples/react/src/code-panel.tsx): read-only highlighted form/definition excerpts beneath each live example, including Address reuse. Excerpts come directly from the checked-in source.
 - [Interaction tests](../tests/scenarios.test.tsx) and [primitive integration test](../tests/primitives.test.tsx): runnable evidence via `pnpm check`.
 
 React 19 + TypeScript, RHF + Zod, Vite and Tailwind CSS 4 for the example app, and local connected HTML controls. The runtime package emits ESM and declarations without a Tailwind dependency. No router or framework-specific integration is needed for this slice. The private workspace package is a starting distribution boundary, not a final decision about which UI files should be installed through a registry.
@@ -187,5 +188,13 @@ Verification: `pnpm check` passes TypeScript, **36 tests**, and both builds. Thr
 Remaining limits: local event checks are not a dependency scheduler; no completion graph, stable logical identity independent of paths, async readiness, or generic applicability policy is exposed. Section hooks run below their matching use and the owning Form. Create definitions/presentation components at module scope and keep a use's binding stable for its intended lifetime. Rendering the same declared editor twice is not a supported review mechanism.
 
 Next: choose arrays, async choices, or draft recovery together (follow-up 4).
+
+### Inspecting example code
+
+The examples site now includes a compact, read-only Code window below each form. Form and Definition views separate rendering/wiring from declarations; customer onboarding also exposes Address, and shared Email configuration has its own view. Control implementations, imports, and unrelated site UI are omitted. The longer workflow excerpts retain their actual coordination code rather than understating what the current API requires.
+
+[example-code.ts](../examples/react/src/example-code.ts) imports source as text and selects declaration boundaries, avoiding a second handwritten version of the examples. Missing boundaries fail explicitly. [code-panel.tsx](../examples/react/src/code-panel.tsx) loads separately from the form UI and highlights TypeScript/JSX using only the necessary highlight.js grammars. Highlighting does not scan or modify React's DOM. The window scrolls within its own bounds and supports keyboard navigation; changing code views does not reset entered values.
+
+Verification: `pnpm check` passes TypeScript, **38 tests**, and both builds. The two code-panel tests cover excerpt switching, preserved form edits, selected-example changes, syntax tokens, and inert source markup. Browser checks covered desktop rendering and a 390px viewport: long lines scroll within the code region without widening the page; the console was clear.
 
 Implementation references: [RHF Controller contract](https://github.com/react-hook-form/react-hook-form/blob/master/src/useController.ts) and [Vite setup requirements](https://vite.dev/guide/). The checked-in lockfile records the versions exercised by this prototype.
