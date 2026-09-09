@@ -84,6 +84,9 @@
           "type": "registry:lib",
           "target": "@lib/formulate/use-formulate.ts"
         }
+      ],
+      "categories": [
+        "core"
       ]
     },
     {
@@ -104,13 +107,16 @@
           "type": "registry:component",
           "target": "@components/formulate/layouts.tsx"
         }
+      ],
+      "categories": [
+        "layouts"
       ]
     },
     {
-      "name": "shadcn",
+      "name": "shadcn-bindings",
       "type": "registry:lib",
-      "title": "Formulate with shadcn",
-      "description": "Connected local controls and shadcn Field presentation, with a configured definition factory.",
+      "title": "Form bindings for local shadcn components",
+      "description": "Value, event and field-presentation bindings over local shadcn components, plus a control map. The shadcn CLI resolves UI dependencies and import paths at installation.",
       "dependencies": [
         "class-variance-authority@^0.7.1",
         "lucide-react@^1.42.0",
@@ -138,7 +144,15 @@
           "path": "examples/react/src/lib/formulate-config.ts",
           "type": "registry:lib",
           "target": "@lib/formulate-config.ts"
+        },
+        {
+          "path": "examples/react/src/components/formulate/form-pending-fields.tsx",
+          "type": "registry:component",
+          "target": "@components/formulate/form-pending-fields.tsx"
         }
+      ],
+      "categories": [
+        "shadcn-bindings"
       ]
     },
     {
@@ -151,16 +165,81 @@
       ],
       "registryDependencies": [
         "@formulate/core",
-        "@formulate/shadcn",
+        "@formulate/shadcn-bindings",
         "@formulate/layouts",
         "field"
       ],
       "files": [
         {
-          "path": "examples/react/src/name.tsx",
+          "path": "examples/react/src/declarations/name.tsx",
           "type": "registry:component",
           "target": "@components/formulate/name.tsx"
         }
+      ],
+      "categories": [
+        "sections"
+      ]
+    },
+    {
+      "name": "actions",
+      "type": "registry:component",
+      "title": "Form actions",
+      "description": "Submit, Continue and Back/Edit controls connected to the owning form action state.",
+      "categories": [
+        "actions"
+      ],
+      "registryDependencies": [
+        "@formulate/core",
+        "button"
+      ],
+      "files": [
+        {
+          "path": "examples/react/src/components/formulate/form-actions.tsx",
+          "type": "registry:component",
+          "target": "@components/formulate/form-actions.tsx"
+        }
+      ],
+      "dependencies": [
+        "class-variance-authority@^0.7.1"
+      ]
+    },
+    {
+      "name": "navigation",
+      "type": "registry:component",
+      "title": "Form navigation",
+      "description": "Page navigation, page action sets and a page layout, composed over local shadcn Tabs and Formulate actions.",
+      "registryDependencies": [
+        "@formulate/core",
+        "@formulate/layouts",
+        "tabs",
+        "@formulate/actions"
+      ],
+      "dependencies": [
+        "cn@^0.2.6",
+        "class-variance-authority@^0.7.1",
+        "lucide-react@^1.42.0"
+      ],
+      "files": [
+        {
+          "path": "examples/react/src/components/formulate/form-tabs.tsx",
+          "type": "registry:component",
+          "target": "@components/formulate/form-tabs.tsx"
+        },
+        {
+          "path": "examples/react/src/components/formulate/form-page-layouts.tsx",
+          "type": "registry:component",
+          "target": "@components/formulate/form-page-layouts.tsx"
+        },
+        {
+          "path": "examples/react/src/components/formulate/form-page-actions.tsx",
+          "type": "registry:component",
+          "target": "@components/formulate/form-page-actions.tsx"
+        }
+      ],
+      "categories": [
+        "navigation",
+        "actions",
+        "layouts"
       ]
     }
   ]

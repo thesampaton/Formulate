@@ -103,6 +103,10 @@ footer span { margin: 0 6px; }
 .code-views button:hover { background: #eaf0e5; }
 .code-views button[aria-pressed='true'] { border-bottom-color: #315d46; color: #254c37; background: #eaf0e5; }
 .code-views button:focus-visible { outline-offset: -3px; }
+.code-category-description { margin: 12px 24px; color: #657367; font-size: 12px; }
+.code-context { padding: 12px 24px; color: #657367; font-size: 12px; border-bottom: 1px solid #dbe3d7; }
+.code-context p { margin: 0; }
+.code-context p + p { margin-top: 5px; font-size: 11px; }
 .code-file { display: flex; justify-content: space-between; gap: 12px; padding: 10px 24px; color: #6a796d; background: #f0f4ec; font: 10px ui-monospace, SFMono-Regular, Consolas, monospace; }
 .code-source { max-height: 390px; margin: 0; padding: 20px 24px 24px; overflow: auto; overscroll-behavior: contain; background: #fbfcfa; color: #304037; tab-size: 2; font: 12px/1.75 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .code-source:focus-visible { outline-offset: -3px; }

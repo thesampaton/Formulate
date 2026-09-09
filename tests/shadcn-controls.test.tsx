@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import { z } from "zod";
 import { defineForm } from "../examples/react/src/lib/formulate-config";
-import { SubmitButton } from "../examples/react/src/submit-button";
+import { FormSubmitButton } from "../examples/react/src/components/formulate/form-actions";
 
 const Preferences = defineForm({
   country: {
@@ -19,7 +19,7 @@ it("connects the installed Select trigger and Checkbox through focus, blur, keyb
     const form = Preferences.useForm();
     return <Preferences.Form form={form} onSubmit={onSubmit}>
       <Preferences.Fields />
-      <SubmitButton>Save</SubmitButton>
+      <FormSubmitButton>Save</FormSubmitButton>
     </Preferences.Form>;
   }
   render(<Example />);

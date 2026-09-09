@@ -13,3 +13,8 @@ export function Row({ className, ...props }: ComponentProps<typeof FieldGroup>) 
     "min-w-0 flex-row flex-wrap items-start gap-5 [&>*]:min-w-0 [&>*]:flex-[1_1_14rem]", className,
   )} />;
 }
+
+/** Arrange action controls without choosing what they do. */
+export function ActionRow({ className, ...props }: ComponentProps<"div">) {
+  return <div {...props} className={cn("flex flex-wrap items-center gap-2", className)} />;
+}

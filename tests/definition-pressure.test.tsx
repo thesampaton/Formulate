@@ -1,13 +1,14 @@
+import { EmailConfirmation } from "../examples/react/src/declarations/email-confirmation";
 import { StrictMode, useState } from "react";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import { Form } from "@formulate/react";
 import {
-  EmailConfirmation, EmailConfirmationForm,
-} from "../examples/react/src/email-confirmation";
+  EmailConfirmationForm,
+} from "../examples/react/src/compositions/email-confirmation";
 import { NestedEmailConfirmation } from "./fixtures/nested-email-confirmation";
-import { Email } from "../examples/react/src/email";
+import { Email } from "../examples/react/src/declarations/email";
 
 it.each([
   { name: "declaration-backed", Component: EmailConfirmationForm, payload: { email: "first@example.com", confirmEmail: "first@example.com" } },

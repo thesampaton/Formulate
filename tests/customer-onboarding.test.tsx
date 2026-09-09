@@ -1,19 +1,14 @@
+import { exampleData } from "../examples/react/src/data/example-data";
 import { StrictMode } from "react";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { CustomerOnboarding } from "../examples/react/src/customer-onboarding";
-import { customerDefaults, customerSchema } from "../examples/react/src/customer-schema";
-import type { CustomerValues } from "../examples/react/src/customer-schema";
+import { customerSchema } from "../examples/react/src/declarations/customer";
+import type { CustomerValues } from "../examples/react/src/declarations/customer";
 
 function prefill(overrides: Partial<CustomerValues> = {}): CustomerValues {
-  return {
-    ...customerDefaults,
-    email: "person@example.com",
-    billingAddress: { street: "  1 Billing Street  ", countryCode: "AU", postcode: "2000" },
-    deliveryAddress: { street: "2 Delivery Street", countryCode: "AU", postcode: "3000" },
-    ...overrides,
-  };
+  return { ...structuredClone(exampleData.customer), ...overrides };
 }
 
 describe("customer onboarding", () => {

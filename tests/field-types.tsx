@@ -3,14 +3,14 @@ import { createFormulate, defaultComponents, defineFieldControl, defineForm, def
 import type { FormNavigationAction } from "@formulate/react";
 import type { Control } from "react-hook-form";
 import { z } from "zod";
-import { Email } from "../examples/react/src/email";
-import { EmailConfirmation } from "../examples/react/src/email-confirmation";
+import { Email } from "../examples/react/src/declarations/email";
+import { EmailConfirmation } from "../examples/react/src/declarations/email-confirmation";
 import { nestedEmailConfirmationSchema } from "./fixtures/nested-email-confirmation";
-import { Address } from "../examples/react/src/address";
+import { Address } from "../examples/react/src/declarations/address";
 import type { SectionBindings } from "@formulate/react";
-import type { AddressValues } from "../examples/react/src/address";
-import { customerSchema } from "../examples/react/src/customer-schema";
-import type { CustomerValues } from "../examples/react/src/customer-schema";
+import type { AddressValues } from "../examples/react/src/declarations/address";
+import { customerSchema } from "../examples/react/src/declarations/customer";
+import type { CustomerValues } from "../examples/react/src/declarations/customer";
 
 const Choice = defineFieldControl<string>()(function Choice({ options }: { options: string[] }) {
   const field = useFieldControl<string>();

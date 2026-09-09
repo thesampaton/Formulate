@@ -1,15 +1,8 @@
+import { ProfileForm } from "@/compositions/profile";
 import { Slider } from "@/components/ui/slider";
 import { useState } from "react";
-import { defineForm } from "@/lib/formulate-config";
-import { Stack } from "./components/formulate/layouts";
-import { Name } from "./name";
-import { Email } from "./email";
-import { SubmitButton } from "./submit-button";
-
-const Profile = defineForm({ name: Name, email: Email }, { layout: Stack });
 
 export function ResponsiveLayout() {
-  const form = Profile.useForm();
   const [width, setWidth] = useState(100);
   const [saved, setSaved] = useState(false);
   return <>
@@ -19,11 +12,8 @@ export function ResponsiveLayout() {
     <Slider aria-label="Form width" min={45} max={100} value={[width]}
       className="mt-3 mb-6" onValueChange={([next]) => setWidth(next!)} />
     <div style={{ width: `${width}%` }}>
-      <Profile.Form form={form} onSubmit={() => setSaved(true)}>
-        <Profile.Fields />
-        <SubmitButton>Save profile</SubmitButton>
-        {saved ? <p role="status">Demo profile accepted.</p> : null}
-      </Profile.Form>
+      <ProfileForm onSave={() => setSaved(true)} />
+      {saved ? <p role="status">Demo profile accepted.</p> : null}
     </div>
   </>;
 }

@@ -1,6 +1,6 @@
 import { Section } from "@formulate/react";
 import type { SectionPresentationProps } from "@formulate/react";
-import { Row, Stack } from "./components/formulate/layouts";
+import { Row, Stack } from "@/components/formulate/layouts";
 import { z } from "zod";
 import { defineSection } from "@/lib/formulate-config";
 
@@ -55,8 +55,4 @@ function AddressFields({ title, layout }: SectionPresentationProps) {
         description={country === "US" ? "Demo format: 5 digits." : "Demo format: 4 digits."} />
     </Row>
   </Section>;
-}
-
-export function AddressSummary({ address }: { address: AddressValues }) {
-  return <>{address.street}<br />{address.postcode} · {countries.find(({ value }) => value === address.countryCode)?.label ?? address.countryCode}</>;
 }

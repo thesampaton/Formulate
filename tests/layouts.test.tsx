@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import { z } from "zod";
 import { defineForm, defineSection, Form, Page, Section, LayoutBody } from "@formulate/react";
-import { Name } from "../examples/react/src/name";
+import { Name } from "../examples/react/src/declarations/name";
 import { defineForm as defineStyledForm } from "../examples/react/src/lib/formulate-config";
 import { Stack } from "../examples/react/src/components/formulate/layouts";
 import { ResponsiveLayout } from "../examples/react/src/responsive-layout";

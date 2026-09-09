@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import { z } from "zod";
 import { Field, Form, Page, useFormNavigation, useFormulate } from "@formulate/react";
-import { SubmitButton } from "../examples/react/src/submit-button";
+import { FormSubmitButton } from "../examples/react/src/components/formulate/form-actions";
 
 const schema = z.object({
   first: z.object({ value: z.string().min(1, "First value is required.") }),
@@ -49,15 +49,15 @@ function Harness({ validation = schema, onSubmit = vi.fn(), onInvalid = vi.fn(),
     <Page id="first" title="First page" active={navigation.page === "first"}>
       {shown ? <Field control={form.control} name="first.value" label="First value" component="input" /> : null}
       <button type="button" onClick={() => setShown(false)}>Hide first editor</button>
-      <SubmitButton pendingLabel="Checking…">Next</SubmitButton>
+      <FormSubmitButton pendingLabel="Checking…">Next</FormSubmitButton>
     </Page>
     <Page id="second" title="Second page" active={navigation.page === "second"}>
       <Field control={form.control} name="second" label="Second value" component="input" />
-      <SubmitButton pendingLabel="Checking…">Review</SubmitButton>
+      <FormSubmitButton pendingLabel="Checking…">Review</FormSubmitButton>
     </Page>
     <Page id="review" title="Review page" active={navigation.page === "review"}>
       <div ref={summary} role="group" aria-label="Summary" tabIndex={-1}>Ready to save</div>
-      <SubmitButton pendingLabel="Saving…">Save</SubmitButton>
+      <FormSubmitButton pendingLabel="Saving…">Save</FormSubmitButton>
     </Page>
     <button type="button" onClick={() => navigation.goTo("first")}>Return to first</button>
     <button type="button" onClick={() => navigation.goTo("review")}>Jump to review</button>

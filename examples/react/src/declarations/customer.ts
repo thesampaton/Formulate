@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Address } from "./address";
 import { Email } from "./email";
-import { Stack } from "./components/formulate/layouts";
+import { Stack } from "@/components/formulate/layouts";
 import { defineForm } from "@/lib/formulate-config";
 
 type DeliveryPolicy = { deliverySameAsBilling: boolean };
