@@ -51,7 +51,7 @@ function ContactForm() {
 
 Custom section `render` components receive `{ title, layout }`. Forward the layout to `Section` or `<LayoutBody layout={layout}>`; explicit section children replace the full presentation and are wrapped in the selected layout. Define layout components at module scope to keep component identity stable during edits.
 
-The [local Stack/Row](../../examples/react/src/components/formulate/layouts.tsx) and [Name group](../../examples/react/src/name.tsx) use shadcn FieldGroup and FieldSet. They can be installed through the [source registry](../../docs/registry-development.md). Row arranges sibling fields; a field's `orientation` arranges its own label and control. `createFormulate({ components, fieldPresentation })` lets local UI own field markup while the runtime supplies the binding and accessible IDs. Its optional per-field `presentation` override accepts the same `FieldPresentationProps` contract.
+The [local Stack/Row](../../examples/react/src/components/formulate/layouts.tsx) and [Name group](../../examples/react/src/declarations/name.tsx) use shadcn FieldGroup and FieldSet. They can be installed through the [source registry](../../docs/registry-development.md). Row arranges sibling fields; a field's `orientation` arranges its own label and control. `createFormulate({ components, fieldPresentation })` lets local UI own field markup while the runtime supplies the binding and accessible IDs. Its optional per-field `presentation` override accepts the same `FieldPresentationProps` contract.
 
 ## Context and explicit control
 
@@ -103,7 +103,7 @@ These are alternative presentations. Member keys are local identifiers; declare 
 
 ### Reuse and form-level rules
 
-Extract a declaration as ordinary configuration. Preserve the component literal with `as const`, and check extracted control props with `satisfies InputControlProps` (or your adapter's props type). See the [shared Email](../../examples/react/src/email.ts), reused in sign-in and confirmation. Spread overrides into a new declaration; each use's key supplies its own binding and values.
+Extract a declaration as ordinary configuration. Preserve the component literal with `as const`, and check extracted control props with `satisfies InputControlProps` (or your adapter's props type). See the [shared Email](../../examples/react/src/declarations/email.ts), reused in sign-in and confirmation. Spread overrides into a new declaration; each use's key supplies its own binding and values.
 
 Cross-field rules can customize the generated schema at module scope while retaining the bound hook:
 
@@ -136,7 +136,7 @@ const form = Contact.useForm({
 
 This is a shallow merge by field: a supplied structured object or array replaces that field's value as a whole. Explicit empty strings, false, zero, null, and undefined are overrides, not requests to fall back. The merged values establish the initial/reset baseline, without mutating the definition. They are not reapplied on rerender or editor remount; use RHF's `reset` or reactive `values` option for intentional later updates. This same merge applies to `useFormulate(Contact, options)`. Schema-first defaults and async default-value loaders retain RHF's replacement semantics; async loaders should return the complete desired record and editors should wait until loading finishes.
 
-The [example SubmitButton](../../examples/react/src/submit-button.tsx) reads `useFormActionStatus()` from context, sets `type="submit"`, disables itself while checking or submitting, and accepts a `pendingLabel`. It is shared application UI, not a new package primitive. Native buttons and local shadcn buttons remain supported. RHF's `isSubmitting` does not cover scoped navigation through `trigger`; `isSubmitSuccessful` and submission counts are not navigation/completion indicators.
+The [example SubmitButton](../../examples/react/src/components/formulate/form-actions.tsx) reads `useFormActionStatus()` from context, sets `type="submit"`, disables itself while checking or submitting, and accepts a `pendingLabel`. It is shared application UI, not a new package primitive. Native buttons and local shadcn buttons remain supported. RHF's `isSubmitting` does not cover scoped navigation through `trigger`; `isSubmitSuccessful` and submission counts are not navigation/completion indicators.
 
 ## Scoped navigation and correction
 
@@ -191,7 +191,7 @@ This is cancellation of navigation/correction callbacks, **not** cancellation of
 
 ## Reusable sections and subsections
 
-[Address](../../examples/react/src/address.tsx) is now a `defineSection` declaration. Each field supplies its schema, default, label, and control once. Its presentation uses local names and hooks:
+[Address](../../examples/react/src/declarations/address.tsx) is now a `defineSection` declaration. Each field supplies its schema, default, label, and control once. Its presentation uses local names and hooks:
 
 ```tsx
 function AddressFields({ title }: { title: ReactNode }) {
@@ -242,7 +242,7 @@ const bindings = {
 
 Compatibility is checked in both directions because editors read and write. A string editor cannot bind to a boolean, an optional string contract, or a narrower literal contract. Nested section members can map to compatible host objects; their descendants resolve relative to that mapping. Bind changes binding only: validation must be composed into the host schema. useTrigger requires the enclosing Form to own that control. `fieldNames` supplies declared leaf paths, including descendants, for explicit navigation scopes or correction destinations; it does not infer page membership.
 
-The [customer boundary](../../examples/react/src/customer-schema.ts) uses a discriminated union in its schema option to suspend manual delivery requirements while retaining its string editing shape. It then constructs validated delivery from billing or the manual source and excludes the toggle. The host uses Customer.useForm and its typed fields/sections throughout. Review and edit links select the active source; no effect copies billing into the manual draft.
+The [customer boundary](../../examples/react/src/declarations/customer.ts) uses a discriminated union in its schema option to suspend manual delivery requirements while retaining its string editing shape. It then constructs validated delivery from billing or the manual source and excludes the toggle. The host uses Customer.useForm and its typed fields/sections throughout. Review and edit links select the active source; no effect copies billing into the manual draft.
 
 Local event handlers refresh named error paths; the resolver still evaluates the whole schema. Programmatic/off-screen edits need an explicit trigger for immediate error refresh. Automatic dependency scheduling, section completion, server field-error reconciliation, and a general applicability API remain open.
 

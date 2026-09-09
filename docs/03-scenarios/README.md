@@ -2,7 +2,7 @@
 
 Start with [A simple form stays simple](simple-form.md): two inline fields and submit, then add or remove capabilities without a rewrite.
 
-The first runnable examples implement [simple form](../../examples/react/src/simple-form.tsx) and [advanced options](../../examples/react/src/advanced-options.tsx). [Parts 5–6](../05-06-rendering-and-workflow.md) tracks which scenario guarantees are demonstrated and which remain open.
+The first runnable examples implement [simple form](../../examples/react/src/compositions/sign-in.tsx) and [advanced options](../../examples/react/src/compositions/request-settings.tsx). [Parts 5–6](../05-06-rendering-and-workflow.md) tracks which scenario guarantees are demonstrated and which remain open.
 
 The [email-confirmation pressure test](simple-form.md#definition-helper-pressure-test) adds executable evidence for reusable declarations, cross-field requirements, and explicit nested bindings.
 

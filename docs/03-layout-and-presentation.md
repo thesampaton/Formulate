@@ -29,7 +29,7 @@ Custom section renderers receive `{ title, layout }` and forward the layout to a
 
 The [local layouts](../examples/react/src/components/formulate/layouts.tsx) build on shadcn `FieldGroup`. `Stack` provides consistent body spacing. `Row` uses wrapping flex children with a preferred minimum of 14rem, so first and last name share available width and stack when the actual container is too narrow—even in a narrow panel on a wide screen. Callers can create a different layout component or adjust the local source. Reading and Tab order follow JSX order.
 
-The [Name definition](../examples/react/src/name.tsx) is a reusable group of fields, using the existing section binding contract, shadcn `FieldSet`/`FieldLegend`, and a default Row layout. A row alone adds no binding; declaring `name: Name` supplies `name.firstName` and `name.lastName`. Reusing the definition at another key creates independent values and IDs. No separate field-group entity is needed.
+The [Name definition](../examples/react/src/declarations/name.tsx) is a reusable group of fields, using the existing section binding contract, shadcn `FieldSet`/`FieldLegend`, and a default Row layout. A row alone adds no binding; declaring `name: Name` supplies `name.firstName` and `name.lastName`. Reusing the definition at another key creates independent values and IDs. No separate field-group entity is needed.
 
 Field `orientation` is a separate concern: shadcn uses it to arrange the label and control *inside one field*. It does not place sibling fields next to each other. The local configured `fieldPresentation` uses shadcn Field, FieldContent, FieldLabel, FieldDescription and FieldError while Formulate retains binding, error IDs and focus refs. [shadcn Field](https://ui.shadcn.com/docs/components/radix/field).
 
@@ -87,3 +87,7 @@ Library fields can supply control defaults; reusable form/section definitions an
 A replacement renderer accepts only its supported props and slots. Adapting Input to a compound picker may require changing props while preserving the value contract. Prop forwarding must preserve value binding, change/blur coordination, accessible associations, and focus integration.
 
 The [pressure tests](03-mental-model-pressure-tests.md) capture layout invariants. Keyboard and focus outcomes still need verification in rendered prototypes.
+
+## Inherited page layouts
+
+The [multi-page form](../examples/react/src/compositions/multi-page-form.tsx) sets `pageLayout={FormStepLayout}` on FormTabs. Nested FormTabPage components inherit it and pass only their title, content and differences. The layout receives content through children and obtains page order, navigation and optional action overrides through `useFormPage()`. A local `layout` or `layout={null}` follows the existing replacement contract. This is reusable composition over the existing Page layout API; it adds no core layout syntax.

@@ -19,13 +19,17 @@ Open the local URL printed by Vite. The examples cover [simple sign-in](examples
 
 The fifth example, [reusable layouts](examples/react/src/responsive-layout.tsx), demonstrates a shared Name group with first and last name in a responsive row. Form, Page and Section accept reusable layout components; form and section definitions can supply defaults.
 
+The sixth example, [multi-page form](examples/react/src/compositions/multi-page-form.tsx), uses shadcn Tabs with current completion indicators, scoped Continue actions and correction links from Review. [Navigation and action components](docs/registry-development.md) are reusable registry items.
+
+Each source panel separates **Composition** (rendering), **Declaration** (fields, validation and defaults), and **Sample data** (reusable editing values). These are real modules in `src/compositions`, `src/declarations` and [`src/data/example-data.ts`](examples/react/src/data/example-data.ts). The source browser groups fields/sections, layouts, navigation, actions, shadcn bindings and form-specific behaviour by responsibility, and identifies actual registry items. See the [building-block taxonomy](docs/04-building-blocks.md). Demo wrappers own resizing controls and sample result displays; the code panel shows the entire composition module, including its imports.
+
 The third example, [email confirmation](examples/react/src/email-confirmation.tsx), tests reusable field configuration and cross-field validation, with flat and explicitly nested bindings.
 
 ```sh
 pnpm check # TypeScript, interaction tests, package build, example build
 ```
 
-The [@formulate/react package](packages/react/README.md) provides `Form`, `Field`, `Section`, `Page`, and `useFormulate`. Examples use React and Tailwind CSS 4 with no Next.js dependency. The [local control map](examples/react/src/lib/formulate-config.ts) supplies styled controls, with per-use Tailwind overrides through `className`. The UI uses locally installed shadcn Field, Input, Checkbox, Select, Button and Slider components. A [local source registry](docs/registry-development.md) installs the runtime, layouts and reusable groups into another codebase.
+The [@formulate/react package](packages/react/README.md) provides `Form`, `Field`, `Section`, `Page`, and `useFormulate`. Examples use React and Tailwind CSS 4 with no Next.js dependency. The [local control map](examples/react/src/lib/formulate-config.ts) supplies styled controls, with per-use Tailwind overrides through `className`. The UI uses locally installed shadcn Field, Input, Checkbox, Select, Button, Slider and Tabs components. A [local source registry](docs/registry-development.md) installs the runtime, layouts and reusable groups into another codebase.
 
 The examples use `defineForm` to declare each field's schema, editing default, and presentation once. `Definition.useForm()` creates its runtime; static prefills preserve untouched defaults. Render all fields in declaration order or place individual typed fields in JSX. Field connections come from Form context by default; an explicit RHF `control` remains available.
 

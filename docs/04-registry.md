@@ -2,7 +2,7 @@
 
 **Formulate publishes the primitives for composing form experiences. Developers use those primitives to define reusable libraries, which can be consumed locally or published through their own registries.**
 
-This chapter starts the registry and authoring model. Names and API sketches are provisional; rendering and workflow execution will refine the contracts in Parts 5–6.
+The [building-block taxonomy](04-building-blocks.md) connects the current implementation to source artifacts and distribution units. It distinguishes core, shadcn bindings, fields/sections, layouts, navigation, actions and application behaviour. A registry item may bundle several of these responsibilities.
 
 ## The structure
 
@@ -30,24 +30,17 @@ Formulate is a dependency of a user's registry. That registry can also distribut
 
 ## Formulate's primitive registry
 
-The initial core entries are:
+The current runtime is installed as **`@formulate/core`**, exporting Form, Field, Section, Page and the implemented declaration/coordination helpers. `@formulate/shadcn-bindings`, `@formulate/layouts`, `@formulate/actions` and `@formulate/navigation` distribute connected UI and composition components. `@formulate/name` demonstrates a reusable domain section.
 
-| Address | Primitive | Initial contract |
-| --- | --- | --- |
-| `@formulate/form` | **Form** | Shared interaction boundary, values, requirements, content, optional pages, and submission connections. |
-| `@formulate/field` | **Field** | One value contract, validation, control integration, metadata, and explicit dependencies. |
-| `@formulate/section` | **Section** | Members, local connections, group requirements, exposed references, and optional presentation defaults. |
-| `@formulate/page` | **Page** | Ordered content, assigned completion requirements, and navigation connections supplied by its host. |
-
-These entries provide the building blocks for both direct composition and reusable definitions. The [primitive catalogue](04-registry-catalogue.md) also starts the supporting entries for rendering, layout, rules, actions, and workflow.
+See the [actual installable catalogue](registry-development.md) for source paths and dependencies. The [earlier primitive catalogue](04-registry-catalogue.md) records candidates for later design; its proposed per-primitive addresses and rule/workflow helpers are not current installable APIs.
 
 A Formulate primitive describes interaction meaning. A shadcn Input or Select supplies a UI building block. Field connects a control to a value and the form's behaviour; Section and Page compose that behaviour at larger scopes.
 
 ## Defining a library
 
-The proposed authoring mechanism has three steps:
+The current authoring mechanism has three steps:
 
-1. **Define a reusable part** with a primitive's helper: `defineField`, `defineSection`, `definePage`, or `defineForm`.
+1. **Declare and compose a reusable part** with `defineSection`, `defineForm`, ordinary field configuration and React components. `defineField` and `definePage` remain proposals.
 2. **Export the parts together** as an ordinary TypeScript library. Declare outside inputs and services at each reusable boundary.
 3. **Describe installable items** in a standard shadcn registry manifest when distribution is useful. Declare Formulate and other source/package dependencies there.
 

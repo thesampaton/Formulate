@@ -7,10 +7,10 @@ Pair changes to this document with changes to the package, a scenario, and evide
 ## This iteration
 
 - [Package](../packages/react/README.md): `Form`, `Field`, `Section`, `Page`, `useFormulate`, `defineForm`, `defineSection`, `useFormNavigation`, and `useFormActionStatus`.
-- [Simple form](../examples/react/src/simple-form.tsx): two direct fields, Zod validation, accessible errors, submission, and retry.
-- [Advanced options](../examples/react/src/advanced-options.tsx): a boolean discloses a Section; Settings → Destination → Review now proves scoped navigation across two editing pages. Request URL starts empty, so Settings can pass while the form remains invalid. See [the scenario](03-scenarios/advanced-options.md).
-- [Email confirmation](../examples/react/src/email-confirmation.tsx): demonstrates reusable Email configuration and a cross-field requirement. Explicit nested bindings remain covered by a test fixture. See [scenario invariants](03-scenarios/simple-form.md#definition-helper-pressure-test).
-- [Customer onboarding](../examples/react/src/customer-onboarding.tsx): reuses Address twice, rechecks local postcode dependencies, retains an inactive delivery draft, and derives delivery from billing with source-aware review links. See [the scenario](03-scenarios/customer-onboarding.md) and [tests](../tests/customer-onboarding.test.tsx).
+- [Simple form](../examples/react/src/compositions/sign-in.tsx): two direct fields, Zod validation, accessible errors, submission, and retry.
+- [Advanced options](../examples/react/src/compositions/request-settings.tsx): a boolean discloses a Section; Settings → Destination → Review now proves scoped navigation across two editing pages. Request URL starts empty, so Settings can pass while the form remains invalid. See [the scenario](03-scenarios/advanced-options.md).
+- [Email confirmation](../examples/react/src/compositions/email-confirmation.tsx): demonstrates reusable Email configuration and a cross-field requirement. Explicit nested bindings remain covered by a test fixture. See [scenario invariants](03-scenarios/simple-form.md#definition-helper-pressure-test).
+- [Customer onboarding](../examples/react/src/compositions/customer.tsx): reuses Address twice, rechecks local postcode dependencies, retains an inactive delivery draft, and derives delivery from billing with source-aware review links. See [the scenario](03-scenarios/customer-onboarding.md) and [tests](../tests/customer-onboarding.test.tsx).
 - [Example code panel](../examples/react/src/code-panel.tsx): read-only highlighted form/definition excerpts beneath each live example, including Address reuse. Excerpts come directly from the checked-in source.
 - [Interaction tests](../tests/scenarios.test.tsx) and [primitive integration test](../tests/primitives.test.tsx): runnable evidence via `pnpm check`.
 
@@ -86,7 +86,7 @@ The definition/context iteration adds three interaction tests (eleven total): de
 
 ## Field authoring decision
 
-The ordinary field API now selects `component="input"` with typed `componentProps`. The [example scaffold](../examples/react/src/lib/formulate-config.ts) owns the map; swapping an entry changes all mapped uses. The [advanced example](../examples/react/src/advanced-options.tsx) also wraps a NumberControl directly to demonstrate the composition path. Both preserve labels, error associations, focus, and the shared RHF value authority.
+The ordinary field API now selects `component="input"` with typed `componentProps`. The [example scaffold](../examples/react/src/lib/formulate-config.ts) owns the map; swapping an entry changes all mapped uses. The [advanced example](../examples/react/src/compositions/request-settings.tsx) also wraps a NumberControl directly to demonstrate the composition path. Both preserve labels, error associations, focus, and the shared RHF value authority.
 
 The map holds connected controls, not arbitrary visual components. Native inputs, checkbox controls, and pickers have different value/event/ref contracts, so each local UI needs an explicit adapter once. Field does not guess those contracts by cloning children. A wrapped child opts into that specific UI rather than a map override. `createFormulate` now also exposes defineForm using the same catalogue, so definition-backed and direct fields share the adapters.
 
@@ -104,7 +104,7 @@ Tailwind support lives at this presentation boundary. The [local controls](../ex
 | --- | --- |
 | Importing a hook and passing a definition it could already know. | Implemented `Definition.useForm(options?)` as a typed convenience over useFormulate. It creates the same RHF runtime and leaves the schema-first path available. |
 | Prefilling one field discarded every other declared default. | Static definition prefills now merge by top-level field. Empty strings, false, and zero remain explicit overrides. Structured field values are replaced atomically; there is no implicit deep merge. Async loaders retain RHF's complete-record behaviour. |
-| Every submit button repeated pending/disabled/label logic. | Extracted a small [local SubmitButton](../examples/react/src/submit-button.tsx). Submission coordination remains in Form; this is evidence for later action UI, not another core primitive. |
+| Every submit button repeated pending/disabled/label logic. | Extracted a small [local SubmitButton](../examples/react/src/components/formulate/form-actions.tsx). Submission coordination remains in Form; this is evidence for later action UI, not another core primitive. |
 | Three subscriptions repeated the same control configuration. | The advanced example uses one typed name-array useWatch call. No extra watcher abstraction is needed. |
 | Definition records still require label, editing default, and component. | Keep these explicit. Inferring a renderer or initial value from Zod can hide important choices, especially optional values, transforms, or multiple valid presentations. |
 | componentProps is verbose. | Keep the wrapper/control distinction: flattening the props would make className, style, IDs, and event ownership ambiguous. Shared UI defaults belong in the control catalogue. |
@@ -124,11 +124,11 @@ For each iteration: identify one scenario invariant, make the smallest code chan
 
 ### Definition-helper pressure test
 
-The [third example](../examples/react/src/email-confirmation.tsx) now focuses on a declaration-backed email confirmation. The original comparison with explicit `contact.email` / `contact.confirmEmail` bindings remains in a [test fixture](../tests/fixtures/nested-email-confirmation.tsx), sharing the same Zod requirement and checking prefixed error paths. The user-facing comparison toggle has been removed; rerender tests still cover runtime and editor identity for both authoring paths.
+The [third example](../examples/react/src/compositions/email-confirmation.tsx) now focuses on a declaration-backed email confirmation. The original comparison with explicit `contact.email` / `contact.confirmEmail` bindings remains in a [test fixture](../tests/fixtures/nested-email-confirmation.tsx), sharing the same Zod requirement and checking prefixed error paths. The user-facing comparison toggle has been removed; rerender tests still cover runtime and editor identity for both authoring paths.
 
 | Case | Evidence and decision |
 | --- | --- |
-| Reuse Email without sharing values. | [Email](../examples/react/src/email.ts) is ordinary configuration, used by sign-in and both confirmation bindings. Each placement supplies its own name. Tests verify independent values, unique IDs, and local presentation overrides without mutating the shared declaration. Keep plain configuration; no field-library primitive is needed yet. |
+| Reuse Email without sharing values. | [Email](../examples/react/src/declarations/email.ts) is ordinary configuration, used by sign-in and both confirmation bindings. Each placement supplies its own name. Tests verify independent values, unique IDs, and local presentation overrides without mutating the shared declaration. Keep plain configuration; no field-library primitive is needed yet. |
 | Preserve typing after extraction. | An extracted object's string literals widen without contextual typing. `component: "input" as const` and `componentProps satisfies InputControlProps` preserve the adapter contract. Compile-time cases reject incompatible defaults, controls, and nested paths. This is real extraction friction that a future typed declaration helper could address. |
 | Validate a relationship across fields. | Declare the refinement through defineForm’s schema option at module scope, then use EmailConfirmation.useForm(). Generated Fields and individually placed Field retain their presentation and name typing. Tests cover mismatch feedback/focus, correction, and invalidation after changing the original email. |
 | Validate without mounted editors. | A cross-field test begins with the confirmation editor never mounted, corrects it, unmounts it, then changes the original email. Submission rejects the new mismatch and retains the confirmation value. No rule depends on a mounted control. |
@@ -143,7 +143,7 @@ Verification: `pnpm check` passes TypeScript, **16 interaction tests**, and both
 
 ### Correction destinations and scoped page actions
 
-The [advanced example](../examples/react/src/advanced-options.tsx) now adds a Destination page with a required request URL. Settings can advance with valid numeric defaults while that URL is still empty. This is the smallest additional editing page that distinguishes a page action from whole-form submission. The demo payload now includes `configuration.endpoint`; `showAdvanced` remains UI-only.
+The [advanced example](../examples/react/src/compositions/request-settings.tsx) now adds a Destination page with a required request URL. Settings can advance with valid numeric defaults while that URL is still empty. This is the smallest additional editing page that distinguishes a page action from whole-form submission. The demo payload now includes `configuration.endpoint`; `showAdvanced` remains UI-only.
 
 | Decision | Runnable evidence |
 | --- | --- |
@@ -163,9 +163,9 @@ Verification: `pnpm check` passes TypeScript, **28 interaction tests**, and both
 
 ### Reusable addresses and conditional delivery
 
-The [fourth example](../examples/react/src/customer-onboarding.tsx) now uses Customer.useForm and two Customer.Section uses. [Address](../examples/react/src/address.tsx) declares its fields once through defineSection. Its presentation uses Address.Field, Address.useWatch, and Address.useTrigger with local names. The local select adapter commits the editing value before the postcode check; each use resolves that check against its own path. No caller binding map, control prop, or country-change callback is required in the normal flow.
+The [fourth example](../examples/react/src/compositions/customer.tsx) now uses Customer.useForm and two Customer.Section uses. [Address](../examples/react/src/declarations/address.tsx) declares its fields once through defineSection. Its presentation uses Address.Field, Address.useWatch, and Address.useTrigger with local names. The local select adapter commits the editing value before the postcode check; each use resolves that check against its own path. No caller binding map, control prop, or country-change callback is required in the normal flow.
 
-The [customer boundary](../examples/react/src/customer-schema.ts) separates editing shape from domain requirements. It always checks email and billing. When delivery is separate, it checks that address with the same schema. When delivery comes from billing, it uses the already validated billing result; it neither checks nor submits the retained manual draft. The output contains only email and two validated addresses, with trimmed strings. Parsing never overwrites editing values.
+The [customer boundary](../examples/react/src/declarations/customer.ts) separates editing shape from domain requirements. It always checks email and billing. When delivery is separate, it checks that address with the same schema. When delivery comes from billing, it uses the already validated billing result; it neither checks nor submits the retained manual draft. The output contains only email and two validated addresses, with trimmed strings. Parsing never overwrites editing values.
 
 The pure `deliverySource` selector also selects the review reader and the delivery edit destination. Derived delivery errors belong to their billing source, and shared-source issues appear once. There is no second delivery editor while billing supplies the value. Switching the toggle back mounts the previous manual draft and explicitly refreshes its errors.
 
@@ -198,3 +198,9 @@ The examples site now includes a compact, read-only Code window below each form.
 Verification: `pnpm check` passes TypeScript, **38 tests**, and both builds. The two code-panel tests cover excerpt switching, preserved form edits, selected-example changes, syntax tokens, and inert source markup. Browser checks covered desktop rendering and a 390px viewport: long lines scroll within the code region without widening the page; the console was clear.
 
 Implementation references: [RHF Controller contract](https://github.com/react-hook-form/react-hook-form/blob/master/src/useController.ts) and [Vite setup requirements](https://vite.dev/guide/). The checked-in lockfile records the versions exercised by this prototype.
+
+### Building-block taxonomy and installation boundaries
+
+The [current taxonomy](04-building-blocks.md) now separates core, shadcn bindings, domain fields/sections, layouts, navigation, actions and application behaviour. Code panels select by responsibility and show the actual registry item separately. Composition/declaration/sample views use whole source modules; the earlier excerpt trimming described above has been replaced.
+
+ActionRow is a layout, FormPageActions/FormReviewActions select action controls, and FormPendingFields is a control-integration boundary. The basic buttons are independently installable as `@formulate/actions`; the navigation item depends on them. These source boundaries add no runtime entities or npm packages. Public hosting and v0 consumer verification remain future work.

@@ -1,8 +1,10 @@
-# Part 4 Reference — Primitive Registry Catalogue
+# Part 4 Reference — Earlier Primitive Catalogue
 
 [Back to Part 4](04-registry.md) · [Library authoring](04-library-authoring.md) · [Entity shapes](04-entity-shapes.md)
 
 **The Formulate registry begins with the primitives used to build a library.** Each item should provide its authoring contract, integration source, documentation, and a small usage example. Addresses and helper names below are proposed.
+
+The [current taxonomy](04-building-blocks.md) and [buildable registry](registry-development.md) supersede these candidate packaging names. Categories are responsibilities; separate npm packages or registry items are justified by practical installation boundaries. The current core is acquired through `@formulate/core`.
 
 ## Core entries
 

@@ -1,6 +1,6 @@
 # Part 3 Reference — State and Completion
 
-[Back to the mental model](03-mental-model.md). This reference develops completion, navigation, and recovery for later API design. Names and indicators are illustrative.
+[Back to the mental model](03-mental-model.md). This reference develops completion, navigation, and recovery for later API design. Names and indicators are illustrative. The [multi-page-form example](03-scenarios/multi-page-form.md) implements a small synchronous slice: current schema requirements, page indicators and a separate saved baseline. The broader model below remains proposed.
 
 **Completion means the currently applicable requirements are satisfied against current inputs.** It can change in either direction. Visiting, editing, saving, and submitting describe other facts.
 

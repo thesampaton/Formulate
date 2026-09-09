@@ -64,7 +64,7 @@ An **Enable advanced configuration** checkbox instead describes applicability. I
 
 ## Executable scoped-navigation extension
 
-The [example](../../examples/react/src/advanced-options.tsx) now has two editing pages and a reader:
+The [example](../../examples/react/src/compositions/request-settings.tsx) now has two editing pages and a reader:
 
 1. **Settings:** the disclosure toggle, retries, and timeout. Next checks those paths only.
 2. **Destination:** a required Request URL, initially empty. Review checks the URL path only; Back returns freely to Settings.

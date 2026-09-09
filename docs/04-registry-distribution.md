@@ -4,7 +4,7 @@
 
 **A user's registry owns its catalogue and declares Formulate as a dependency wherever it is used.** This reference sketches that shape and its consumers. Hosting, release tooling, and v0 integration are later work. Names, files, and `.example` endpoints below are illustrative.
 
-The prototype now has [buildable local registry items](registry-development.md) and a verified separate consumer installation for core, shadcn integration, layouts and Name. Public endpoints and the broader catalogue below remain proposals.
+The prototype now has [buildable local registry items](registry-development.md) and a verified separate consumer installation for core, shadcn bindings, layouts and Name. Public endpoints and the broader catalogue below remain proposals.
 
 ## Namespace configuration
 

@@ -50,7 +50,7 @@ Actual API prototypes must meet this bar. Measure required concepts and independ
 
 ## Definition-helper pressure test
 
-The executable [email-confirmation example](../../examples/react/src/email-confirmation.tsx) adds one relationship: both valid email addresses must match exactly. The visible example focuses on field reuse and the matching rule. A [test fixture](../../tests/fixtures/nested-email-confirmation.tsx) preserves the comparison with explicit nested bindings. The [shared Email configuration](../../examples/react/src/email.ts) is also reused by sign-in without changing its behaviour.
+The executable [email-confirmation example](../../examples/react/src/compositions/email-confirmation.tsx) adds one relationship: both valid email addresses must match exactly. The visible example focuses on field reuse and the matching rule. A [test fixture](../../tests/fixtures/nested-email-confirmation.tsx) preserves the comparison with explicit nested bindings. The [shared Email configuration](../../examples/react/src/declarations/email.ts) is also reused by sign-in without changing its behaviour.
 
 Acceptance invariants, covered by [interaction tests](../../tests/definition-pressure.test.tsx):
 
