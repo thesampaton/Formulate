@@ -4,6 +4,10 @@ These are open questions and research from the initial exploration, not addition
 
 Active implementation decisions and scenario evidence now live in the [Parts 5–6 implementation anchor](05-06-rendering-and-workflow.md). The broader questions below remain a backlog; the first code slice does not resolve them all.
 
+The current implementation evidence follows the anchor's [three complex-workflow acceptance gates](05-06-rendering-and-workflow.md#complex-workflow-contract-next-acceptance-gates): reuse a complete page in two hosts, combine branching with dependent async choices, then exercise RHF repeated sections and application-owned draft restoration. This supersedes choosing those capabilities independently. Use the anchor's decision record to identify evidence, replaced assumptions, and scope changes; the backlog below is not permission to keep adding examples or abstractions when a gate fails.
+
+The [coordination authoring review](05-06-rendering-and-workflow.md#authoring-correction-consolidate-the-demonstrated-mechanics) found that passing behavioural tests had left too much host wiring. Shared dependent-choice integration and a narrow Form evidence-revision check replace repeated mechanics. Treat authoring acceptance as partial; count helper implementation as well as host code, and continue correcting the same examples before expanding scope.
+
 ## Composition and rendering — Parts 3–5
 
 The [mental model](03-mental-model.md) establishes the vocabulary. Its linked references and [scenario rubric](03-scenarios/README.md) hold detail to consult as each contract is designed.

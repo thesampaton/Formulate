@@ -4,6 +4,8 @@
 
 A household survey repeats member details and conditionally asks about employment. Answers must keep their meaning across branching, reordering, and draft recovery.
 
+This remains a design cross-check. Executable repeat/restoration evidence lives in [infrastructure provisioning, gate 3](infrastructure-provisioning.md#gate-3-repeated-sections-and-draft-restoration); apply the version/identity cases here to that shared contract rather than building a second persistence mechanism.
+
 ```text
 library section EmploymentDetails
   employer = field at employer

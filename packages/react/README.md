@@ -187,6 +187,8 @@ Navigation's `onValid` receives **no payload**: passing one scope does not estab
 
 Form suppresses validation callbacks after a value change/reset, a changed navigation ID/scope, a different runtime, or unmounting. `navigation.revision` changes even when returning to the same page; using it as the action ID prevents an old check from moving that new visit. If external policy changes the meaning of an action without changing its fields, change its ID as well. Use `shouldFocusError: false` with the correction helper to avoid independent RHF focus after obsolete validation.
 
+For requirements backed by external evidence, pass `getValidationRevision={() => evidence.getSnapshot().revision}` to Form. The synchronous getter must read the live source and return a stable string or number that changes whenever evidence becomes obsolete, including a new request for the same input. Form captures it before checking and compares it before invoking scoped or final success/error callbacks. An obsolete attempt is cancelled; the user can retry against current evidence. Omit this prop for forms whose validation depends only on their editing values.
+
 This is cancellation of navigation/correction callbacks, **not** cancellation of the resolver or an already-started application callback. A resolver can still finish and update RHF errors. Form prevents overlapping attempts and releases pending UI when the operation settles; it does not clear newer errors or restore an old snapshot. Validators, remote requests, and async callbacks still need application-owned cancellation/reconciliation if required. Rules, values, and validation errors remain in RHF/Zod, and the helper exposes no page completion or workflow graph.
 
 ## Reusable sections and subsections
@@ -326,3 +328,7 @@ There is no package stylesheet. Style the wrappers with normal props and the `da
 Hidden fields stay applicable. The correction hook can reveal/navigate before focusing in `onInvalid`; see [advanced options](../../examples/react/src/advanced-options.tsx). The default simple form uses RHF's normal error focus. Keep one form runtime mounted while changing pages.
 
 See the [implementation anchor](../../docs/05-06-rendering-and-workflow.md) for intentional limits and the next iterations.
+
+## Complex-workflow experiments
+
+The [three acceptance exercises](../../docs/05-06-rendering-and-workflow.md#complex-workflow-contract-next-acceptance-gates) now run in the example app: a shared EmploymentSetup page in two forms, branching deployment with dependent asynchronous choices, and repeated Resource sections with application-owned draft storage. They share the existing action/navigation machinery and the optional Form.getValidationRevision freshness boundary. Their local page adapter, dependent-choice integration and recovery policies remain experiments, not additional package APIs. RHF remains the editing-value authority; applications supply services, persistence and execution. The anchor records tested guarantees, remaining wiring and course corrections.

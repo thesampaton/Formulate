@@ -20,6 +20,16 @@ These optional sketches anchor the [mental model](../03-mental-model.md) to the 
 
 Focused examples cover [advanced-option disclosure](advanced-options.md) and [responsive CSS layout](responsive-layout.md).
 
+## Complex-workflow validation sequence
+
+The implementation exercises deepen existing scenarios in this order; it does not add another set of hero examples:
+
+1. [Employee onboarding: complete page reuse](employee-onboarding.md#gate-1-complete-page-reuse) in two forms with different bindings, destinations, and layouts, retaining one set of local requirements.
+2. [Cloud deployment: branching and async choices](cloud-deployment-wizard.md#gate-2-branching-with-dependent-async-choices) in one controlled sequence, including stale Regions responses, removal of the current page, and reactivation with retained values.
+3. [Infrastructure provisioning: repeated sections and restoration](infrastructure-provisioning.md#gate-3-repeated-sections-and-draft-restoration), using RHF field arrays and application-owned persistence. The survey supplies recovery cross-checks.
+
+All three bounded exercises now have executable evidence; their local coordinators are not a general workflow API. The [implementation anchor](../05-06-rendering-and-workflow.md#complex-workflow-contract-next-acceptance-gates) owns order, evidence status, responsibility boundaries, and course-correction decisions. Close each gate before expanding the next. Other rows in the scenario catalogue remain reference cases, not parallel implementation commitments.
+
 ## Reading the pseudocode
 
 ```text
@@ -47,5 +57,8 @@ Shared mechanics live in [references](../03-references-and-relationships.md), [s
 - What can move without changing identity or behaviour?
 - What makes content applicable, complete, or eligible for submission?
 - What operation remains application-owned?
+- What existing contract does this exercise test, what evidence would disprove it, and what previous assumption would a correction replace?
 
 The model should answer these without new core layers. The API should express them without duplicate rules or declarations. The [pressure tests](../03-mental-model-pressure-tests.md) provide the detailed checks; the simple-form rubric also tests removing structure while preserving behaviour still required.
+
+When evidence contradicts the model, record and revise the affected contract in the implementation anchor and this scenario together. Adding another scenario or helper does not resolve a failed invariant.

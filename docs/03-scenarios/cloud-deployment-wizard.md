@@ -4,6 +4,10 @@
 
 This traces a library field built from primitives through two independent section uses, pages, and submission.
 
+**Status: gate 2 demonstrated by the [cloud form](../../examples/react/src/compositions/cloud-deployment.tsx) and [three executable sequences](../../tests/cloud-deployment.test.tsx).** [Evidence and decisions](../05-06-rendering-and-workflow.md#gates-23-evidence-and-contract-decisions) distinguish the local coordinator from a future public API. The prototype binds primary/recovery directly at those roots and uses a production change-reference field; the richer pseudocode below remains illustrative.
+
+The [authoring correction](../05-06-rendering-and-workflow.md#authoring-correction-consolidate-the-demonstrated-mechanics) keeps this same sequence and shares the dependent-choice integration with Infrastructure. Form checks a live evidence revision at action boundaries; hosts no longer repeat schema parsing. Behaviour is demonstrated, while reusable dependency authoring remains provisional.
+
 ```text
 library field AWSRegion
   value: RegionId
@@ -11,7 +15,9 @@ library field AWSRegion
   input: accountId
   service: listRegions(accountId)
   validate: selected region is available for the supplied account
-  on accountId change: recheck selection; refresh options
+  on accountId change: retain selection as unverified; refresh options
+  accept result only for current use, account, and request generation
+  require current membership success; pending or failed lookup cannot pass
 
 library section DeploymentTarget
   services: listAccounts, listRegions
@@ -43,6 +49,8 @@ form CloudDeployment
   presentation: routed pages (/targets, /production, /review)
     alternative: tabs using the same page identities
   workflow: Targets -> Production when applicable -> Review
+    if current Production becomes unavailable: go to Targets
+    reject unavailable entry/correction targets; fall back to Targets
 
   submit Deploy:
     validate: all applicable requirements
@@ -64,6 +72,28 @@ Production applicability controls requirements and inclusion. Production page av
 | Receive a rejection after editing. | Reconcile with the submitted snapshot and preserve useful newer work. |
 
 The application owns deployment execution. Accepting a request does not mean deployment has completed.
+
+## Gate 2: branching with dependent async choices
+
+Use controllable application service promises to make response order deterministic. Keep a single form runtime alive while pages unmount. Environment is an earlier answer owned by Targets; expose an explicit way to change that same bound answer while on Production, such as a host summary control. This must actually remove the current page, rather than merely hide an unvisited tab. Do not create a second Environment value.
+
+| Step | Interaction | Required observation |
+| --- | --- | --- |
+| 1 | Select production, account A and a valid region A1 for primary; give recovery independent valid values. Visit Production and fill its requirements. | Continue and Review use current applicable requirements. Both target uses have independent state. |
+| 2 | Return to Targets; change primary Account to B, then C while B's Regions request is pending. | Retain A1 as unverified. Primary membership no longer passes; Continue/Deploy cannot rely on A's result. Recovery is unaffected. |
+| 3 | Resolve C first without A1, then resolve B with A1. | Only C's choices apply. A1 remains stored with an actionable membership failure; B cannot replace choices, errors, or readiness. Choosing a valid C region restores that requirement. |
+| 4 | Visit Production with valid targets. Change the earlier Environment answer to development while Production is current. | Production becomes unavailable and navigation falls back to Targets. Retain its editing values, omit its requirements and payload, and cancel pending navigation/focus intents aimed at that page. Explain the move and focus the still-visible Environment control; do not compete with the picker's focus restoration or focus an absent editor. |
+| 5 | Change primary Account again and start a Regions request. Turn production back on and revisit Production with retained values while that lookup is pending. | Retained values survive. Applicable requirements are evaluated again against current inputs; prior success cannot certify the target or final submission. Page availability alone does not claim readiness. |
+| 6 | Fail the current lookup, retry, and return a current successful response. | Failure has feedback and retry; it is not an empty successful choice list. Required membership remains unsatisfied until current data verifies the selection, or the user corrects it. Retry cannot let an earlier response overwrite the new result. |
+| 7 | Review and submit once current applicable requirements pass; repeat with production disabled. | Review and exact payload agree. Disabled production values are absent; enabled values are freshly validated. No stale check may invoke the handler or redirect correction. |
+
+Also resolve an old success and an old failure after a newer request, and repeat A → B → A: account equality alone cannot identify the current request. Associate evidence with the field use, relevant input snapshot, and request generation/lifetime. Cancellation may save work, but correctness must hold when the service cannot abort. Page unmounting does not end an applicable field use; actual removal or runtime destruction does.
+
+Continue uses the page's applicable requirements; final submission uses all applicable requirements. A required unresolved/pending membership check cannot pass either scope that includes it. An unrelated suggestion request need not block. Preserve known validation failures while another check is pending. This gate must test guards and the application handler, not just spinner text or button disabling.
+
+The host's fallback for this example is Targets. Back, navigation links, and correction requests must all reject an unavailable Production destination; they must not reactivate the branch to reveal an inactive error. On return, old focus requests stay cancelled. Normal layout changes and lookup completion must not steal focus. A retained production value that now fails an applicable rule must expose a reachable correction.
+
+Record which wiring belongs to DeploymentTarget, which policies belong to the host, and which repeated freshness/navigation mechanics justify Formulate support. Keep option fetching application-supplied and values in RHF. This gate does not require a generic graph language, route adapter, agent runtime, or deployment service. The broader changes and agent context in this scenario remain later pressure tests.
 
 ## Context for filling the form
 
