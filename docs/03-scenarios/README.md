@@ -28,7 +28,7 @@ The implementation exercises deepen existing scenarios in this order; it does no
 2. [Cloud deployment: branching and async choices](cloud-deployment-wizard.md#gate-2-branching-with-dependent-async-choices) in one controlled sequence, including stale Regions responses, removal of the current page, and reactivation with retained values.
 3. [Infrastructure provisioning: repeated sections and restoration](infrastructure-provisioning.md#gate-3-repeated-sections-and-draft-restoration), using RHF field arrays and application-owned persistence. The survey supplies recovery cross-checks.
 
-All three bounded exercises now have executable evidence; their local coordinators are not a general workflow API. The [implementation anchor](../05-06-rendering-and-workflow.md#complex-workflow-contract-next-acceptance-gates) owns order, evidence status, responsibility boundaries, and course-correction decisions. Close each gate before expanding the next. Other rows in the scenario catalogue remain reference cases, not parallel implementation commitments.
+All three bounded exercises now have executable evidence; their local coordinators are not a general workflow API. The [implementation anchor](../05-06-rendering-and-workflow.md#complex-workflow-evidence) owns order, evidence status, responsibility boundaries, and course-correction decisions. The remaining authoring work is to reduce host wiring within these same examples before expanding scope. Other rows in the scenario catalogue remain reference cases, not parallel implementation commitments.
 
 ## Reading the pseudocode
 

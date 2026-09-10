@@ -4,7 +4,7 @@
 
 Employee onboarding and internal transfer share an employment page. The page carries its local requirements; each host chooses where Continue leads.
 
-**Status: gate 1 demonstrated for synchronous section requirements.** [Onboarding](../../examples/react/src/compositions/employee-onboarding.tsx) and [internal transfer](../../examples/react/src/compositions/internal-transfer.tsx) share the [EmploymentSetup page and binding adapter](../../examples/react/src/components/formulate/employment-setup.tsx), backed by one Employment declaration. Eleven [interaction cases](../../tests/employee-workflows.test.tsx) cover the acceptance sequence below. The notation remains illustrative, not a page-definition API; see the [contract decision](../05-06-rendering-and-workflow.md#gate-1-evidence-and-decision).
+**Status: gate 1 demonstrated for synchronous section requirements.** [Onboarding](../../examples/react/src/compositions/employee-onboarding.tsx) and [internal transfer](../../examples/react/src/compositions/internal-transfer.tsx) share the [EmploymentSetup page and binding adapter](../../examples/react/src/components/formulate/employment-setup.tsx), backed by one Employment declaration. Eleven [interaction cases](../../tests/employee-workflows.test.tsx) cover the acceptance sequence below. The notation remains illustrative, not a page-definition API; see the [contract decision](../05-06-rendering-and-workflow.md#course-corrections-retained).
 
 ```text
 library section Employment

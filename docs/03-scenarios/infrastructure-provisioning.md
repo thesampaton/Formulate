@@ -4,9 +4,9 @@
 
 Repeated resources feed an application-generated plan. Provisioning requires a plan matching the current configuration, including application-supplied inputs.
 
-**Status: gate 3 demonstrated by the [infrastructure form](../../examples/react/src/compositions/infrastructure.tsx) and [nine executable cases](../../tests/infrastructure.test.tsx).** RHF field arrays, Resource.Bind and an application draft adapter support the bounded exercise; no new repeat or core persistence API was introduced. See [evidence and contract decisions](../05-06-rendering-and-workflow.md#gates-23-evidence-and-contract-decisions). The Terraform services in the model below remain application responsibilities; the demo uses local plan references.
+**Status: gate 3 demonstrated by the [infrastructure form](../../examples/react/src/compositions/infrastructure.tsx) and [nine executable cases](../../tests/infrastructure.test.tsx).** RHF field arrays, Resource.Bind and an application draft adapter support the bounded exercise; no new repeat or core persistence API was introduced. See [evidence and contract decisions](../05-06-rendering-and-workflow.md#complex-workflow-evidence). The Terraform services in the model below remain application responsibilities; the demo uses local plan references.
 
-The [authoring correction](../05-06-rendering-and-workflow.md#authoring-correction-consolidate-the-demonstrated-mechanics) reuses Cloud's choice integration and the existing Form action/navigation machinery. Preview is the Configure submit action, including Enter and pending handling. Draft compatibility, snapshot acknowledgement and returned-plan acceptance remain application policy; the behavioural pass does not close the authoring gate.
+The [authoring correction](../05-06-rendering-and-workflow.md#course-corrections-retained) reuses Cloud's choice integration and the existing Form action/navigation machinery. Preview is the Configure submit action, including Enter and pending handling. Draft compatibility, snapshot acknowledgement and returned-plan acceptance remain application policy; the behavioural pass does not close the authoring gate.
 
 ```text
 library section Resource

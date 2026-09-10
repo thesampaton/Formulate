@@ -35,7 +35,7 @@ The examples use `defineForm` to declare each field's schema, editing default, a
 
 `useFormNavigation` coordinates explicit correction destinations and focus. `Form.navigation` checks the current action's field paths; final submission still validates the whole form. `useFormActionStatus` supplies pending state for both checking and saving. The multi-page example derives synchronous page completion in application code; general completion and workflow coordination remain design work.
 
-The [complex-workflow acceptance gates](docs/05-06-rendering-and-workflow.md#complex-workflow-contract-next-acceptance-gates) deepen existing scenarios: reuse a complete page in two forms, combine branching with dependent async choices, then exercise repeated sections and application-owned draft restoration. The three bounded exercises now run as examples 07–09, with evidence and course-correction decisions recorded. Their local coordinators remain prototypes; no general workflow engine is claimed.
+The [complex-workflow acceptance gates](docs/05-06-rendering-and-workflow.md#complex-workflow-evidence) deepen existing scenarios: reuse a complete page in two forms, combine branching with dependent async choices, then exercise repeated sections and application-owned draft restoration. The three bounded exercises now run as examples 07–09, with evidence and course-correction decisions recorded. Their local coordinators remain prototypes; no general workflow engine is claimed.
 
 ## Design and implementation
 
@@ -44,6 +44,7 @@ The [complex-workflow acceptance gates](docs/05-06-rendering-and-workflow.md#com
 - [Part 3 — Mental Model](docs/03-mental-model.md): the parts, relationships, and responsibility boundaries.
 - [Part 4 — Registry and Libraries](docs/04-registry.md): Formulate primitives, library authoring, and namespaced distribution.
 - [Parts 5–6 — Rendering and Workflow](docs/05-06-rendering-and-workflow.md): the implementation anchor, current scope, evidence, and next decisions.
+- [Generalisation](docs/generalisation.md): the next extraction slice, before returning to broader rendering/workflow decisions.
 - [Design notes](docs/design-notes.md): open architecture questions and research for later phases.
 
 Part 3 links to optional references for state, relationships, and layout. Its [scenario rubric](docs/03-scenarios/README.md) applies the model, starting with a simple form and extending to the seven hero scenarios.

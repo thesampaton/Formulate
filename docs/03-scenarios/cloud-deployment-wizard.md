@@ -4,9 +4,9 @@
 
 This traces a library field built from primitives through two independent section uses, pages, and submission.
 
-**Status: gate 2 demonstrated by the [cloud form](../../examples/react/src/compositions/cloud-deployment.tsx) and [three executable sequences](../../tests/cloud-deployment.test.tsx).** [Evidence and decisions](../05-06-rendering-and-workflow.md#gates-23-evidence-and-contract-decisions) distinguish the local coordinator from a future public API. The prototype binds primary/recovery directly at those roots and uses a production change-reference field; the richer pseudocode below remains illustrative.
+**Status: gate 2 demonstrated by the [cloud form](../../examples/react/src/compositions/cloud-deployment.tsx) and [three executable sequences](../../tests/cloud-deployment.test.tsx).** [Evidence and decisions](../05-06-rendering-and-workflow.md#complex-workflow-evidence) distinguish the local coordinator from a future public API. The prototype binds primary/recovery directly at those roots and uses a production change-reference field; the richer pseudocode below remains illustrative.
 
-The [authoring correction](../05-06-rendering-and-workflow.md#authoring-correction-consolidate-the-demonstrated-mechanics) keeps this same sequence and shares the dependent-choice integration with Infrastructure. Form checks a live evidence revision at action boundaries; hosts no longer repeat schema parsing. Behaviour is demonstrated, while reusable dependency authoring remains provisional.
+The [authoring correction](../05-06-rendering-and-workflow.md#course-corrections-retained) keeps this same sequence and shares the dependent-choice integration with Infrastructure. Form checks a live evidence revision at action boundaries; hosts no longer repeat schema parsing. Behaviour is demonstrated, while reusable dependency authoring remains provisional.
 
 ```text
 library field AWSRegion
