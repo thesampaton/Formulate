@@ -24,6 +24,9 @@ export type FormProps<Input extends FieldValues, Output extends FieldValues = In
     onInvalid?: SubmitErrorHandler<Input>;
     /** When present, submit/Enter checks this navigation scope instead of invoking the final onSubmit handler. */
     navigation?: FormNavigationAction<Input>;
+    /** Read a stable revision of external validation evidence. A changed revision cancels callbacks
+     * from a pending check, including final submission. Read the live source, not a render snapshot. */
+    getValidationRevision?: () => string | number;
     submissionErrorMessage?: string;
   };
 
@@ -32,6 +35,7 @@ export function Form<Input extends FieldValues, Output extends FieldValues = Inp
   onSubmit,
   onInvalid,
   navigation,
+  getValidationRevision,
   submissionErrorMessage = "Unable to submit. Please try again.",
   children,
   layout,
@@ -42,6 +46,8 @@ export function Form<Input extends FieldValues, Output extends FieldValues = Inp
   const epoch = useRef(0);
   const live = useRef(false);
   const subscription = useRef<(() => void) | undefined>(undefined);
+  const validationSource = useRef(getValidationRevision);
+  useEffect(() => { validationSource.current = getValidationRevision; }, [getValidationRevision]);
   const { errors } = form.formState;
   const scopeKey = JSON.stringify(navigation?.fields);
 
@@ -61,9 +67,11 @@ export function Form<Input extends FieldValues, Output extends FieldValues = Inp
     pending.current = true;
     setIsPending(true);
     const attempt = epoch.current;
+    const validationRevision = validationSource.current?.();
     let changed = false;
     let handlerStarted = false;
-    const current = () => live.current && epoch.current === attempt && !changed;
+    const current = () => live.current && epoch.current === attempt && !changed &&
+      Object.is(validationRevision, validationSource.current?.());
     const unsubscribe = form.subscribe({ formState: { values: true }, callback: () => { changed = true; } });
     subscription.current = unsubscribe;
     form.clearErrors("root.submit");

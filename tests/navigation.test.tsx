@@ -12,12 +12,13 @@ const schema = z.object({
 });
 type Values = z.input<typeof schema>;
 
-function Harness({ validation = schema, onSubmit = vi.fn(), onInvalid = vi.fn(), initialFirst = "valid", initialSecond = "" }: {
+function Harness({ validation = schema, onSubmit = vi.fn(), onInvalid = vi.fn(), initialFirst = "valid", initialSecond = "", getValidationRevision }: {
   validation?: z.ZodType<Values, Values>;
   onSubmit?: (values: Values) => Promise<void> | void;
   onInvalid?: () => void;
   initialFirst?: string;
   initialSecond?: string;
+  getValidationRevision?: () => string | number;
 }) {
   const form = useFormulate(validation, {
     mode: "onSubmit", shouldFocusError: false,
@@ -32,7 +33,7 @@ function Harness({ validation = schema, onSubmit = vi.fn(), onInvalid = vi.fn(),
       { name: "second", page: "second" },
     ],
   });
-  return <Form form={form} onSubmit={onSubmit}
+  return <Form form={form} onSubmit={onSubmit} getValidationRevision={getValidationRevision}
     navigation={navigation.page === "review" ? undefined : {
       id: navigation.revision,
       // An object path scopes its descendant errors; correction uses the leaf editor.
@@ -234,4 +235,38 @@ it("suppresses a validation exception from an attempt invalidated by a newer edi
   await act(async () => { gate.resolve(); await gate.promise; });
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
+});
+
+it.each([
+  ["scope", "valid"], ["scope", "invalid"], ["scope", "throw"],
+  ["final", "valid"], ["final", "invalid"], ["final", "throw"],
+] as const)("cancels a %s %s check when external evidence changes without a render, then permits retry", async (action, outcome) => {
+  const gate = deferred();
+  let revision = 0;
+  let obsolete = true;
+  const check = vi.fn(async (_, context: z.RefinementCtx) => {
+    if (obsolete && outcome === "invalid") context.addIssue({ code: "custom", path: ["first", "value"], message: "Old evidence" });
+    await gate.promise;
+    if (obsolete && outcome === "throw") throw new Error("Old service failure");
+  });
+  const onSubmit = vi.fn();
+  const onInvalid = vi.fn();
+  const user = userEvent.setup();
+  render(<Harness validation={schema.superRefine(check)} initialSecond="ready"
+    onSubmit={onSubmit} onInvalid={onInvalid} getValidationRevision={() => revision} />);
+  if (action === "final") await user.click(screen.getByRole("button", { name: "Jump to review" }));
+  fireEvent.submit(screen.getByRole("button", { name: action === "final" ? "Save" : "Next" }).closest("form")!);
+  await waitFor(() => expect(check).toHaveBeenCalledTimes(1));
+  // A → B → A can have identical data and still be a different evidence lifetime.
+  revision += 2;
+  await act(async () => gate.resolve());
+  expect(onSubmit).not.toHaveBeenCalled();
+  expect(onInvalid).not.toHaveBeenCalled();
+  // RHF may publish old field errors; cancellation suppresses coordination and submission errors.
+  expect(screen.queryByText("Unable to submit. Please try again.")).toBeNull();
+  expect(screen.queryByLabelText("Second value")).toBeNull();
+  obsolete = false;
+  await user.click(screen.getByRole("button", { name: action === "final" ? "Save" : "Next" }));
+  if (action === "final") await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+  else expect(await screen.findByLabelText("Second value")).toHaveFocus();
 });
