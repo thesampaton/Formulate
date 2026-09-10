@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 // UI props come from the installed shadcn exports. Formulate reserves binding props.
 type BindingProps = "ref" | "id" | "name" | "value" | "defaultValue" | "onChange" | "onBlur" | "disabled" | "aria-invalid" | "aria-describedby";
 export type InputControlProps = Omit<ComponentProps<typeof Input>, BindingProps | "type" | "checked" | "defaultChecked"> & {
-  type?: "text" | "email" | "password" | "search" | "tel" | "url";
+  type?: "text" | "email" | "password" | "search" | "tel" | "url" | "date";
 };
 export type NumberControlProps = Omit<InputControlProps, "type">;
 export type CheckboxControlProps = Omit<ComponentProps<typeof Checkbox>, BindingProps | "checked" | "defaultChecked" | "onCheckedChange" | "type"> & {

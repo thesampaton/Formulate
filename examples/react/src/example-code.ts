@@ -5,6 +5,22 @@ import confirmation from "./compositions/email-confirmation.tsx?raw";
 import customer from "./compositions/customer.tsx?raw";
 import responsive from "./compositions/profile.tsx?raw";
 import multiPage from "./compositions/multi-page-form.tsx?raw";
+import employeeOnboarding from "./compositions/employee-onboarding.tsx?raw";
+import internalTransfer from "./compositions/internal-transfer.tsx?raw";
+import employeeWorkflows from "./declarations/employee-workflows.ts?raw";
+import employment from "./declarations/employment.ts?raw";
+import employmentSetup from "./components/formulate/employment-setup.tsx?raw";
+import cloud from "./compositions/cloud-deployment.tsx?raw";
+import cloudDeclaration from "./declarations/cloud-deployment.ts?raw";
+import cloudBehaviour from "./hooks/use-cloud-deployment.ts?raw";
+import cloudDemo from "./cloud-deployment.tsx?raw";
+import choiceRequest from "./lib/choice-request.ts?raw";
+import infrastructure from "./compositions/infrastructure.tsx?raw";
+import infrastructureDeclaration from "./declarations/infrastructure.ts?raw";
+import infrastructureBehaviour from "./hooks/use-infrastructure.ts?raw";
+import choiceFields from "./lib/choice-fields.ts?raw";
+import choiceForm from "./hooks/use-choice-form.ts?raw";
+import infrastructureDemo from "./infrastructure.tsx?raw";
 import signInDeclaration from "./declarations/sign-in.ts?raw";
 import requestDeclaration from "./declarations/request-settings.ts?raw";
 import confirmationDeclaration from "./declarations/email-confirmation.ts?raw";
@@ -83,8 +99,35 @@ const installation: CodeExcerpt = {
   provenance: "Project-owned shadcn CLI configuration · used at installation",
 };
 const integration = [map, connectedControls, fieldChrome, installedInput, installation];
+const dependentChoices = [
+  source("behaviour", "Dependent choice fields", "hooks/use-choice-form.ts", choiceForm, "One field selector connects request identity, dependencies, membership validation and error refresh for both workflows."),
+  source("behaviour", "Choice lifetimes", "lib/choice-fields.ts", choiceFields, "Keeps requests with surviving use IDs, independent of paths and array indexes."),
+  source("behaviour", "Choice requests", "lib/choice-request.ts", choiceRequest, "Request generations reject obsolete responses even when cancellation is ignored."),
+];
 
 export const exampleCode = {
+  infrastructure: [
+    composition("compositions/infrastructure.tsx", infrastructure), declaration("declarations/infrastructure.ts", infrastructureDeclaration), sample("infrastructure"),
+    source("behaviour", "Resource coordination", "hooks/use-infrastructure.ts", infrastructureBehaviour, "RHF arrays, durable item identity, draft handoffs and current plan checks."),
+    ...dependentChoices,
+    source("behaviour", "Demo persistence", "infrastructure.tsx", infrastructureDemo, "Application-owned localStorage adapter and fictional plan service. Persistence is outside the form runtime."),
+    bodyLayouts, buttons, ...integration,
+  ],
+  cloud: [
+    composition("compositions/cloud-deployment.tsx", cloud), declaration("declarations/cloud-deployment.ts", cloudDeclaration), sample("cloud"),
+    source("behaviour", "Deployment coordination", "hooks/use-cloud-deployment.ts", cloudBehaviour, "Application-supplied requests, shared membership requirements, branch fallback and current action checks."),
+    ...dependentChoices,
+    source("behaviour", "Demo region service", "cloud-deployment.tsx", cloudDemo, "The application supplies delayed region choices and controllable failures; services remain outside the coordinator."),
+    bodyLayouts, buttons, ...integration,
+  ],
+  employment: [
+    composition("compositions/employee-onboarding.tsx", employeeOnboarding),
+    source("form", "Internal transfer", "compositions/internal-transfer.tsx", internalTransfer, "A second host of the same complete page, with its own binding root, layout and destination."),
+    declaration("declarations/employee-workflows.ts", employeeWorkflows), sample("employment"),
+    source("fields", "Employment", "declarations/employment.ts", employment, "One declaration of local values, defaults, controls and requirements for both hosts."),
+    source("navigation", "Employment page", "components/formulate/employment-setup.tsx", employmentSetup, "Reusable page, local action scope and correction targets. The binding adapter is a local experiment, not a core page API."),
+    bodyLayouts, buttons, ...integration,
+  ],
   simple: [
     composition("compositions/sign-in.tsx", simple), declaration("declarations/sign-in.ts", signInDeclaration), sample("simple"),
     emailField, buttons, ...integration,
