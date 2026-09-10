@@ -38,4 +38,8 @@ Provide accessible defaults for labels, keyboard interaction, focus, errors, and
 
 React Hook Form owns field values by default; Formulate owns interaction coordination. Application services own permissions, business decisions, and durable execution. Connect these authorities through explicit handoffs, including server rejections and requests for further input. Avoid competing value stores or duplicated backend state machines.
 
+## 10. Use existing capabilities first
+
+Start with the platform and the libraries already in the project: React, React Hook Form, Zod and the installed UI primitives. Use their state, lifecycle and validation contracts before creating another abstraction. Add custom coordination only for a demonstrated deficiency or missing contract, and record that reason beside the implementation and its behavioural evidence. A new dependency is a separate design proposal tied to a concrete gap. Prefer an approach that remains easy to understand and maintain over one that merely uses fewer lines.
+
 The test for every addition: **Does this make building and changing complex workflows dramatically easier than composing shadcn components manually?**

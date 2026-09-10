@@ -12,7 +12,7 @@ The parent declares `pageLayout={FormStepLayout}` once. Nested FormTabPage compo
 
 A per-page `layout` replaces the inherited layout and `layout={null}` removes it, using the existing core layout contract. These shadcn wrappers do not change Page or introduce another form runtime. The code panel includes the page layouts and notification section as supporting code.
 
-A single RHF runtime owns all answers. Changing tabs unmounts the old editors without discarding their values. Tabs can be visited freely; visiting a page does not validate it or mark it complete. Continue validates only the current page, then focuses the next editor. Saving from Review checks the whole form and opens/focuses the first field requiring correction.
+A single RHF runtime owns all answers. Changing tabs hides old editors with React Activity, preserving their React state, DOM and RHF values while pausing their effects. Tabs can be visited freely; visiting a page does not validate it or mark it complete. Continue validates only the current page, then focuses the next editor. Saving from Review checks the whole form and opens/focuses the first field requiring correction.
 
 Completion describes current requirements. A valid prefill is immediately complete; clearing a required value reverses that status. SMS requires a correctly formatted mobile number. Email suspends that requirement while retaining the number's draft for switching back. Country changes recheck the postcode using Address's existing rules.
 

@@ -14,12 +14,16 @@ import cloud from "./compositions/cloud-deployment.tsx?raw";
 import cloudDeclaration from "./declarations/cloud-deployment.ts?raw";
 import cloudBehaviour from "./hooks/use-cloud-deployment.ts?raw";
 import cloudDemo from "./cloud-deployment.tsx?raw";
-import choiceRequest from "./lib/choice-request.ts?raw";
+import choiceDefinition from "../../../packages/react/src/choices/definition.ts?raw";
+import definitions from "../../../packages/react/src/define-form.tsx?raw";
+import formRuntime from "../../../packages/react/src/form.tsx?raw";
+import pageRuntime from "../../../packages/react/src/page.tsx?raw";
 import infrastructure from "./compositions/infrastructure.tsx?raw";
 import infrastructureDeclaration from "./declarations/infrastructure.ts?raw";
 import infrastructureBehaviour from "./hooks/use-infrastructure.ts?raw";
-import choiceFields from "./lib/choice-fields.ts?raw";
-import choiceForm from "./hooks/use-choice-form.ts?raw";
+import choiceRequest from "../../../packages/react/src/choices/request.ts?raw";
+import choiceFields from "../../../packages/react/src/choices/store.ts?raw";
+import choiceForm from "../../../packages/react/src/use-choice-form.ts?raw";
 import infrastructureDemo from "./infrastructure.tsx?raw";
 import signInDeclaration from "./declarations/sign-in.ts?raw";
 import requestDeclaration from "./declarations/request-settings.ts?raw";
@@ -100,9 +104,13 @@ const installation: CodeExcerpt = {
 };
 const integration = [map, connectedControls, fieldChrome, installedInput, installation];
 const dependentChoices = [
-  source("behaviour", "Dependent choice fields", "hooks/use-choice-form.ts", choiceForm, "One field selector connects request identity, dependencies, membership validation and error refresh for both workflows."),
-  source("behaviour", "Choice lifetimes", "lib/choice-fields.ts", choiceFields, "Keeps requests with surviving use IDs, independent of paths and array indexes."),
-  source("behaviour", "Choice requests", "lib/choice-request.ts", choiceRequest, "Request generations reject obsolete responses even when cancellation is ignored."),
+  source("actions", "Form actions", "packages/react/src/form.tsx", formRuntime, "React transitions own pending state; RHF validates scopes and output, with freshness checks before callbacks.", "@formulate/core"),
+  source("navigation", "Page lifecycle", "packages/react/src/page.tsx", pageRuntime, "React Activity preserves inactive editor state and pauses effects; form-level validation survives outside it.", "@formulate/core"),
+  source("behaviour", "Choice requests", "packages/react/src/choices/request.ts", choiceRequest, "AbortSignal rejects obsolete results even when the service ignores cancellation.", "@formulate/core"),
+  source("behaviour", "Choice declarations", "packages/react/src/choices/definition.ts", choiceDefinition, "Typed dependency inputs, services and application-owned selection policy.", "@formulate/core"),
+  source("behaviour", "Definition binding", "packages/react/src/define-form.tsx", definitions, "Recursive definition binding carries field rules into each use.", "@formulate/core"),
+  source("behaviour", "Dependent choice fields", "packages/react/src/use-choice-form.ts", choiceForm, "Package runtime validates editing values against current choice evidence alongside schema parsing.", "@formulate/core"),
+  source("behaviour", "Choice lifetimes", "packages/react/src/choices/store.ts", choiceFields, "Keeps request evidence with surviving use IDs, independent of paths and array indexes.", "@formulate/core"),
 ];
 
 export const exampleCode = {

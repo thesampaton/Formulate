@@ -22,3 +22,7 @@ export { useFormulate } from "./use-formulate.js";
 export type { FormulateOptions } from "./use-formulate.js";
 export type { SectionBindings, CompatibleFieldPath } from "./definition-scope.js";
 export type { FormDefinition, DefinedForm, DefinedSection, DefinedSubsection, SectionPresentationProps } from "./define-form.js";
+
+export { defineChoice } from "./choices/definition.js";
+export type { Choice, ChoiceLoader, ChoiceSnapshot, ChoiceView, ChoiceRule, BoundChoice } from "./choices/definition.js";
+export { useChoiceForm } from "./use-choice-form.js";

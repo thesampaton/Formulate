@@ -1,9 +1,10 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import { CloudDeploymentForm } from "../examples/react/src/compositions/cloud-deployment";
-import { createChoiceRequest } from "../examples/react/src/lib/choice-request";
-import type { Choice, ChoiceLoader } from "../examples/react/src/lib/choice-request";
+import { createChoiceStore } from "../packages/react/src/choices/store";
+import { regionChoices } from "../examples/react/src/declarations/cloud-deployment";
+import type { Choice, ChoiceLoader } from "@formulate/react";
 import type { CloudValues } from "../examples/react/src/declarations/cloud-deployment";
 
 function controlledChoices() {
@@ -34,20 +35,20 @@ it("combines out-of-order Regions, removal of the current page, retained drafts,
   await choose(user, "Primary account", "Account C");
   expect(service.calls.map((call) => call.input)).toEqual(["A", "B", "B", "C"]);
   await user.click(screen.getByRole("button", { name: "Continue" }));
-  expect(screen.queryByLabelText("Production change reference")).toBeNull();
+  expect(screen.getByLabelText("Production change reference")).not.toBeVisible();
   await act(async () => service.calls[3]!.resolve(options("C1")));
   await act(async () => service.calls[2]!.resolve(options("A1")));
-  expect(screen.getByText("Primary: The retained choice is unavailable. Choose another option.")).toBeInTheDocument();
+  expect(within(screen.getByRole("group", { name: "Deployment targets" })).getByText("Primary: The retained choice is unavailable. Choose another option.")).toBeVisible();
   expect(screen.getByRole("combobox", { name: "Recovery region" })).toHaveTextContent("B1");
   await choose(user, "Primary region", "C1");
   await user.click(screen.getByRole("button", { name: "Continue" }));
   expect(screen.getByLabelText("Production change reference")).toHaveValue("CHANGE-123");
   await choose(user, "Environment", "Development");
   await waitFor(() => expect(screen.getByRole("combobox", { name: "Environment" })).toHaveFocus());
-  expect(screen.queryByLabelText("Production change reference")).toBeNull();
+  expect(screen.getByLabelText("Production change reference")).not.toBeVisible();
   expect(screen.getByRole("button", { name: "Production" })).toBeDisabled();
   await user.click(screen.getByRole("button", { name: "Production" }));
-  expect(screen.queryByLabelText("Production change reference")).toBeNull();
+  expect(screen.getByLabelText("Production change reference")).not.toBeVisible();
   await choose(user, "Primary account", "Account A");
   await choose(user, "Environment", "Production");
   expect(screen.queryByText(/Production is no longer required/)).toBeNull();
@@ -75,22 +76,22 @@ it("combines out-of-order Regions, removal of the current page, retained drafts,
 
 it("rejects old success/failure for A → B → A and disposed uses even if abort is ignored", async () => {
   const service = controlledChoices();
-  const request = createChoiceRequest(service.load);
-  request.setInput("A"); request.setInput("B"); request.setInput("A");
+  const store = createChoiceStore();
+  const field = (input: string, selection = "") => ({ ...regionChoices.resolve({ accountId: input }, selection, { listRegions: service.load }), id: "region", name: "region" });
+  store.sync([field("A")]); store.sync([field("B")]); store.sync([field("A")]);
   await Promise.resolve();
   service.calls[0]!.resolve(options("old-A")); service.calls[1]!.reject(new Error("old-B"));
   await Promise.resolve(); await Promise.resolve();
-  expect(request.getSnapshot().status).toBe("pending");
-  expect(request.problem("A", "old-A")).toBe("Checking available choices…");
+  expect(store.get("region", regionChoices)?.status).toBe("pending");
+  expect(store.get("region", regionChoices)?.options).toEqual([]);
   service.calls[2]!.resolve(options("current-A"));
-  await Promise.resolve(); await Promise.resolve();
-  expect(request.problem("A", "current-A")).toBeUndefined();
-  request.retry(); await Promise.resolve();
-  request.dispose();
+  await waitFor(() => expect(store.get("region", regionChoices)?.options).toEqual(options("current-A")));
+  store.get("region", regionChoices)!.retry(); await Promise.resolve();
+  store.clear();
   service.calls[3]!.resolve(options("late-A"));
   await Promise.resolve(); await Promise.resolve();
-  expect(request.problem("A", "late-A")).toBe("Checking available choices…");
-  expect(request.getSnapshot().options).toEqual([]);
+  expect(store.get("region", regionChoices)).toBeUndefined();
+
 });
 
 it("rechecks retained production requirements and never treats a direct Review visit as permission to deploy", async () => {

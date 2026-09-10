@@ -84,7 +84,7 @@ it("scopes Next to one page, revalidates all pages on Save, and routes nested er
   await user.click(screen.getByRole("button", { name: "Hide first editor" }));
   await user.click(screen.getByRole("button", { name: "Next" }));
   const second = await screen.findByLabelText("Second value");
-  expect(second).toHaveFocus();
+  await waitFor(() => expect(second).toHaveFocus());
   expect(second).not.toHaveAttribute("aria-invalid", "true");
   await user.click(screen.getByRole("button", { name: "Review" }));
   expect(second).toHaveAccessibleDescription("Second value is required.");
@@ -127,7 +127,7 @@ it("replaces an earlier focus request when navigation happens again before commi
   await user.click(screen.getByRole("button", { name: "Hide first editor" }));
   await user.click(screen.getByRole("button", { name: "Replace correction" }));
   expect(screen.getByRole("heading", { name: "Review page" })).toBeInTheDocument();
-  expect(screen.queryByLabelText("First value")).not.toBeInTheDocument();
+  expect(screen.queryByRole("textbox", { name: "First value" })).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Replace correction" })).toHaveFocus();
 });
 
@@ -168,7 +168,7 @@ it.each(["navigate", "edit", "reset", "unmount"] as const)("ignores a pending na
   await act(async () => { gate.resolve(); await gate.promise; });
   expect(onInvalid).not.toHaveBeenCalled();
   expect(onSubmit).not.toHaveBeenCalled();
-  expect(screen.queryByLabelText("Second value")).not.toBeInTheDocument();
+  expect(screen.queryByRole("textbox", { name: "Second value" })).not.toBeInTheDocument();
   if (cancel !== "unmount") {
     expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
     await user.click(screen.getByRole("button", { name: "Next" }));
@@ -189,7 +189,7 @@ it("does not reveal an editor for a stale invalid result after the user leaves",
   await act(async () => { gate.resolve(); await gate.promise; });
   expect(onInvalid).not.toHaveBeenCalled();
   expect(screen.getByRole("heading", { name: "Review page" })).toBeInTheDocument();
-  expect(screen.queryByLabelText("First value")).not.toBeInTheDocument();
+  expect(screen.queryByRole("textbox", { name: "First value" })).not.toBeInTheDocument();
 });
 
 it("cancels final validation before calling the application when the page changes", async () => {
@@ -264,7 +264,7 @@ it.each([
   expect(onInvalid).not.toHaveBeenCalled();
   // RHF may publish old field errors; cancellation suppresses coordination and submission errors.
   expect(screen.queryByText("Unable to submit. Please try again.")).toBeNull();
-  expect(screen.queryByLabelText("Second value")).toBeNull();
+  expect(screen.queryByRole("textbox", { name: "Second value" })).toBeNull();
   obsolete = false;
   await user.click(screen.getByRole("button", { name: action === "final" ? "Save" : "Next" }));
   if (action === "final") await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));

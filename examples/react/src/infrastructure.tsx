@@ -2,7 +2,7 @@ import { useState } from "react";
 import { InfrastructureForm } from "@/compositions/infrastructure";
 import { exampleData } from "@/data/example-data";
 import type { DraftAdapter } from "@/declarations/infrastructure";
-import type { ChoiceLoader } from "@/lib/choice-request";
+import type { ChoiceLoader } from "@formulate/react";
 import { Button } from "@/components/ui/button";
 
 // The application owns storage/version policy; only fictional resource editing

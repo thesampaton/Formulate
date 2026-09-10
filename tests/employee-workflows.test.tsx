@@ -98,7 +98,7 @@ it.each(hosts)("%s validates an off-screen edit and corrects the existing page u
     : <InternalTransferForm onSubmit={onSubmit} defaultValues={structuredClone(exampleData.employment.transfer)} />);
   await user.click(screen.getByRole("button", { name: "Continue" }));
   if (host === "onboarding") await user.click(screen.getByRole("button", { name: "Continue" }));
-  expect(screen.queryByLabelText("Manager")).toBeNull();
+  expect(screen.getByLabelText("Manager")).not.toBeVisible();
   act(changeManager);
   await user.click(screen.getByRole("button", { name: host === "onboarding" ? "Request onboarding" : "Request transfer" }));
   await waitFor(() => expect(screen.getByLabelText("Manager")).toHaveFocus());
@@ -124,7 +124,7 @@ it.each(hosts)("%s preserves values and exact payload when the host replaces the
   await user.click(screen.getByRole("button", { name: "Continue" }));
   if (host === "onboarding") await user.click(screen.getByRole("button", { name: "Continue" }));
   expect(screen.queryByRole("combobox")).toBeNull();
-  expect(screen.queryByLabelText("Start date")).toBeNull();
+  expect(screen.getByLabelText("Start date")).not.toBeVisible();
   await user.click(screen.getByRole("button", { name: host === "onboarding" ? "Request onboarding" : "Request transfer" }));
   await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
   expect(onSubmit.mock.calls[0]![0]).toEqual(host === "onboarding"

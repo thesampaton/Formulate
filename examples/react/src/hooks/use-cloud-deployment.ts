@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { useFormNavigation } from "@formulate/react";
 import { CloudDeployment } from "@/declarations/cloud-deployment";
 import type { CloudPayload, CloudValues } from "@/declarations/cloud-deployment";
-import { useChoiceForm } from "./use-choice-form";
-import type { ChoiceLoader } from "@/lib/choice-request";
+import { useChoiceForm } from "@formulate/react";
+import type { ChoiceLoader } from "@formulate/react";
 
 export type CloudPage = "targets" | "production" | "review";
 export type CloudFormProps = {
@@ -13,15 +13,11 @@ export type CloudFormProps = {
   onDeploy: (payload: CloudPayload) => void | Promise<void>;
 };
 
-const targets = ["primary", "recovery"] as const;
-const regionFields = (values: Pick<CloudValues, typeof targets[number]>) => targets.map((id) => ({
-  id, name: `${id}.regionId` as const, input: values[id].accountId,
-}));
-
 export function useCloudDeployment({ listRegions, defaultValues }: CloudFormProps) {
+  const fields = useCallback((values: CloudValues) => CloudDeployment.bindChoices({ values, services: { listRegions } }), [listRegions]);
   const { form, choices, getValidationRevision } = useChoiceForm({
     schema: CloudDeployment.schema, defaultValues: { ...CloudDeployment.defaultValues, ...defaultValues },
-    loader: listRegions, fields: regionFields,
+    fields,
   });
   const values = useWatch({ control: form.control });
   const [notice, setNotice] = useState("");

@@ -7,7 +7,7 @@ import type { InfrastructureProps } from "../examples/react/src/hooks/use-infras
 import type { InfrastructureDraft, InfrastructureValues } from "../examples/react/src/declarations/infrastructure";
 import { draftSchema, infrastructureSchema, Resource } from "../examples/react/src/declarations/infrastructure";
 import { Form } from "@formulate/react";
-import type { Choice, ChoiceLoader } from "../examples/react/src/lib/choice-request";
+import type { Choice, ChoiceLoader } from "@formulate/react";
 
 const options = [{ value: "small", label: "Small" }, { value: "large", label: "Large" }];
 const values = (): InfrastructureValues => ({ regionId: "east", resources: [

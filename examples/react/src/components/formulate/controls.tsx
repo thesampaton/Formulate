@@ -47,6 +47,9 @@ export const SelectControl = defineFieldControl<string>()(function SelectControl
   const { value, onChange, name, disabled, ...trigger } = useFieldControl<string>();
   if (typeof value !== "string") throw new Error(`Field "${name}": SelectControl requires a string editing value.`);
   return <Select name={name} disabled={disabled} value={value} onValueChange={(next) => {
+    // Radix items cannot be empty. Its native form bridge can emit an empty
+    // change as Activity reconnects effects; clearing is owned by RHF setValue/reset.
+    if (next === "") return;
     onChange(next);
     onValueChange?.(next);
   }}>

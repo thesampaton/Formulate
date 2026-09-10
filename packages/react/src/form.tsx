@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useTransition } from "react";
 import type { ComponentPropsWithoutRef, FormEvent } from "react";
 import { FormProvider, set } from "react-hook-form";
 import type { FieldErrors, FieldPath, FieldValues, SubmitErrorHandler, SubmitHandler, UseFormReturn } from "react-hook-form";
@@ -42,7 +42,7 @@ export function Form<Input extends FieldValues, Output extends FieldValues = Inp
   ...props
 }: FormProps<Input, Output>) {
   const pending = useRef(false);
-  const [isPending, setIsPending] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const epoch = useRef(0);
   const live = useRef(false);
   const subscription = useRef<(() => void) | undefined>(undefined);
@@ -60,12 +60,19 @@ export function Form<Input extends FieldValues, Output extends FieldValues = Inp
     };
   }, [form.control, navigation?.id, scopeKey]);
 
+  // React requires a new transition for state updates made after an awaited check.
+  // Keep rejection in submit's error handler while awaiting the callback.
+  function continueAction(callback: () => unknown) {
+    return new Promise<void>((resolve, reject) => startTransition(async () => {
+      try { await callback(); resolve(); } catch (error) { reject(error); }
+    }));
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     // Close the gap before React renders pending state, including async validation.
     if (pending.current) return;
     pending.current = true;
-    setIsPending(true);
     const attempt = epoch.current;
     const validationRevision = validationSource.current?.();
     let changed = false;
@@ -82,7 +89,7 @@ export function Form<Input extends FieldValues, Output extends FieldValues = Inp
         if (!current()) return;
         if (valid) {
           handlerStarted = true;
-          await navigation.onValid();
+          await continueAction(navigation.onValid);
         }
         else {
           const scopedErrors: FieldErrors<Input> = {};
@@ -90,7 +97,7 @@ export function Form<Input extends FieldValues, Output extends FieldValues = Inp
             const error = form.getFieldState(name).error;
             if (error) set(scopedErrors, name, error);
           }
-          if (onInvalid) await onInvalid(scopedErrors, event);
+          if (onInvalid) await continueAction(() => onInvalid(scopedErrors, event));
           else {
             const first = fields.find((name) => form.getFieldState(name).invalid);
             if (first) form.setFocus(first);
@@ -101,9 +108,9 @@ export function Form<Input extends FieldValues, Output extends FieldValues = Inp
           async (values) => {
             if (!current()) return;
             handlerStarted = true;
-            await onSubmit(values, event);
+            await continueAction(() => onSubmit(values, event));
           },
-          async (invalid) => { if (current()) await onInvalid?.(invalid, event); },
+          async (invalid) => { if (current() && onInvalid) await continueAction(() => onInvalid(invalid, event)); },
         )(event);
       }
     } catch {
@@ -114,14 +121,13 @@ export function Form<Input extends FieldValues, Output extends FieldValues = Inp
       unsubscribe();
       if (subscription.current === unsubscribe) subscription.current = undefined;
       pending.current = false;
-      if (live.current) setIsPending(false);
     }
   }
 
   return (
     <FormProvider {...form}>
       <FormActionStatusContext value={{ isPending }}>
-        <form {...props} noValidate onSubmit={submit} aria-busy={isPending} data-formulate="form">
+        <form {...props} noValidate onSubmit={(event) => startTransition(() => submit(event))} aria-busy={isPending} data-formulate="form">
           <LayoutBody layout={layout}>{children}</LayoutBody>
           {errors.root?.submit?.message ? (
             <p role="alert" data-formulate="submission-error">{errors.root.submit.message}</p>

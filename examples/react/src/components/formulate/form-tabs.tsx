@@ -1,5 +1,5 @@
 import type { ComponentProps, ReactNode } from "react";
-import { createContext, useContext } from "react";
+import { Activity, createContext, useContext } from "react";
 import { CheckCircle2, Circle } from "lucide-react";
 import { cn } from "cn";
 import { Page, useFormActionStatus } from "@/lib/formulate";
@@ -73,13 +73,12 @@ export function FormTabs<Id extends string>({ pages, value, onValueChange, onNav
   </Tabs>;
 }
 
-/** Keep shadcn's panel shell/ARIA links while mounting active editors in the same
- * commit as navigation, so Formulate correction focus can reach their refs. */
+/** Keep shadcn's panel shell/ARIA links; Activity preserves each tab's UI state. */
 export function FormTabPanel({ children, ...props }: Omit<ComponentProps<typeof TabsContent>, "forceMount" | "hidden">) {
   const tabs = useContext(FormTabsContext);
   if (!tabs) throw new Error("FormTabPanel needs a parent FormTabs.");
   const active = tabs.value === props.value;
-  return <TabsContent {...props} forceMount hidden={!active}>{active ? children : null}</TabsContent>;
+  return <TabsContent {...props} forceMount hidden={!active}><Activity mode={active ? "visible" : "hidden"}>{children}</Activity></TabsContent>;
 }
 
 /** A semantic page inheriting its body layout and navigation from the parent tabs. */

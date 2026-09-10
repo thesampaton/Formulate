@@ -25,6 +25,8 @@ pnpm --filter @formulate/examples exec shadcn add field input checkbox select bu
 
 Formulate does not read `components.json` at runtime or dynamically discover controls. Adapting paths is a distribution concern: the registry uses `@components/` and `@lib/` targets, and the CLI rewrites the corresponding imports during installation. The resulting code has ordinary local imports. Further install-time customisation can be added when needed without creating another runtime configuration system. See [components.json](https://ui.shadcn.com/docs/components-json), [registry targets](https://ui.shadcn.com/docs/registry/registry-item-json#target) and [CLI options](https://ui.shadcn.com/docs/cli#add).
 
+The local Select binding ignores empty changes emitted by Radix’s native form bridge as Activity reconnects effects. Empty is not a selectable Radix item; RHF reset/setValue still controls clearing. This adapter fix is covered by selection, retained-page and hidden-reset tests. The installed shadcn Select source is unchanged.
+
 The application supplies semantic theme tokens and imports `tw-animate-css`. Shadcn components own control styling and variants. The only local source adjustment to Slider forwards its existing ARIA label props to its generated thumbs, so the width control has an accessible name. No new Slider API is introduced.
 
 ```sh
@@ -36,14 +38,14 @@ The build writes ignored artifacts into `examples/react/public/r`; Vite serves t
 
 | Item | Installs |
 | --- | --- |
-| `@formulate/core` | Core runtime source under `@/lib/formulate`, with RHF, resolver and Zod dependencies. |
+| `@formulate/core` | Core runtime source under `@/lib/formulate`, including dependent-choice definitions, the hook and private request/store modules, requiring React 19.2+, RHF, resolver and Zod. |
 | `@formulate/layouts` | Stack, Row and ActionRow, built on the consumer's local shadcn FieldGroup. |
 | `@formulate/shadcn-bindings` | Bindings over local shadcn controls, field presentation, pending editor boundary and the declaration control map; UI source comes through standard shadcn registry dependencies. |
 | `@formulate/actions` | Submit, Continue and Back/Edit controls; depends on core and shadcn Button, with no tab/page dependency. |
 | `@formulate/navigation` | FormTabs/FormTabPage, page action sets and an inherited page layout; depends on core, layouts, actions and shadcn Tabs. |
 | `@formulate/name` | Reusable first/last name definition, fieldset presentation and all required items. |
 
-In a React 19 + Tailwind 4 consumer with shadcn configured, add this entry to its `components.json`. Use the actual port printed by Vite if 5173 is occupied:
+In a React 19.2+ (19.x) + Tailwind 4 consumer with shadcn configured, add this entry to its `components.json`. Use the actual port printed by Vite if 5173 is occupied:
 
 ```json
 {

@@ -7,11 +7,12 @@
       "name": "core",
       "type": "registry:lib",
       "title": "Formulate core",
-      "description": "Form, field, page, section, definitions and layout composition with React Hook Form and Zod.",
+      "description": "Form, field, page, section, definitions, dependent choices and layout composition with React Hook Form and Zod.",
       "dependencies": [
         "react-hook-form@^7.87.0",
         "zod@^4.0.0",
-        "@hookform/resolvers@^5.9.1"
+        "@hookform/resolvers@^5.9.1",
+        "react@^19.2.0"
       ],
       "files": [
         {
@@ -83,6 +84,26 @@
           "path": "packages/react/src/use-formulate.ts",
           "type": "registry:lib",
           "target": "@lib/formulate/use-formulate.ts"
+        },
+        {
+          "path": "packages/react/src/choices/definition.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/choices/definition.ts"
+        },
+        {
+          "path": "packages/react/src/choices/store.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/choices/store.ts"
+        },
+        {
+          "path": "packages/react/src/use-choice-form.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/use-choice-form.ts"
+        },
+        {
+          "path": "packages/react/src/choices/request.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/choices/request.ts"
         }
       ],
       "categories": [

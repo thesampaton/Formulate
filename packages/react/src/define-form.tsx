@@ -2,7 +2,7 @@
 
 import { useContext } from "react";
 import type { ComponentProps, ComponentType, ReactElement, ReactNode } from "react";
-import { useWatch } from "react-hook-form";
+import { get, useWatch } from "react-hook-form";
 import type { Control, DefaultValues, FieldPath, FieldPathValue, FieldValues, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import type { ConfiguredFieldProps, ControlSelection, FieldComponentMap } from "./create-formulate.js";
@@ -17,6 +17,8 @@ import type { DefinitionScope, SectionBindings } from "./definition-scope.js";
 import { useFormulate } from "./use-formulate.js";
 import type { FormulateOptions } from "./use-formulate.js";
 
+import type { BoundChoice, ChoiceRule } from "./choices/definition.js";
+
 export type FormDefinition<Input extends FieldValues, Output extends FieldValues = Input> = {
   /** Validates editing values and parses the accepted submission output. */
   schema: z.ZodType<Output, Input>;
@@ -30,13 +32,19 @@ type SectionToken = {
   schema: z.ZodType<FieldValues, FieldValues>;
   defaultValues: FieldValues;
   fieldNames: readonly string[];
+  bindChoices: (options: any) => BoundChoice[];
   [sectionRuntime]: {
     identity: symbol;
     title?: ReactNode;
     render: (props: { scope: DefinitionScope; title?: ReactNode; children?: ReactNode } & LayoutProps) => ReactElement;
   };
 };
-type FieldSchema = { schema: z.ZodType };
+type FieldSchema = { schema: z.ZodType; choices?: ChoiceRule<any, any, any, any> };
+type UnionToIntersection<Union> = (Union extends unknown ? (value: Union) => void : never) extends (value: infer Result) => void ? Result : never;
+type MemberServices<Member> = Member extends { choices: ChoiceRule<any, any, infer Services, any> } ? Services
+  : Member extends { bindChoices: (options: infer Options) => BoundChoice[] } ? Options extends { services: infer Services } ? Services : {} : {};
+type Services<Members> = UnionToIntersection<{ [Key in keyof Members]: MemberServices<Members[Key]> }[keyof Members]>;
+
 type Declarations = Record<string, FieldSchema | SectionToken>;
 type Shape<Members extends Declarations> = { [Key in keyof Members]: Members[Key]["schema"] };
 type FormSchema<Members extends Declarations> = z.ZodObject<Shape<Members>>;
@@ -50,7 +58,7 @@ type Declaration<Schema extends z.ZodType, Components extends FieldComponentMap>
   defaultValue: NoInfer<z.input<Schema>>;
 } & ControlSelection<NoInfer<z.input<Schema>>, Components>;
 type CheckedMembers<Members extends Declarations, Components extends FieldComponentMap> = {
-  [Key in keyof Members]: Members[Key] extends SectionToken ? Members[Key] : Declaration<Members[Key]["schema"], Components>;
+  [Key in keyof Members]: Members[Key] extends SectionToken ? Members[Key] : Declaration<Members[Key]["schema"], Components> & { choices?: ChoiceRule<Inputs<Members>, z.input<Members[Key]["schema"]>, any, any> };
 };
 type DefaultControlProps<Member, Components extends FieldComponentMap> = Member extends { component: infer Key extends keyof Components }
   ? Partial<ComponentProps<Components[Key]>> : never;
@@ -74,6 +82,12 @@ type DefinitionOptions<Members extends Declarations, Schema extends z.ZodType<Fi
 export type DefinedForm<Members extends Declarations, Components extends FieldComponentMap, Schema extends z.ZodType<FieldValues, FieldValues> = FormSchema<Members>> = {
   schema: Schema;
   defaultValues: Defaults<Members>;
+  /** Bind dependency rules without mounting editors. IDs identify uses; bindings locate editing values. */
+  bindChoices: <Values extends FieldValues = Inputs<Members>>(options: {
+    values: Values;
+    services: Services<Members>;
+    id?: string;
+  } & (Values extends Inputs<Members> ? { bindings?: SectionBindings<Inputs<Members>, Values> } : { bindings: SectionBindings<Inputs<Members>, Values> })) => BoundChoice[];
   /** All declared leaf field paths, including section descendants, in declaration order. */
   fieldNames: readonly FieldPath<Inputs<Members>>[];
   useForm: (options?: FormulateOptions<Inputs<Members>, z.output<Schema>>) => UseFormReturn<Inputs<Members>, unknown, z.output<Schema>>;
@@ -149,10 +163,20 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
     ]));
     const fieldNames = entries.flatMap(([name, member]) => isSection(member) ? member.fieldNames.map((child) => `${name}.${child}`) : [name]);
 
+    function bindChoices({ values, services, id = "", bindings }: { values: FieldValues; services: unknown; id?: string; bindings?: Record<string, string> }): BoundChoice[] {
+      const local = bindings ? Object.fromEntries(entries.map(([name]) => [name, get(values, bindings[name]!)])) : values;
+      return entries.flatMap(([name, member]) => {
+        const path = bindings?.[name] ?? name;
+        const useId = id ? `${id}.${name}` : name;
+        if (isSection(member)) return member.bindChoices({ values: local[name], services, id: useId }).map((field) => ({ ...field, name: `${path}.${field.name}` }));
+        return member.choices ? [{ ...member.choices.resolve(local, local[name], services), id: useId, name: path }] : [];
+      });
+    }
+
     function Field({ name, componentProps, children, control, ...overrides }: any) {
       const scope = useDefinitionScope(identity, kind, control);
       if (!Object.hasOwn(members, name) || isSection(members[name]!)) throw new Error(`Unknown defined field: "${name}".`);
-      const { schema: _schema, defaultValue: _defaultValue, ...presentation } = members[name] as any;
+      const { schema: _schema, defaultValue: _defaultValue, choices: _choices, ...presentation } = members[name] as any;
       const selection = children !== undefined
         ? { component: undefined, componentProps: undefined, children }
         : { componentProps: { ...(presentation.componentProps ?? {}), ...componentProps } };
@@ -204,7 +228,7 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
     function FormView({ layout = options.layout, ...props }: FormProps<FieldValues, FieldValues>) {
       return <FormShell {...props} layout={layout} />;
     }
-    return { schema, defaultValues, fieldNames, Form: FormView, Field, Fields: FieldsView, Section: SectionView, Subsection: SectionView,
+    return { schema, defaultValues, fieldNames, bindChoices, Form: FormView, Field, Fields: FieldsView, Section: SectionView, Subsection: SectionView,
       useWatch: useDefinedWatch, useTrigger: useDefinedTrigger, useForm: useDefinedForm, Bind,
       [sectionRuntime]: { identity, title: options.title, render: renderUse } };
   }

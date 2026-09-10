@@ -78,7 +78,9 @@ describe("advanced-options scenario", () => {
     expect(summary).toHaveFocus();
     expect(within(summary).getByText("3")).toBeInTheDocument();
     expect(within(summary).getByText("30 seconds")).toBeInTheDocument();
-    expect(document.querySelectorAll("input")).toHaveLength(0);
+    expect(summary.querySelectorAll("input")).toHaveLength(0);
+    expect(screen.queryAllByRole("textbox")).toHaveLength(0);
+    expect(screen.queryAllByRole("spinbutton")).toHaveLength(0);
     expect(onSave).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Save configuration" }));
     await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));

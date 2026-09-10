@@ -2,10 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
 import type { FieldErrors } from "react-hook-form";
 import { useFormNavigation } from "@formulate/react";
-import { draftSchema, infrastructureSchema } from "@/declarations/infrastructure";
+import { draftSchema, infrastructureSchema, Resource, resourceBindings } from "@/declarations/infrastructure";
 import type { DraftAdapter, InfrastructurePayload, InfrastructureValues } from "@/declarations/infrastructure";
-import type { ChoiceLoader } from "@/lib/choice-request";
-import { useChoiceForm } from "./use-choice-form";
+import type { ChoiceLoader } from "@formulate/react";
+import { useChoiceForm } from "@formulate/react";
 
 export type InfrastructureProps = {
   accountId: string;
@@ -18,12 +18,12 @@ export type InfrastructureProps = {
 const empty: InfrastructureValues = { regionId: "", resources: [] };
 
 export function useInfrastructure({ accountId, defaultValues = empty, listMachineSizes, drafts, previewPlan, onProvision }: InfrastructureProps) {
-  const sizeFields = useCallback((values: InfrastructureValues) => values.resources.map((item, index) => ({
-    id: item.resourceId, name: `resources.${index}.machineSize` as const,
-    input: values.regionId ? JSON.stringify([accountId, values.regionId]) : "",
-  })), [accountId]);
+  const sizeFields = useCallback((values: InfrastructureValues) => values.resources.flatMap((item, index) => Resource.bindChoices({
+    id: item.resourceId, values, bindings: resourceBindings(index),
+    services: { accountId, regionId: values.regionId, listMachineSizes },
+  })), [accountId, listMachineSizes]);
   const { form, choices, getValidationRevision } = useChoiceForm({
-    schema: infrastructureSchema, defaultValues, loader: listMachineSizes, fields: sizeFields,
+    schema: infrastructureSchema, defaultValues, fields: sizeFields,
   });
   const array = useFieldArray({ control: form.control, name: "resources" });
   const values = useWatch({ control: form.control });
@@ -46,7 +46,7 @@ export function useInfrastructure({ accountId, defaultValues = empty, listMachin
       if (next !== key) { editEpoch.current++; key = next; }
     } });
     return () => { lifetime.current = undefined; unsubscribe(); };
-  }, [form, accountId, choices]);
+  }, [form, accountId, listMachineSizes, choices]);
 
   const setPage = (page: "configure" | "review") => navigation.goTo(page, () => (page === "review" ? review : collection).current?.focus());
   const correctResource = (id: string, member: "name" | "machineSize") => navigation.goTo("configure", () => {

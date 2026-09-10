@@ -74,7 +74,7 @@ it("supports direct form layouts and explicit section children without extra val
   }
   render(<Example />);
   expect(within(screen.getByTestId("section-layout")).getByLabelText("Value")).toHaveAttribute("name", "group.value");
-  expect(screen.queryByTestId("page-layout")).toBeNull();
+  expect(screen.getByTestId("page-layout")).not.toBeVisible();
 });
 
 it("reuses the shadcn Name group with independent bindings, layouts, accessible errors and parsed values", async () => {

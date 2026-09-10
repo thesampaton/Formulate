@@ -1,6 +1,18 @@
 import { z } from "zod";
 import { defineForm, defineSection } from "@/lib/formulate-config";
 
+import { defineChoice } from "@formulate/react";
+import type { Choice, ChoiceLoader } from "@formulate/react";
+
+export const regionChoices = defineChoice({
+  input: (target: { accountId: string }) => target.accountId || null,
+  key: (input: string) => input,
+  loader: (services: { listRegions: ChoiceLoader }) => services.listRegions,
+  validate: (selection: string, options: readonly Choice[]) => !selection ? "Choose an available option."
+    : options.some((option) => option.value === selection) ? undefined : "The retained choice is unavailable. Choose another option.",
+  messages: { missing: "Choose an account first.", pending: "Checking available choices…", failed: "Choices could not be loaded. Retry to continue." },
+});
+
 export const accounts = [{ value: "A", label: "Account A" }, { value: "B", label: "Account B" }, { value: "C", label: "Account C" }];
 export const DeploymentTarget = defineSection({
   accountId: {
@@ -8,7 +20,7 @@ export const DeploymentTarget = defineSection({
     defaultValue: "", label: "Account", component: "select", componentProps: { options: accounts },
   },
   regionId: {
-    schema: z.string(), defaultValue: "", label: "Region", component: "select", componentProps: { options: [] },
+    schema: z.string(), choices: regionChoices, defaultValue: "", label: "Region", component: "select", componentProps: { options: [] },
   },
 }, { title: "Deployment target" });
 

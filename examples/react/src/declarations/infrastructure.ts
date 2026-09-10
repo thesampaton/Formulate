@@ -1,9 +1,24 @@
 import { z } from "zod";
 import { defineSection } from "@/lib/formulate-config";
 
+import { defineChoice } from "@formulate/react";
+import type { Choice, ChoiceLoader } from "@formulate/react";
+
+export const machineSizeChoices = defineChoice({
+  input: (_resource: { machineSize: string }, context: { accountId: string; regionId: string; listMachineSizes: ChoiceLoader }) =>
+    context.regionId ? JSON.stringify([context.accountId, context.regionId]) : null,
+  key: (input: string) => input,
+  loader: (context: { accountId: string; regionId: string; listMachineSizes: ChoiceLoader }) => context.listMachineSizes,
+  validate: (selection: string, options: readonly Choice[]) => !selection ? "Choose an available option."
+    : options.some((option) => option.value === selection) ? undefined : "The retained choice is unavailable. Choose another option.",
+  messages: { missing: "Choose a region first.", pending: "Checking available choices…", failed: "Choices could not be loaded. Retry to continue." },
+});
+
+export const resourceBindings = (index: number) => ({ name: `resources.${index}.name` as const, machineSize: `resources.${index}.machineSize` as const });
+
 export const Resource = defineSection({
   name: { schema: z.string().trim().min(1, "Name this resource."), defaultValue: "", label: "Resource name", component: "input" },
-  machineSize: { schema: z.string(), defaultValue: "", label: "Machine size", component: "select", componentProps: { options: [] } },
+  machineSize: { schema: z.string(), choices: machineSizeChoices, defaultValue: "", label: "Machine size", component: "select", componentProps: { options: [] } },
 }, { title: "Resource" });
 
 // Drafts retain incomplete editing strings, not parsed submission output.

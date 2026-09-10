@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { CloudDeploymentForm } from "@/compositions/cloud-deployment";
 import { exampleData } from "@/data/example-data";
 import { Button } from "@/components/ui/button";
-import type { ChoiceLoader } from "@/lib/choice-request";
+import type { ChoiceLoader } from "@formulate/react";
 
 export function CloudDeploymentExample() {
   const failNext = useRef(false);

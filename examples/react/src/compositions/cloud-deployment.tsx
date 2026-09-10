@@ -1,22 +1,21 @@
 import { Page } from "@formulate/react";
-import { CloudDeployment, DeploymentTarget } from "@/declarations/cloud-deployment";
+import { CloudDeployment, DeploymentTarget, regionChoices } from "@/declarations/cloud-deployment";
 import { useCloudDeployment } from "@/hooks/use-cloud-deployment";
 import type { CloudFormProps } from "@/hooks/use-cloud-deployment";
-import type { ChoiceRequest } from "@/lib/choice-request";
+import type { ChoiceView } from "@formulate/react";
 import { Stack, ActionRow } from "@/components/formulate/layouts";
 import { FormContinueButton, FormNavigationButton, FormSubmitButton } from "@/components/formulate/form-actions";
 import { Button } from "@/components/ui/button";
 
-function TargetFields({ title, request }: { title: string; request?: ChoiceRequest }) {
-  const account = DeploymentTarget.useWatch("accountId");
+function TargetFields({ title, request }: { title: string; request?: ChoiceView }) {
   const region = DeploymentTarget.useWatch("regionId");
-  const snapshot = request?.getSnapshot();
+
   return <Stack>
     <DeploymentTarget.Field name="accountId" label={`${title} account`} />
-    <DeploymentTarget.Field name="regionId" label={`${title} region`} componentProps={{ options: snapshot?.input === account ? snapshot.options : [] }} />
+    <DeploymentTarget.Field name="regionId" label={`${title} region`} componentProps={{ options: request?.options ?? [] }} />
     {region ? <p>Retained selection: {region}</p> : null}
-    <p role="status">{title}: {request ? request.problem(account, region) ?? "Ready" : "Checking available choices…"}</p>
-    {snapshot?.status === "failed" ? <Button type="button" variant="outline" onClick={request?.retry}>Retry {title.toLowerCase()} regions</Button> : null}
+    <p role="status">{title}: {request ? request.problem ?? "Ready" : "Checking available choices…"}</p>
+    {request?.status === "failed" ? <Button type="button" variant="outline" onClick={request?.retry}>Retry {title.toLowerCase()} regions</Button> : null}
   </Stack>;
 }
 
@@ -35,8 +34,8 @@ export function CloudDeploymentForm(props: CloudFormProps) {
     {flow.notice ? <p role="status">{flow.notice}</p> : null}
     <Page id="deployment-targets" title="Targets" active={flow.navigation.page === "targets"} layout={Stack}>
       <div ref={flow.targetsHeading} tabIndex={-1} role="group" aria-label="Deployment targets">
-        <CloudDeployment.Section name="primary"><TargetFields title="Primary" request={flow.choices.get("primary")} /></CloudDeployment.Section>
-        <CloudDeployment.Section name="recovery"><TargetFields title="Recovery" request={flow.choices.get("recovery")} /></CloudDeployment.Section>
+        <CloudDeployment.Section name="primary"><TargetFields title="Primary" request={flow.choices.get("primary.regionId", regionChoices)} /></CloudDeployment.Section>
+        <CloudDeployment.Section name="recovery"><TargetFields title="Recovery" request={flow.choices.get("recovery.regionId", regionChoices)} /></CloudDeployment.Section>
       </div>
       <FormContinueButton>Continue</FormContinueButton>
     </Page>
@@ -50,8 +49,8 @@ export function CloudDeploymentForm(props: CloudFormProps) {
         <p>Primary: {flow.values.primary?.accountId} / {flow.values.primary?.regionId}</p>
         <p>Recovery: {flow.values.recovery?.accountId} / {flow.values.recovery?.regionId}</p>
         {flow.values.environment === "production" ? <p>Production change: {flow.values.production || "Required"}</p> : null}
-        <p>Primary: {flow.choices.get("primary")?.problem(flow.form.getValues("primary.accountId"), flow.form.getValues("primary.regionId")) ?? "Ready"}</p>
-        <p>Recovery: {flow.choices.get("recovery")?.problem(flow.form.getValues("recovery.accountId"), flow.form.getValues("recovery.regionId")) ?? "Ready"}</p>
+        <p>Primary: {flow.choices.get("primary.regionId", regionChoices)?.problem ?? "Ready"}</p>
+        <p>Recovery: {flow.choices.get("recovery.regionId", regionChoices)?.problem ?? "Ready"}</p>
       </div>
       <ActionRow><FormNavigationButton onClick={() => flow.goTo("targets")}>Edit targets</FormNavigationButton><FormSubmitButton>Deploy</FormSubmitButton></ActionRow>
     </Page>

@@ -23,7 +23,7 @@ it("derives completion from current schema requirements, including prefills and 
   expect(profileCompletion(values).map((page) => page.complete)).toEqual([true, false, true]);
 });
 
-it("preserves editing values across tab unmounts and lets completion go backwards", async () => {
+it("preserves editing values across hidden tabs and lets completion go backwards", async () => {
   const user = userEvent.setup();
   render(<MultiPageExample defaultValues={validValues()} />);
   expect(screen.getByRole("status")).toHaveTextContent("3 of 3 pages complete · Not saved");
@@ -31,13 +31,13 @@ it("preserves editing values across tab unmounts and lets completion go backward
   await user.clear(first);
   await user.type(first, "Grace");
   await user.click(screen.getByRole("tab", { name: "Delivery: Complete" }));
-  expect(screen.queryByLabelText("First name")).toBeNull();
+  expect(first).not.toBeVisible();
   await user.clear(screen.getByLabelText("Delivery address postcode"));
   expect(screen.getByRole("tab", { name: "Delivery: Incomplete" })).toHaveAttribute("aria-selected", "true");
   expect(screen.getByRole("status")).toHaveTextContent("2 of 3 pages complete");
   await user.click(screen.getByRole("tab", { name: "Profile: Complete" }));
   expect(screen.getByLabelText("First name")).toHaveValue("Grace");
-  expect(screen.getByLabelText("First name")).not.toBe(first);
+  expect(screen.getByLabelText("First name")).toBe(first);
   await user.click(screen.getByRole("tab", { name: "Delivery: Incomplete" }));
   expect(screen.getByLabelText("Delivery address postcode")).toHaveValue("");
 });
@@ -60,7 +60,7 @@ it("uses manual tab keyboard activation and free navigation without completing o
   expect(onSave).not.toHaveBeenCalled();
 });
 
-it("validates Continue locally and corrects errors on unmounted pages from final submission", async () => {
+it("validates Continue locally and corrects errors on hidden pages from final submission", async () => {
   const user = userEvent.setup();
   const onSave = vi.fn();
   render(<MultiPageExample onSave={onSave} />);

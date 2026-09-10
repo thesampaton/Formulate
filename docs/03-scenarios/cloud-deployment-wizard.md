@@ -4,7 +4,7 @@
 
 This traces a library field built from primitives through two independent section uses, pages, and submission.
 
-**Status: gate 2 demonstrated by the [cloud form](../../examples/react/src/compositions/cloud-deployment.tsx) and [three executable sequences](../../tests/cloud-deployment.test.tsx).** [Evidence and decisions](../05-06-rendering-and-workflow.md#complex-workflow-evidence) distinguish the local coordinator from a future public API. The prototype binds primary/recovery directly at those roots and uses a production change-reference field; the richer pseudocode below remains illustrative.
+**Status: gate 2 demonstrated by the [cloud form](../../examples/react/src/compositions/cloud-deployment.tsx) and [three executable sequences](../../tests/cloud-deployment.test.tsx).** [Evidence and decisions](../05-06-rendering-and-workflow.md#complex-workflow-evidence) distinguish package-owned dependent choices from application-owned branch and deployment policy. The prototype binds primary/recovery directly at those roots and uses a production change-reference field; the richer pseudocode below remains illustrative.
 
 The [authoring correction](../05-06-rendering-and-workflow.md#course-corrections-retained) keeps this same sequence and shares the dependent-choice integration with Infrastructure. Form checks a live evidence revision at action boundaries; hosts no longer repeat schema parsing. Behaviour is demonstrated, while reusable dependency authoring remains provisional.
 
@@ -16,7 +16,7 @@ library field AWSRegion
   service: listRegions(accountId)
   validate: selected region is available for the supplied account
   on accountId change: retain selection as unverified; refresh options
-  accept result only for current use, account, and request generation
+  accept result only for current use and account while that attempt’s AbortSignal remains active
   require current membership success; pending or failed lookup cannot pass
 
 library section DeploymentTarget
@@ -75,7 +75,7 @@ The application owns deployment execution. Accepting a request does not mean dep
 
 ## Gate 2: branching with dependent async choices
 
-Use controllable application service promises to make response order deterministic. Keep a single form runtime alive while pages unmount. Environment is an earlier answer owned by Targets; expose an explicit way to change that same bound answer while on Production, such as a host summary control. This must actually remove the current page, rather than merely hide an unvisited tab. Do not create a second Environment value.
+Use controllable application service promises to make response order deterministic. Keep a single form runtime alive outside page Activity boundaries; hidden editors pause their effects while host dependencies and validation continue. Conditional editor unmounts must also remain supported. Environment is an earlier answer owned by Targets; expose an explicit way to change that same bound answer while on Production, such as a host summary control. This must actually remove the current page, rather than merely hide an unvisited tab. Do not create a second Environment value.
 
 | Step | Interaction | Required observation |
 | --- | --- | --- |
@@ -87,7 +87,7 @@ Use controllable application service promises to make response order determinist
 | 6 | Fail the current lookup, retry, and return a current successful response. | Failure has feedback and retry; it is not an empty successful choice list. Required membership remains unsatisfied until current data verifies the selection, or the user corrects it. Retry cannot let an earlier response overwrite the new result. |
 | 7 | Review and submit once current applicable requirements pass; repeat with production disabled. | Review and exact payload agree. Disabled production values are absent; enabled values are freshly validated. No stale check may invoke the handler or redirect correction. |
 
-Also resolve an old success and an old failure after a newer request, and repeat A → B → A: account equality alone cannot identify the current request. Associate evidence with the field use, relevant input snapshot, and request generation/lifetime. Cancellation may save work, but correctness must hold when the service cannot abort. Page unmounting does not end an applicable field use; actual removal or runtime destruction does.
+Also resolve an old success and an old failure after a newer request, and repeat A → B → A: account equality alone cannot identify the current request. Associate evidence with the field use, relevant input snapshot, and request attempt/lifetime (the implementation uses each attempt’s AbortSignal). Cancellation may save work, but correctness must hold when the service cannot abort. Page unmounting does not end an applicable field use; actual removal or runtime destruction does.
 
 Continue uses the page's applicable requirements; final submission uses all applicable requirements. A required unresolved/pending membership check cannot pass either scope that includes it. An unrelated suggestion request need not block. Preserve known validation failures while another check is pending. This gate must test guards and the application handler, not just spinner text or button disabling.
 

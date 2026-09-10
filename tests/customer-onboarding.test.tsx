@@ -50,7 +50,8 @@ describe("customer onboarding", () => {
     const summary = await screen.findByRole("group", { name: "Customer summary" });
     expect(summary).toHaveFocus();
     expect(within(summary).getAllByText(/1 Billing Street/)).toHaveLength(2);
-    expect(document.querySelectorAll("input, select")).toHaveLength(0);
+    expect(within(summary).queryAllByRole("textbox")).toHaveLength(0);
+    expect(screen.queryAllByRole("textbox")).toHaveLength(0);
     expect(onCreate).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Edit delivery" }));
     const street = await screen.findByLabelText("Billing address street");
