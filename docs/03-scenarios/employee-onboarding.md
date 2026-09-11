@@ -4,7 +4,7 @@
 
 Employee onboarding and internal transfer share an employment page. The page carries its local requirements; each host chooses where Continue leads.
 
-**Status: gate 1 demonstrated for synchronous section requirements.** [Onboarding](../../examples/react/src/compositions/employee-onboarding.tsx) and [internal transfer](../../examples/react/src/compositions/internal-transfer.tsx) share the [EmploymentSetup page and binding adapter](../../examples/react/src/components/formulate/employment-setup.tsx), backed by one Employment declaration. Eleven [interaction cases](../../tests/employee-workflows.test.tsx) cover the acceptance sequence below. The notation remains illustrative, not a page-definition API; see the [contract decision](../05-06-rendering-and-workflow.md#course-corrections-retained).
+**Status: gate 1 demonstrated for synchronous section requirements.** [Onboarding](../../examples/react/src/compositions/employee-onboarding.tsx) and [internal transfer](../../examples/react/src/compositions/internal-transfer.tsx) share the [EmploymentSetup page](../../examples/react/src/components/formulate/employment-setup.tsx), backed by one Employment declaration and a bound section use in each host. Eleven [interaction cases](../../tests/employee-workflows.test.tsx) cover the acceptance sequence below. The result uses no page-definition API; see the [contract decision](../05-06-rendering-and-workflow.md#course-corrections-retained).
 
 ```text
 library section Employment
@@ -42,7 +42,7 @@ form InternalTransfer
     to application.requestInternalTransfer
 ```
 
-EmploymentSetup receives an existing section reference; it creates no copied fields. The host supplies the binding root and destination. Section child bindings remain relative to that root, while routes or tab labels do not determine page identity.
+Each host binds its existing Employment section once. That use supplies the section renderer, Continue scope, correction paths and first focus without copied fields. The host supplies the destination. Routes or tab labels do not determine page identity.
 
 Setup completion checks employment requirements. It cannot certify Equipment or the whole onboarding form. Review reads existing values without duplicating their requirements.
 
@@ -81,4 +81,4 @@ The changes below remain broader pressure tests. Equipment branching and post-su
 
 HR services own employee records, permissions, approvals, equipment fulfilment, and durable onboarding progress. Reaching Review or receiving request acceptance does not complete those operations.
 
-**Later API question:** Can a reusable page receive an existing section or create a locally bound one with equally clear authoring?
+**Result:** the current reusable page needs only an existing bound section plus host-owned destinations. A page-definition API remains deferred until page-local obligations beyond those sections demonstrate a missing contract.

@@ -5,7 +5,7 @@ The sixth example composes Profile, Delivery and Notifications pages with an inf
 - [Composition](../../examples/react/src/compositions/multi-page-form.tsx) places fields, sections, pages and action components.
 - [Declaration](../../examples/react/src/declarations/multi-page-profile.ts) owns field defaults and validation, including the conditional SMS number requirement.
 - [Page state](../../examples/react/src/hooks/use-profile-pages.ts) connects shared values, navigation, correction focus and the saved baseline.
-- [Page rules](../../examples/react/src/hooks/profile-pages.ts) assigns fields to editable pages and derives their completion from the same schema used for submission.
+- [Page rules](../../examples/react/src/hooks/profile-pages.ts) compose bound section scopes with the page's direct fields. Those same scopes drive presentation, Continue, correction and completion against the submission schema.
 - [Sample data](../../examples/react/src/data/example-data.ts) supplies the sample loader, source panel and test prefills. Consumers clone the values before editing them.
 
 The parent declares `pageLayout={FormStepLayout}` once. Nested FormTabPage components supply their title and content; the shared layout supplies the body spacing and Back/Continue row. Page context carries ordered navigation and any action override, so each page avoids repeating callbacks or wrapper markup. Review supplies FormReviewActions as its one action difference. Notifications owns its conditional editor and local revalidation in a [reusable section](../../examples/react/src/declarations/notifications.tsx).
