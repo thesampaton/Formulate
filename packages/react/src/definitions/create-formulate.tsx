@@ -4,10 +4,10 @@ import { createElement } from "react";
 import type { ComponentProps, ComponentType, ReactNode } from "react";
 import type { FieldPath, FieldPathValue, FieldValues } from "react-hook-form";
 import { createDefinitionFactories } from "./define-form.js";
-import { FieldRoot } from "./field.js";
-import type { FieldRootProps, FieldPresentationProps } from "./field.js";
-import { CheckboxControl, InputControl, NumberControl } from "./controls.js";
-import type { ControlValue, FieldControlComponent } from "./controls.js";
+import { FieldRoot } from "../fields/field.js";
+import type { FieldRootProps, FieldPresentationProps } from "../fields/field.js";
+import { CheckboxControl, InputControl, NumberControl } from "../fields/controls.js";
+import type { ControlValue, FieldControlComponent } from "../fields/controls.js";
 
 // The map is heterogeneous; each key's concrete props/value are retained below.
 export type FieldComponentMap = Record<string, FieldControlComponent<any, any>>;

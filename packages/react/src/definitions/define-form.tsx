@@ -6,18 +6,18 @@ import { get, useWatch } from "react-hook-form";
 import type { Control, DefaultValues, FieldPath, FieldPathValue, FieldValues, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import type { ConfiguredFieldProps, ControlSelection, FieldComponentMap } from "./create-formulate.js";
-import type { FieldRootProps } from "./field.js";
-import { Section as SectionShell } from "./section.js";
-import { Form as FormShell } from "./form.js";
-import type { FormProps } from "./form.js";
-import { LayoutBody } from "./layout.js";
-import type { LayoutProps } from "./layout.js";
+import type { FieldRootProps } from "../fields/field.js";
+import { Section as SectionShell } from "../presentation/section.js";
+import { Form as FormShell } from "../form/form.js";
+import type { FormProps } from "../form/form.js";
+import { LayoutBody } from "../presentation/layout.js";
+import type { LayoutProps } from "../presentation/layout.js";
 import { DefinitionScopeContext, useDefinitionScope } from "./definition-scope.js";
 import type { DefinitionScope, SectionBindings } from "./definition-scope.js";
-import { useFormulate } from "./use-formulate.js";
-import type { FormulateOptions } from "./use-formulate.js";
+import { useFormulate } from "../form/use-formulate.js";
+import type { FormulateOptions } from "../form/use-formulate.js";
 
-import type { BoundChoice, ChoiceRule } from "./choices/definition.js";
+import type { BoundChoice, ChoiceRule } from "../choices/definition.js";
 
 export type FormDefinition<Input extends FieldValues, Output extends FieldValues = Input> = {
   /** Validates editing values and parses the accepted submission output. */

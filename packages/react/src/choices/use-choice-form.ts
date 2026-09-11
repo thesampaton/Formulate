@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import type { DefaultValues, FieldPath, FieldValues } from "react-hook-form";
 import { z } from "zod";
-import { useFormulate } from "./use-formulate.js";
-import { createChoiceStore } from "./choices/store.js";
-import type { BoundChoice } from "./choices/definition.js";
+import { useFormulate } from "../form/use-formulate.js";
+import { createChoiceStore } from "./store.js";
+import type { BoundChoice } from "./definition.js";
 
 /** Dependencies validate editing values before schema parsing can rename or remove paths. */
 export function useChoiceForm<Input extends FieldValues, Output extends FieldValues>({ schema, defaultValues, fields }: {

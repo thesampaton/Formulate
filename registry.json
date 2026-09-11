@@ -16,79 +16,14 @@
       ],
       "files": [
         {
-          "path": "packages/react/src/controls.tsx",
-          "type": "registry:lib",
-          "target": "@lib/formulate/controls.tsx"
-        },
-        {
-          "path": "packages/react/src/create-formulate.tsx",
-          "type": "registry:lib",
-          "target": "@lib/formulate/create-formulate.tsx"
-        },
-        {
-          "path": "packages/react/src/define-form.tsx",
-          "type": "registry:lib",
-          "target": "@lib/formulate/define-form.tsx"
-        },
-        {
-          "path": "packages/react/src/definition-scope.tsx",
-          "type": "registry:lib",
-          "target": "@lib/formulate/definition-scope.tsx"
-        },
-        {
-          "path": "packages/react/src/field-context.ts",
-          "type": "registry:lib",
-          "target": "@lib/formulate/field-context.ts"
-        },
-        {
-          "path": "packages/react/src/field.tsx",
-          "type": "registry:lib",
-          "target": "@lib/formulate/field.tsx"
-        },
-        {
-          "path": "packages/react/src/form-action-status.ts",
-          "type": "registry:lib",
-          "target": "@lib/formulate/form-action-status.ts"
-        },
-        {
-          "path": "packages/react/src/form.tsx",
-          "type": "registry:lib",
-          "target": "@lib/formulate/form.tsx"
-        },
-        {
-          "path": "packages/react/src/index.ts",
-          "type": "registry:lib",
-          "target": "@lib/formulate/index.ts"
-        },
-        {
-          "path": "packages/react/src/layout.tsx",
-          "type": "registry:lib",
-          "target": "@lib/formulate/layout.tsx"
-        },
-        {
-          "path": "packages/react/src/page.tsx",
-          "type": "registry:lib",
-          "target": "@lib/formulate/page.tsx"
-        },
-        {
-          "path": "packages/react/src/section.tsx",
-          "type": "registry:lib",
-          "target": "@lib/formulate/section.tsx"
-        },
-        {
-          "path": "packages/react/src/use-form-navigation.ts",
-          "type": "registry:lib",
-          "target": "@lib/formulate/use-form-navigation.ts"
-        },
-        {
-          "path": "packages/react/src/use-formulate.ts",
-          "type": "registry:lib",
-          "target": "@lib/formulate/use-formulate.ts"
-        },
-        {
           "path": "packages/react/src/choices/definition.ts",
           "type": "registry:lib",
           "target": "@lib/formulate/choices/definition.ts"
+        },
+        {
+          "path": "packages/react/src/choices/request.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/choices/request.ts"
         },
         {
           "path": "packages/react/src/choices/store.ts",
@@ -96,14 +31,79 @@
           "target": "@lib/formulate/choices/store.ts"
         },
         {
-          "path": "packages/react/src/use-choice-form.ts",
+          "path": "packages/react/src/choices/use-choice-form.ts",
           "type": "registry:lib",
-          "target": "@lib/formulate/use-choice-form.ts"
+          "target": "@lib/formulate/choices/use-choice-form.ts"
         },
         {
-          "path": "packages/react/src/choices/request.ts",
+          "path": "packages/react/src/definitions/create-formulate.tsx",
           "type": "registry:lib",
-          "target": "@lib/formulate/choices/request.ts"
+          "target": "@lib/formulate/definitions/create-formulate.tsx"
+        },
+        {
+          "path": "packages/react/src/definitions/define-form.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/definitions/define-form.tsx"
+        },
+        {
+          "path": "packages/react/src/definitions/definition-scope.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/definitions/definition-scope.tsx"
+        },
+        {
+          "path": "packages/react/src/fields/controls.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/fields/controls.tsx"
+        },
+        {
+          "path": "packages/react/src/fields/field-context.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/fields/field-context.ts"
+        },
+        {
+          "path": "packages/react/src/fields/field.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/fields/field.tsx"
+        },
+        {
+          "path": "packages/react/src/form/form-action-status.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/form/form-action-status.ts"
+        },
+        {
+          "path": "packages/react/src/form/form.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/form/form.tsx"
+        },
+        {
+          "path": "packages/react/src/form/use-form-navigation.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/form/use-form-navigation.ts"
+        },
+        {
+          "path": "packages/react/src/form/use-formulate.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/form/use-formulate.ts"
+        },
+        {
+          "path": "packages/react/src/index.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/index.ts"
+        },
+        {
+          "path": "packages/react/src/presentation/layout.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/presentation/layout.tsx"
+        },
+        {
+          "path": "packages/react/src/presentation/page.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/presentation/page.tsx"
+        },
+        {
+          "path": "packages/react/src/presentation/section.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/presentation/section.tsx"
         }
       ],
       "categories": [

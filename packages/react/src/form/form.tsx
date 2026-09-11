@@ -5,8 +5,8 @@ import type { ComponentPropsWithoutRef, FormEvent } from "react";
 import { FormProvider, set } from "react-hook-form";
 import type { FieldErrors, FieldPath, FieldValues, SubmitErrorHandler, SubmitHandler, UseFormReturn } from "react-hook-form";
 import { FormActionStatusContext } from "./form-action-status.js";
-import { LayoutBody } from "./layout.js";
-import type { LayoutProps } from "./layout.js";
+import { LayoutBody } from "../presentation/layout.js";
+import type { LayoutProps } from "../presentation/layout.js";
 
 export type FormNavigationAction<Input extends FieldValues> = {
   /** Identity of this page visit/action. Change it to cancel a previous check; use useFormNavigation().revision. */

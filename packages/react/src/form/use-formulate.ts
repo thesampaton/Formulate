@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { DefaultValues, FieldValues, UseFormProps } from "react-hook-form";
 import type { z } from "zod";
-import type { FormDefinition } from "./define-form.js";
+import type { FormDefinition } from "../definitions/define-form.js";
 
 export type FormulateOptions<Input extends FieldValues, Output extends FieldValues = Input> =
   Omit<UseFormProps<Input, unknown, Output>, "resolver" | "shouldUnregister">;

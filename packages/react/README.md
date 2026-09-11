@@ -385,3 +385,17 @@ See the [implementation anchor](../../docs/05-06-rendering-and-workflow.md) for 
 ## Complex-workflow experiments
 
 The [three acceptance exercises](../../docs/05-06-rendering-and-workflow.md#complex-workflow-evidence) now run in the example app: a shared EmploymentSetup page in two forms, branching deployment with dependent asynchronous choices, and repeated Resource sections with application-owned draft storage. They share the existing action/navigation machinery and the optional Form.getValidationRevision freshness boundary. Dependent-choice declarations and coordination now use the package API described above. The Employment page adapter and application recovery policies remain local experiments. RHF remains the editing-value authority; applications supply services, persistence and execution. The anchor records tested guarantees, remaining wiring and course corrections.
+
+## Source organisation
+
+`src/index.ts` is the public entry point. Internal modules import each other directly.
+
+| Folder | Responsibility |
+| --- | --- |
+| `form/` | Form runtime, submission status and navigation. |
+| `fields/` | Field rendering, control bindings and field context. |
+| `definitions/` | Definition factories, configured controls and section binding scopes. |
+| `choices/` | Dependent-choice declarations, requests, evidence store and form integration. |
+| `presentation/` | Page, Section and layout shells. |
+
+The core registry installs the same folder structure beneath `@/lib/formulate`. Consumers continue importing the public entry point.
