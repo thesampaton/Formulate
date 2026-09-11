@@ -12,7 +12,7 @@ const schema = z.object({
   second: z.string().min(1, "Second value is required."),
 });
 type Values = z.input<typeof schema>;
-const firstScope = { fields: ["first.value"] } as const satisfies FormScope<Values>;
+const firstScope = { errorPaths: ["first.value"] } as const satisfies FormScope<Values>;
 const Group = defineSection({
   value: { schema: z.string(), defaultValue: "blocked", label: "Group value", component: "input" },
 }, { schema: (group) => group.refine(({ value }) => value !== "blocked", { message: "Change the group value." }) });
@@ -41,38 +41,38 @@ function Harness({ validation = schema, onSubmit = vi.fn(), onInvalid = vi.fn(),
     ],
   });
   return <Form form={form} onSubmit={onSubmit} getValidationRevision={getValidationRevision}
-    navigation={navigation.page === "review" ? undefined : {
+    scopedAction={navigation.page === "review" ? undefined : {
       id: navigation.revision,
-      ...(navigation.page === "first" ? { scope: firstScope } : { fields: ["second"] as const }),
+      ...(navigation.page === "first" ? { scope: firstScope } : { errorPaths: ["second"] as const }),
       onValid: () => {
         if (navigation.page === "first") navigation.goToField("second");
-        else navigation.goTo("review", () => summary.current?.focus());
+        else navigation.goToPage("review", () => summary.current?.focus());
       },
     }}
     onInvalid={(errors) => {
       onInvalid();
-      if (!navigation.correct(errors)) form.setError("root.submit", { message: "No correction destination is available." });
+      if (!navigation.goToFirstError(errors)) form.setError("root.submit", { message: "No correction destination is available." });
     }}>
-    <Page id="first" title="First page" active={navigation.page === "first"}>
+    <Page pageId="first" title="First page" active={navigation.page === "first"}>
       {shown ? <Field control={form.control} name="first.value" label="First value" component="input" /> : null}
       <button type="button" onClick={() => setShown(false)}>Hide first editor</button>
       <FormSubmitButton pendingLabel="Checking…">Next</FormSubmitButton>
     </Page>
-    <Page id="second" title="Second page" active={navigation.page === "second"}>
+    <Page pageId="second" title="Second page" active={navigation.page === "second"}>
       <Field control={form.control} name="second" label="Second value" component="input" />
       <FormSubmitButton pendingLabel="Checking…">Review</FormSubmitButton>
     </Page>
-    <Page id="review" title="Review page" active={navigation.page === "review"}>
+    <Page pageId="review" title="Review page" active={navigation.page === "review"}>
       <div ref={summary} role="group" aria-label="Summary" tabIndex={-1}>Ready to save</div>
       <FormSubmitButton pendingLabel="Saving…">Save</FormSubmitButton>
     </Page>
-    <button type="button" onClick={() => navigation.goTo("first")}>Return to first</button>
-    <button type="button" onClick={() => navigation.goTo("review")}>Jump to review</button>
+    <button type="button" onClick={() => navigation.goToPage("first")}>Return to first</button>
+    <button type="button" onClick={() => navigation.goToPage("review")}>Jump to review</button>
     <button type="button" onClick={() => form.setValue("first.value", "")}>Invalidate first</button>
     <button type="button" onClick={() => form.reset()}>Reset values</button>
     <button type="button" onClick={() => {
       navigation.goToField("first.value");
-      navigation.goTo("review");
+      navigation.goToPage("review");
     }}>Replace correction</button>
   </Form>;
 }
@@ -134,9 +134,9 @@ it("gates a bound section-level issue without treating its object path as a focu
     const form = GroupForm.useForm({ shouldFocusError: false });
     const navigation = useFormNavigation({ form, initialPage: "group" as const, destinations: [{ scope: BoundGroup, page: "group" as const }] });
     return <GroupForm.Form form={form} onSubmit={() => undefined}
-      navigation={{ id: navigation.revision, scope: BoundGroup, onValid: onContinue }}
+      scopedAction={{ id: navigation.revision, scope: BoundGroup, onValid: onContinue }}
       onInvalid={(errors) => {
-        if (!navigation.correct(errors)) form.setError("root.submit", { message: "The section needs attention." });
+        if (!navigation.goToFirstError(errors)) form.setError("root.submit", { message: "The section needs attention." });
       }}>
       <BoundGroup.Section />
       <button type="submit">Continue group</button>
@@ -245,7 +245,7 @@ it("releases pending state after a thrown check and allows navigation retry", as
   const user = userEvent.setup();
   render(<Harness validation={validation} />);
   await user.click(screen.getByRole("button", { name: "Next" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("Unable to submit. Please try again.");
+  expect(await screen.findByRole("alert")).toHaveTextContent("Unable to complete this action. Please try again.");
   expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
   await user.click(screen.getByRole("button", { name: "Next" }));
   expect(await screen.findByLabelText("Second value")).toHaveFocus();
@@ -291,7 +291,7 @@ it.each([
   expect(onSubmit).not.toHaveBeenCalled();
   expect(onInvalid).not.toHaveBeenCalled();
   // RHF may publish old field errors; cancellation suppresses coordination and submission errors.
-  expect(screen.queryByText("Unable to submit. Please try again.")).toBeNull();
+  expect(screen.queryByText("Unable to complete this action. Please try again.")).toBeNull();
   expect(screen.queryByRole("textbox", { name: "Second value" })).toBeNull();
   obsolete = false;
   await user.click(screen.getByRole("button", { name: action === "final" ? "Save" : "Next" }));

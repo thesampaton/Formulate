@@ -8,65 +8,71 @@ import { ActionRow, Stack } from "@/components/formulate/layouts";
 import { FormNavigationButton, FormSubmitButton } from "@/components/formulate/form-actions";
 import { Button } from "@/components/ui/button";
 
-function ResourceFields({ flow, index, resourceId, current }: {
+function ResourceFields({ flow, index, resourceId, resourceValues }: {
   flow: ReturnType<typeof useInfrastructure>;
   index: number;
   resourceId: string;
-  current: Partial<InfrastructureValues["resources"][number]> | undefined;
+  resourceValues: Partial<InfrastructureValues["resources"][number]> | undefined;
 }) {
-  const request = Resource.useChoice("machineSize");
+  const sizeChoices = Resource.useChoice("machineSize");
   return <>
     <Resource.Field name="name" label={`Resource ${index + 1} name`} />
-    <Resource.Field name="machineSize" label={`Resource ${index + 1} size`} componentProps={{ options: request?.options ?? [] }} />
-    <p>Selected size: {current?.machineSize || "None"}</p>
-    {request?.status === "failed" ? <Button type="button" variant="outline" onClick={request.retry}>Retry sizes</Button> : null}
+    <Resource.Field name="machineSize" label={`Resource ${index + 1} size`} componentProps={{ options: sizeChoices?.options ?? [] }} />
+    <p>Selected size: {resourceValues?.machineSize || "None"}</p>
+    {sizeChoices?.status === "failed" ? <Button type="button" variant="outline" onClick={sizeChoices.retry}>Retry sizes</Button> : null}
     <ActionRow>
-      <Button type="button" variant="outline" disabled={index === 0} onClick={() => { flow.array.move(index, index - 1); flow.correctResource(resourceId, "name"); }}>Move up</Button>
-      <Button type="button" variant="outline" onClick={() => { flow.array.remove(index); flow.correctResource(resourceId, "name"); }}>Remove</Button>
+      <Button type="button" variant="outline" disabled={index === 0} onClick={() => {
+        flow.resourceArray.move(index, index - 1);
+        flow.goToResourceField(resourceId, "name");
+      }}>Move up</Button>
+      <Button type="button" variant="outline" onClick={() => {
+        flow.resourceArray.remove(index);
+        flow.goToResourceField(resourceId, "name");
+      }}>Remove</Button>
     </ActionRow>
   </>;
 }
 
 export function InfrastructureForm(props: InfrastructureProps) {
   const flow = useInfrastructure(props);
-  return <Form aria-label="Infrastructure request" form={flow.form} onSubmit={flow.submit} onInvalid={flow.correct} getValidationRevision={flow.getValidationRevision}>
+  return <Form aria-label="Infrastructure request" form={flow.form} onSubmit={flow.previewOrProvision} onInvalid={flow.handleInvalid} getValidationRevision={flow.getValidationRevision}>
     <h2>Infrastructure request</h2>
     <p>Account: {props.accountId}. Save an unfinished draft or preview a plan before provisioning.</p>
     <ActionRow>
-      <Button type="button" variant="outline" disabled={flow.draftPending} onClick={() => void flow.draft("save")}>Save draft</Button>
-      <Button type="button" variant="outline" disabled={flow.draftPending} onClick={() => void flow.draft("restore")}>Restore draft</Button>
-      <FormNavigationButton onClick={() => flow.setPage("configure")}>Configure</FormNavigationButton>
-      <FormNavigationButton onClick={() => flow.setPage("review")}>Review</FormNavigationButton>
+      <Button type="button" variant="outline" disabled={flow.draftPending} onClick={() => void flow.saveDraft()}>Save draft</Button>
+      <Button type="button" variant="outline" disabled={flow.draftPending} onClick={() => void flow.restoreDraft()}>Restore draft</Button>
+      <FormNavigationButton onClick={() => flow.goToPage("configure")}>Configure</FormNavigationButton>
+      <FormNavigationButton onClick={() => flow.goToPage("review")}>Review</FormNavigationButton>
     </ActionRow>
     <p role="status">{flow.savedCurrent ? "Draft saved" : "Draft has unsaved changes"}{flow.planCurrent ? " · Current plan" : " · New plan required"}</p>
     {flow.feedback ? <p role="status">{flow.feedback}</p> : null}
-    <Page id="infrastructure-configure" title="Configure resources" active={flow.page === "configure"} layout={Stack}>
+    <Page pageId="infrastructure-configure" title="Configure resources" active={flow.page === "configure"} layout={Stack}>
       <Field control={flow.form.control} name="regionId" label="Region" component="select" componentProps={{ options: [{ value: "east", label: "East" }, { value: "west", label: "West" }] }} />
-      <div ref={flow.collection} tabIndex={-1} role="group" aria-label="Resources">
-        {flow.array.fields.map((item, index) => {
+      <div ref={flow.resourceListRef} tabIndex={-1} role="group" aria-label="Resources">
+        {flow.resourceArray.fields.map((item, index) => {
           const resource = bindResource(item.resourceId, index);
-          const current = flow.values.resources?.[index];
+          const resourceValues = flow.values.resources?.[index];
           return <fieldset key={item.id} className="mb-6 rounded-lg border border-border p-4" data-resource-id={item.resourceId}>
             <legend>Resource {index + 1}</legend>
-            <Resource.Bind control={flow.form.control} layout={Stack} use={resource}>
-              <ResourceFields flow={flow} index={index} resourceId={item.resourceId} current={current} />
+            <Resource.Bind control={flow.form.control} layout={Stack} binding={resource}>
+              <ResourceFields flow={flow} index={index} resourceId={item.resourceId} resourceValues={resourceValues} />
             </Resource.Bind>
           </fieldset>;
         })}
         <Button type="button" variant="outline" onClick={() => {
           const resourceId = crypto.randomUUID();
-          flow.array.append({ resourceId, name: "", machineSize: "" }, { shouldFocus: false });
-          flow.correctResource(resourceId, "name");
+          flow.resourceArray.append({ resourceId, name: "", machineSize: "" }, { shouldFocus: false });
+          flow.goToResourceField(resourceId, "name");
         }}>Add resource</Button>
       </div>
       <FormSubmitButton pendingLabel="Preparing plan…">Preview plan</FormSubmitButton>
     </Page>
-    <Page id="infrastructure-review" title="Review infrastructure" active={flow.page === "review"} layout={Stack}>
-      <div ref={flow.review} tabIndex={-1} role="group" aria-label="Infrastructure summary">
+    <Page pageId="infrastructure-review" title="Review infrastructure" active={flow.page === "review"} layout={Stack}>
+      <div ref={flow.reviewHeadingRef} tabIndex={-1} role="group" aria-label="Infrastructure summary">
       <p>Region: {flow.values.regionId || "Required"}</p>
       <ul>{flow.values.resources?.map((item) => <li key={item.resourceId}>
         {item.name || "Unnamed resource"} · {item.machineSize || "Size required"}{" "}
-        <FormNavigationButton onClick={() => flow.correctResource(item.resourceId!, "name")}>Edit {item.name || "unnamed resource"}</FormNavigationButton>
+        <FormNavigationButton onClick={() => flow.goToResourceField(item.resourceId!, "name")}>Edit {item.name || "unnamed resource"}</FormNavigationButton>
       </li>)}</ul>
       <p>{flow.planCurrent ? "The plan matches this configuration." : "Preview a new plan before provisioning."}</p>
       </div>

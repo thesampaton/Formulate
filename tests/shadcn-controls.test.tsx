@@ -50,7 +50,7 @@ it("retains selected values when Activity reconnects controls and still allows R
     const form = Preferences.useForm();
     const [active, setActive] = useState(true);
     return <Preferences.Form form={form} onSubmit={onSubmit}>
-      <Page id="preferences" title="Preferences" active={active}><Preferences.Fields /></Page>
+      <Page pageId="preferences" title="Preferences" active={active}><Preferences.Fields /></Page>
       <button type="button" onClick={() => setActive(!active)}>Toggle page</button>
       <button type="button" onClick={() => form.reset()}>Reset</button>
       <FormSubmitButton>Save</FormSubmitButton>

@@ -17,44 +17,59 @@ export type ChoiceFormRuntime<Input extends FieldValues, Output extends FieldVal
   };
 
 /** Dependencies validate editing values before schema parsing can rename or remove paths. */
-export function useChoiceForm<Input extends FieldValues, Output extends FieldValues>({ schema, fields, ...formOptions }: {
+export function useChoiceForm<Input extends FieldValues, Output extends FieldValues>({
+  schema,
+  getChoiceBindings,
+  ...formOptions
+}: {
   schema: z.ZodType<Output, Input>;
-  fields: (values: Input) => readonly BoundChoice[];
-} & FormulateOptions<Input, Output>) {
-  const choices = useMemo(() => createChoiceStore(), []);
-  const publicChoices = useMemo(() => ({ get: choices.get, clear: choices.clear }), [choices]);
-  const previousNames = useRef<FieldPath<Input>[]>([]);
-  const revision = useSyncExternalStore(choices.subscribe, choices.getSnapshot, choices.getSnapshot);
-  const validation = useMemo(() => z.custom<Input>().transform(async (values, context) => {
-    const bound = fields(values);
-    const parsed = await schema.safeParseAsync(values);
-    if (!parsed.success) for (const issue of parsed.error.issues) context.addIssue({ ...issue });
-    for (const field of bound) {
-      const problem = choices.problem(field);
-      if (problem) context.addIssue({ code: "custom", path: field.name.split("."), message: problem });
+  getChoiceBindings: (values: Input) => readonly BoundChoice[];
+} & FormulateOptions<Input, Output>): ChoiceFormRuntime<Input, Output> {
+  const choiceStore = useMemo(() => createChoiceStore(), []);
+  const choices = useMemo<ChoiceController>(() => ({
+    get: choiceStore.get,
+    clearRequests: choiceStore.clearRequests,
+  }), [choiceStore]);
+  const previousFieldPaths = useRef<FieldPath<Input>[]>([]);
+  const choiceRevision = useSyncExternalStore(choiceStore.subscribe, choiceStore.getSnapshot, choiceStore.getSnapshot);
+  const validationSchema = useMemo(() => z.custom<Input>().transform(async (values, context) => {
+    const choiceBindings = getChoiceBindings(values);
+    const parseResult = await schema.safeParseAsync(values);
+    if (!parseResult.success) {
+      for (const issue of parseResult.error.issues) context.addIssue({ ...issue });
     }
-    return parsed.success ? parsed.data : z.NEVER;
-  }), [schema, choices, fields]);
-  const form = useFormulate<Input, Output>(validation as unknown as z.ZodType<Output, Input>, {
+
+    for (const binding of choiceBindings) {
+      const validationMessage = choiceStore.getValidationMessage(binding);
+      if (validationMessage) {
+        context.addIssue({ code: "custom", path: binding.fieldPath.split("."), message: validationMessage });
+      }
+    }
+
+    return parseResult.success ? parseResult.data : z.NEVER;
+  }), [schema, choiceStore, getChoiceBindings]);
+  const form = useFormulate<Input, Output>(validationSchema as unknown as z.ZodType<Output, Input>, {
     shouldFocusError: false,
     ...formOptions,
   });
   const choiceForm = useMemo(() => Object.assign(form, {
-    choices: publicChoices,
-    getValidationRevision: choices.getValidationRevision,
-  }) as ChoiceFormRuntime<Input, Output>, [form, publicChoices, choices]);
-  useEffect(() => () => choices.clear(), [choices]);
+    choices,
+    getValidationRevision: choiceStore.getValidationRevision,
+  }) as ChoiceFormRuntime<Input, Output>, [form, choices, choiceStore]);
+
+  useEffect(() => () => choiceStore.clearRequests(), [choiceStore]);
   useEffect(() => {
-    const sync = () => choices.sync(fields(form.getValues()));
-    const unsubscribe = form.subscribe({ formState: { values: true }, callback: sync });
-    sync();
+    const syncChoiceBindings = () => choiceStore.syncBindings(getChoiceBindings(form.getValues()));
+    const unsubscribe = form.subscribe({ formState: { values: true }, callback: syncChoiceBindings });
+    syncChoiceBindings();
     return unsubscribe;
-  }, [form, choices, fields]);
+  }, [form, choiceStore, getChoiceBindings]);
   useEffect(() => {
-    const names = fields(form.getValues()).map(({ name }) => name as FieldPath<Input>);
-    const affected = [...new Set([...previousNames.current, ...names])];
-    previousNames.current = names;
-    if (affected.length) void form.trigger(affected);
-  }, [form, fields, revision]);
-  return { form: choiceForm, choices: publicChoices, getValidationRevision: choices.getValidationRevision };
+    const fieldPaths = getChoiceBindings(form.getValues()).map(({ fieldPath }) => fieldPath as FieldPath<Input>);
+    const affectedFieldPaths = [...new Set([...previousFieldPaths.current, ...fieldPaths])];
+    previousFieldPaths.current = fieldPaths;
+    if (affectedFieldPaths.length) void form.trigger(affectedFieldPaths);
+  }, [form, getChoiceBindings, choiceRevision]);
+
+  return choiceForm;
 }

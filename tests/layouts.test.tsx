@@ -20,7 +20,7 @@ it("applies layouts only to their container bodies and preserves DOM/tab order a
   function Example() {
     const form = Registration.useForm();
     return <Registration.Form form={form} onSubmit={onSubmit}>
-      <Page id="details" title="Details" layout={PageLayout}>
+      <Page pageId="details" id="registration-details" title="Details" layout={PageLayout}>
         <Registration.Section name="contact" title="Contact" />
         <button>Save</button>
       </Page>
@@ -29,6 +29,8 @@ it("applies layouts only to their container bodies and preserves DOM/tab order a
   render(<Example />);
   const user = userEvent.setup();
   expect(within(screen.getByTestId("form-layout")).getByRole("region", { name: "Details" })).toBeInTheDocument();
+  expect(screen.getByRole("region", { name: "Details" })).toHaveAttribute("data-page", "details");
+  expect(screen.getByRole("region", { name: "Details" })).toHaveAttribute("id", "registration-details");
   expect(within(screen.getByTestId("page-layout")).queryByRole("heading", { name: "Details" })).toBeNull();
   expect(within(screen.getByTestId("section-layout")).queryByRole("heading", { name: "Contact" })).toBeNull();
   await user.tab();
@@ -44,7 +46,7 @@ it("applies layouts only to their container bodies and preserves DOM/tab order a
 it("replaces definition defaults, supports null, and passes layouts into custom presentations and Bind", () => {
   const Group = defineSection({ value: { schema: z.string(), defaultValue: "", component: "input", label: "Value" } }, {
     layout: SectionLayout,
-    render: ({ title, layout }) => <Section title={title}><LayoutBody layout={layout}><Group.Fields /></LayoutBody></Section>,
+    presentation: ({ title, layout }) => <Section title={title}><LayoutBody layout={layout}><Group.Fields /></LayoutBody></Section>,
   });
   const ExampleForm = defineForm({ first: Group, second: Group, third: Group }, { layout: FormLayout });
   function Example() {
@@ -69,7 +71,7 @@ it("supports direct form layouts and explicit section children without extra val
     const form = Definition.useForm();
     return <Form form={form} onSubmit={() => undefined} layout={FormLayout}>
       <Definition.Section name="group"><Group.Field name="value" /></Definition.Section>
-      <Page id="inactive" title="Inactive" active={false} layout={PageLayout}><p>Hidden</p></Page>
+      <Page pageId="inactive" title="Inactive" active={false} layout={PageLayout}><p>Hidden</p></Page>
     </Form>;
   }
   render(<Example />);

@@ -36,7 +36,7 @@ describe("simple-form scenario", () => {
     await waitFor(() => expect(onSignIn).toHaveBeenCalledTimes(1));
     expect(screen.getByRole("button", { name: "Signing in…" })).toBeDisabled();
     reject(new Error("Private backend detail"));
-    expect(await screen.findByRole("alert")).toHaveTextContent("Unable to submit. Please try again.");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Unable to complete this action. Please try again.");
     expect(screen.getByLabelText("Email")).toHaveValue("person@example.com");
     expect(screen.getByLabelText("Password")).toHaveValue("demo-password");
     await user.click(screen.getByRole("button", { name: "Sign in" }));

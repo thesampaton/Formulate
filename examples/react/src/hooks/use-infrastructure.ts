@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
 import type { FieldErrors } from "react-hook-form";
-import { useFormNavigation } from "@formulate/react";
+import { useChoiceForm, useFormNavigation } from "@formulate/react";
+import type { ChoiceLoader } from "@formulate/react";
 import { bindResource, draftSchema, infrastructureSchema } from "@/declarations/infrastructure";
 import type { DraftAdapter, InfrastructurePayload, InfrastructureValues } from "@/declarations/infrastructure";
-import type { ChoiceLoader } from "@formulate/react";
-import { useChoiceForm } from "@formulate/react";
 
 export type InfrastructureProps = {
   accountId: string;
@@ -15,92 +14,187 @@ export type InfrastructureProps = {
   previewPlan: (values: InfrastructurePayload, accountId: string) => Promise<{ reference: string }>;
   onProvision: (request: { configuration: InfrastructurePayload; accountId: string; plan: string }) => Promise<void> | void;
 };
-const empty: InfrastructureValues = { regionId: "", resources: [] };
+const emptyInfrastructureValues: InfrastructureValues = { regionId: "", resources: [] };
 
-export function useInfrastructure({ accountId, defaultValues = empty, listMachineSizes, drafts, previewPlan, onProvision }: InfrastructureProps) {
-  const sizeFields = useCallback((values: InfrastructureValues) => values.resources.flatMap((item, index) => bindResource(item.resourceId, index).bindChoices({
-    values, services: { accountId, regionId: values.regionId, listMachineSizes },
-  })), [accountId, listMachineSizes]);
-  const { form, choices, getValidationRevision } = useChoiceForm({
-    schema: infrastructureSchema, defaultValues, fields: sizeFields,
-  });
-  const array = useFieldArray({ control: form.control, name: "resources" });
+export function useInfrastructure({ accountId, defaultValues = emptyInfrastructureValues, listMachineSizes, drafts, previewPlan, onProvision }: InfrastructureProps) {
+  const getChoiceBindings = useCallback((values: InfrastructureValues) => {
+    return values.resources.flatMap((resource, index) => bindResource(resource.resourceId, index).bindChoices({
+      values,
+      services: { accountId, regionId: values.regionId, listMachineSizes },
+    }));
+  }, [accountId, listMachineSizes]);
+  const form = useChoiceForm({ schema: infrastructureSchema, defaultValues, getChoiceBindings });
+  const { choices, getValidationRevision } = form;
+  const resourceArray = useFieldArray({ control: form.control, name: "resources" });
   const values = useWatch({ control: form.control });
-  const navigation = useFormNavigation<InfrastructureValues, "configure" | "review">({ form, initialPage: "configure", destinations: [] });
+  const navigation = useFormNavigation<InfrastructureValues, "configure" | "review">({
+    form,
+    initialPage: "configure",
+    destinations: [],
+  });
   const [feedback, setFeedback] = useState("");
-  const [saved, setSaved] = useState<string>();
+  const [savedDraftSnapshot, setSavedDraftSnapshot] = useState<string>();
   const [draftPending, setDraftPending] = useState(false);
-  const [plan, setPlan] = useState<{ reference: string; current: () => boolean }>();
-  const collection = useRef<HTMLDivElement>(null);
-  const review = useRef<HTMLDivElement>(null);
-  const lifetime = useRef<object | undefined>(undefined);
-  const editEpoch = useRef(0);
-  const draftBusy = useRef(false);
+  const [plan, setPlan] = useState<{ reference: string; isCurrent: () => boolean }>();
+  const resourceListRef = useRef<HTMLDivElement>(null);
+  const reviewHeadingRef = useRef<HTMLDivElement>(null);
+  const actionContextRef = useRef<object | undefined>(undefined);
+  const editGenerationRef = useRef(0);
+  const isDraftActionPendingRef = useRef(false);
 
   useEffect(() => {
-    lifetime.current = {};
-    let key = JSON.stringify(form.getValues());
-    const unsubscribe = form.subscribe({ formState: { values: true }, callback: () => {
-      const next = JSON.stringify(form.getValues());
-      if (next !== key) { editEpoch.current++; key = next; }
-    } });
-    return () => { lifetime.current = undefined; unsubscribe(); };
+    actionContextRef.current = {};
+    let previousValuesSnapshot = JSON.stringify(form.getValues());
+    const unsubscribe = form.subscribe({
+      formState: { values: true },
+      callback: () => {
+        const valuesSnapshot = JSON.stringify(form.getValues());
+        if (valuesSnapshot !== previousValuesSnapshot) {
+          editGenerationRef.current++;
+          previousValuesSnapshot = valuesSnapshot;
+        }
+      },
+    });
+    return () => {
+      actionContextRef.current = undefined;
+      unsubscribe();
+    };
   }, [form, accountId, listMachineSizes, choices]);
 
-  const setPage = (page: "configure" | "review") => navigation.goTo(page, () => (page === "review" ? review : collection).current?.focus());
-  const correctResource = (id: string, member: "name" | "machineSize") => navigation.goTo("configure", () => {
-    const index = form.getValues("resources").findIndex((item) => item.resourceId === id);
-    if (index < 0) collection.current?.focus();
-    else form.setFocus(bindResource(id, index).field(member));
-  });
-  function correct(errors: FieldErrors<InfrastructureValues>) {
-    if (errors.regionId) { navigation.goTo("configure", () => form.setFocus("regionId")); return; }
-    const index = form.getValues("resources").findIndex((_, index) => errors.resources?.[index]);
-    if (index >= 0) correctResource(form.getValues(`resources.${index}.resourceId`), errors.resources?.[index]?.name ? "name" : "machineSize");
-    else { setFeedback(errors.resources?.root?.message ?? errors.resources?.message ?? "Review the resource requirements."); setPage("configure"); }
+  function goToPage(page: "configure" | "review") {
+    const headingRef = page === "review" ? reviewHeadingRef : resourceListRef;
+    navigation.goToPage(page, () => headingRef.current?.focus());
   }
-  async function draft(action: "save" | "restore") {
-    if (draftBusy.current) return;
-    draftBusy.current = true; setDraftPending(true);
-    const owner = lifetime.current;
-    const epoch = editEpoch.current;
+
+  function goToResourceField(resourceId: string, fieldName: "name" | "machineSize") {
+    navigation.goToPage("configure", () => {
+      const index = form.getValues("resources").findIndex((resource) => resource.resourceId === resourceId);
+      if (index < 0) {
+        resourceListRef.current?.focus();
+        return;
+      }
+      form.setFocus(bindResource(resourceId, index).resolveFieldPath(fieldName));
+    });
+  }
+
+  function handleInvalid(errors: FieldErrors<InfrastructureValues>) {
+    if (errors.regionId) {
+      navigation.goToPage("configure", () => form.setFocus("regionId"));
+      return;
+    }
+    const resourceIndex = form.getValues("resources").findIndex((_, index) => errors.resources?.[index]);
+    if (resourceIndex >= 0) {
+      const resourceId = form.getValues(`resources.${resourceIndex}.resourceId`);
+      const fieldName = errors.resources?.[resourceIndex]?.name ? "name" : "machineSize";
+      goToResourceField(resourceId, fieldName);
+      return;
+    }
+    setFeedback(errors.resources?.root?.message ?? errors.resources?.message ?? "Review the resource requirements.");
+    goToPage("configure");
+  }
+
+  async function runDraftAction(action: "save" | "restore") {
+    if (isDraftActionPendingRef.current) return;
+    isDraftActionPendingRef.current = true;
+    setDraftPending(true);
+    const actionContext = actionContextRef.current;
+    const startingEditGeneration = editGenerationRef.current;
+
     try {
       if (action === "save") {
         const snapshot = structuredClone(form.getValues());
         await drafts.save({ definition: "infrastructure-request", version: 1, revision: crypto.randomUUID(), values: snapshot });
-        if (owner === lifetime.current) { setSaved(JSON.stringify(snapshot)); setFeedback("Draft saved."); }
-      } else {
-        const loaded = await drafts.load();
-        if (owner !== lifetime.current) return;
-        if (epoch !== editEpoch.current) { setFeedback("The draft arrived after you edited. Your current work was kept; load again to restore it."); return; }
-        const parsed = draftSchema.safeParse(loaded);
-        if (!parsed.success) { setFeedback("This draft is unavailable or incompatible. Your current work was kept."); return; }
-        // Even an identical restore starts a new evidence lifetime.
-        editEpoch.current++;
-        choices.clear(); setPlan(undefined); setPage("configure"); form.reset(parsed.data.values);
-        setSaved(JSON.stringify(parsed.data.values)); setFeedback("Draft restored. Available choices and requirements are being checked again.");
+        if (actionContext === actionContextRef.current) {
+          setSavedDraftSnapshot(JSON.stringify(snapshot));
+          setFeedback("Draft saved.");
+        }
+        return;
       }
+
+      const loadedDraft = await drafts.load();
+      if (actionContext !== actionContextRef.current) return;
+      if (startingEditGeneration !== editGenerationRef.current) {
+        setFeedback("The draft arrived after you edited. Your current work was kept; load again to restore it.");
+        return;
+      }
+      const parsedDraft = draftSchema.safeParse(loadedDraft);
+      if (!parsedDraft.success) {
+        setFeedback("This draft is unavailable or incompatible. Your current work was kept.");
+        return;
+      }
+
+      // Even an identical restore invalidates evidence from before the restore.
+      editGenerationRef.current++;
+      choices.clearRequests();
+      setPlan(undefined);
+      goToPage("configure");
+      form.reset(parsedDraft.data.values);
+      setSavedDraftSnapshot(JSON.stringify(parsedDraft.data.values));
+      setFeedback("Draft restored. Available choices and requirements are being checked again.");
     } catch {
-      if (owner === lifetime.current) setFeedback(action === "save" ? "Unable to save this draft. Your edits are retained." : "Unable to load the draft. Your current work was kept.");
-    } finally { draftBusy.current = false; if (lifetime.current) setDraftPending(false); }
+      if (actionContext === actionContextRef.current) {
+        const message = action === "save"
+          ? "Unable to save this draft. Your edits are retained."
+          : "Unable to load the draft. Your current work was kept.";
+        setFeedback(message);
+      }
+    } finally {
+      isDraftActionPendingRef.current = false;
+      if (actionContextRef.current) setDraftPending(false);
+    }
   }
-  async function submit(configuration: InfrastructurePayload) {
+
+  const saveDraft = () => runDraftAction("save");
+  const restoreDraft = () => runDraftAction("restore");
+
+  async function previewOrProvision(configuration: InfrastructurePayload) {
     if (navigation.page === "review") {
-      if (!plan?.current()) { setFeedback("Preview a current plan before provisioning."); return; }
+      if (!plan?.isCurrent()) {
+        setFeedback("Preview a current plan before provisioning.");
+        return;
+      }
       await onProvision({ accountId, configuration, plan: plan.reference });
       return;
     }
-    const owner = lifetime.current;
-    const epoch = editEpoch.current;
-    const revision = getValidationRevision();
-    const current = () => owner === lifetime.current && epoch === editEpoch.current && revision === getValidationRevision();
+
+    const actionContext = actionContextRef.current;
+    const startingEditGeneration = editGenerationRef.current;
+    const startingValidationRevision = getValidationRevision();
+    const isPlanCurrent = () => actionContext === actionContextRef.current
+      && startingEditGeneration === editGenerationRef.current
+      && startingValidationRevision === getValidationRevision();
     try {
       const result = await previewPlan(configuration, accountId);
-      if (current()) { setPlan({ reference: result.reference, current }); setPage("review"); setFeedback("Plan ready for this configuration."); }
-      else if (owner === lifetime.current) setFeedback("The configuration changed. Preview a new plan.");
-    } catch { if (owner === lifetime.current) setFeedback("Unable to preview the plan. Try again."); }
+      if (isPlanCurrent()) {
+        setPlan({ reference: result.reference, isCurrent: isPlanCurrent });
+        goToPage("review");
+        setFeedback("Plan ready for this configuration.");
+      } else if (actionContext === actionContextRef.current) {
+        setFeedback("The configuration changed. Preview a new plan.");
+      }
+    } catch {
+      if (actionContext === actionContextRef.current) setFeedback("Unable to preview the plan. Try again.");
+    }
   }
-  return { form, array, values, choices, page: navigation.page, setPage, feedback, savedCurrent: saved === JSON.stringify(form.getValues()),
-    draftPending, planCurrent: !!plan?.current(), collection, review, correct, draft, submit, correctResource,
-    getValidationRevision: () => `${getValidationRevision()}:${navigation.revision}:${editEpoch.current}` };
+
+  return {
+    form,
+    resourceArray,
+    values,
+    choices,
+    page: navigation.page,
+    goToPage,
+    feedback,
+    savedCurrent: savedDraftSnapshot === JSON.stringify(form.getValues()),
+    draftPending,
+    planCurrent: !!plan?.isCurrent(),
+    resourceListRef,
+    reviewHeadingRef,
+    handleInvalid,
+    saveDraft,
+    restoreDraft,
+    previewOrProvision,
+    goToResourceField,
+    getValidationRevision: () => `${getValidationRevision()}:${navigation.revision}:${editGenerationRef.current}`,
+  };
 }

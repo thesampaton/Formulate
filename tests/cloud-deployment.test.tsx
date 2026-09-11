@@ -77,8 +77,8 @@ it("combines out-of-order Regions, removal of the current page, retained drafts,
 it("rejects old success/failure for A → B → A and disposed uses even if abort is ignored", async () => {
   const service = controlledChoices();
   const store = createChoiceStore();
-  const field = (input: string, selection = "") => ({ ...regionChoices.resolve({ accountId: input }, selection, { listRegions: service.load }), id: "region", name: "region" });
-  store.sync([field("A")]); store.sync([field("B")]); store.sync([field("A")]);
+  const field = (input: string, selection = "") => ({ ...regionChoices.resolve({ accountId: input }, selection, { listRegions: service.load }), choiceId: "region", fieldPath: "region" });
+  store.syncBindings([field("A")]); store.syncBindings([field("B")]); store.syncBindings([field("A")]);
   await Promise.resolve();
   service.calls[0]!.resolve(options("old-A")); service.calls[1]!.reject(new Error("old-B"));
   await Promise.resolve(); await Promise.resolve();
@@ -87,7 +87,7 @@ it("rejects old success/failure for A → B → A and disposed uses even if abor
   service.calls[2]!.resolve(options("current-A"));
   await waitFor(() => expect(store.get("region", regionChoices)?.options).toEqual(options("current-A")));
   store.get("region", regionChoices)!.retry(); await Promise.resolve();
-  store.clear();
+  store.clearRequests();
   service.calls[3]!.resolve(options("late-A"));
   await Promise.resolve(); await Promise.resolve();
   expect(store.get("region", regionChoices)).toBeUndefined();

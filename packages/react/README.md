@@ -49,7 +49,7 @@ function ContactForm() {
 
 `Definition.Form` uses the definition's default layout. Plain `Form` does not infer defaults from its runtime. `defineSection` also accepts a default layout; each Section/Bind use may replace it. Omission uses the default, and `layout={null}` removes it. Parent layouts do not implicitly propagate into child sections or pages. `Definition.Fields` still renders without a wrapper.
 
-Custom section `render` components receive `{ title, layout }`. Forward the layout to `Section` or `<LayoutBody layout={layout}>`; explicit section children replace the full presentation and are wrapped in the selected layout. Define layout components at module scope to keep component identity stable during edits.
+Custom section `presentation` components receive `{ title, layout }`. Forward the layout to `Section` or `<LayoutBody layout={layout}>`; explicit section children replace the full presentation and are wrapped in the selected layout. Define layout components at module scope to keep component identity stable during edits.
 
 The [local Stack/Row](../../examples/react/src/components/formulate/layouts.tsx) and [Name group](../../examples/react/src/declarations/name.tsx) use shadcn FieldGroup and FieldSet. They can be installed through the [source registry](../../docs/registry-development.md). Row arranges sibling fields; a field's `orientation` arranges its own label and control. `createFormulate({ components, fieldPresentation })` lets local UI own field markup while the runtime supplies the binding and accessible IDs. Its optional per-field `presentation` override accepts the same `FieldPresentationProps` contract.
 
@@ -71,21 +71,21 @@ Use `control={form.control}` for a standalone field, or to explicitly select ano
 | Export | Responsibility |
 | --- | --- |
 | `useFormulate(schemaOrDefinition, options?)` | Typed RHF runtime with a Zod resolver, `onBlur` validation by default, and `shouldUnregister: false`. Definitions supply editing defaults. The schema-first path still accepts RHF options, including explicit defaults. |
-| `defineForm(members, options?)` | Derives schema, defaults, `useForm`, choice-aware `useChoiceForm`, Form, Field, Fields, Section/Subsection, local watch/choice/trigger hooks, fieldNames, bindSection, and bindChoices. A bound section use carries its renderer, validation root, ordered correction paths and focus helpers into workflow composition. |
+| `defineForm(members, options?)` | Derives schema, defaults, `useForm`, choice-aware `useChoiceForm`, Form, Field, Fields, Section, local watch/choice/trigger hooks, fieldPaths, bindSection, and bindChoices. A bound section use carries its renderer, validation root, ordered correction paths and focus helpers into workflow composition. |
 | `defineSection(members, options?)` | The same recursive member model, with a default title and optional presentation component. Local helpers, including `useChoice(name)`, inherit the section use; Bind supports explicit typed member maps, and `bind({ id, bindings })` shares one mapped use with presentation and dependent behavior. No separate form runtime. |
 | `defineChoice(config)` | Declares a typed local dependency input, request key, service selector, selection policy and feedback. Attach it as a field declaration’s `choices`. |
-| `useChoiceForm({ schema, defaultValues, fields })` | Lower-level adapter for dynamic/repeated choice bindings. Returns `form`, `choices` and `getValidationRevision`; the returned form also carries the latter two for Form and local presentation. |
-| `SectionBindings<Members, Values>` | Maps local members to host paths with compatible reading and writing types. Inferred by Bind; usable with satisfies for extracted mappings. |
-| `FormScope<Values>` | A `fields` list of action-gating error paths plus optional ordered `correction` editor paths. Bound section uses satisfy this contract; it does not execute a separate schema or imply completion. |
-| `Form` | Accepts `form`, final `onSubmit`, optional `onInvalid`, and optional `navigation: { id, fields | scope, onValid }`. Provides RHF/action/choice context and a native form. Checks the navigation scope or validates/parses the whole final submission, blocks overlapping attempts, and shows generic retryable feedback for a thrown check/handler. Choice-aware forms install their evidence revision automatically; `submissionErrorMessage` overrides thrown-action feedback. |
-| `useFormNavigation({ form, initialPage, destinations })` | Returns `page`, `revision`, `goTo`, `goToField`, and `correct`. Each destination maps one editor path or an ordered scope to a host-owned page and optional synchronous reveal callback. Focus follows the committed render; the host defines allowed destinations and actions. |
+| `useChoiceForm({ schema, defaultValues, getChoiceBindings })` | Lower-level adapter for dynamic/repeated choice bindings. Returns the RHF form directly, augmented with `choices` and `getValidationRevision`, just like `Definition.useChoiceForm`. |
+| `SectionPathMap<Members, Values>` | Maps local members to host paths with compatible reading and writing types. Inferred by Bind; usable with satisfies for extracted mappings. |
+| `FormScope<Values>` | An `errorPaths` list of action-gating error paths plus optional ordered `focusPaths` editor paths. Bound section uses satisfy this contract; it does not execute a separate schema or imply completion. |
+| `Form` | Accepts `form`, final `onSubmit`, optional `onInvalid`, and optional `scopedAction` with `id`, `onValid`, and either `errorPaths` or `scope`. Provides RHF/action/choice context and a native form. Checks the action scope or validates/parses the whole final submission, blocks overlapping attempts, and shows generic retryable feedback for a thrown check/handler. Choice-aware forms install their evidence revision automatically; `actionErrorMessage` overrides thrown-action feedback. |
+| `useFormNavigation({ form, initialPage, destinations })` | Returns `page`, `revision`, `goToPage`, `goToField`, and `goToFirstError`. Each destination maps one editor path or an ordered scope to a host-owned page and optional synchronous reveal callback. Focus follows the committed render; the host defines allowed destinations and actions. |
 | `useFormActionStatus()` | Reads `{ isPending }` from the enclosing Form, covering scoped checks and final submission through the awaited callback. Use for pending labels and disabled action UI. |
 | `Field` | Accepts optional `control`, `name`, `label`, optional `description`, and either `component`/`componentProps` or connected children. Connects value, change, blur, ref, label, description, and errors. `className`/`style` apply to the outer field. Optional `id` overrides the control ID. |
 | `createFormulate({ components, fieldPresentation? })` | Returns Field, defineForm, and defineSection configured with an application-owned component map. Call once at module scope. Keys, component props, and editing value compatibility are checked by TypeScript. Configuration contains UI, not values or validation rules. |
 | `InputControl`, `NumberControl`, `CheckboxControl` | Connected native controls for string, number, and boolean editing values. The default Field maps them to `input`, `number`, and `checkbox`. Usable as children too. |
-| `defineFieldControl<Value>()`, `useFieldControl<Value>()` | Adapter-author tools: declare the accepted editing type and read the enclosing Field's binding. No second controller registration. |
+| `defineFieldControl<Value>()`, `useFieldBinding<Value>()` | Adapter-author tools: declare the accepted editing type and read the enclosing Field's binding. No second controller registration. |
 | `Section` | Named semantic group with `title`, optional `description`, children, and section attributes. Can nest; adds no value object. Group requirements/completion are not implemented. |
-| `Page` | Named presentation with logical `id`, `title`, and `active` (default `true`). Activity preserves inactive children’s React state and DOM while pausing their effects. Adds no form, route, navigation policy, or completion state. |
+| `Page` | Named presentation with logical `pageId` (rendered as `data-page`), `title`, and `active` (default `true`). Optional native `id` is a separate DOM identifier. Activity preserves inactive children’s React state and DOM while pausing their effects. Adds no form, route, navigation policy, or completion state. |
 
 `Contact.useForm()` is a typed convenience for `useFormulate(Contact)` and creates an independent runtime on each mounted use. Both return RHF's API, so ordinary `useWatch`, `setValue`, `setError`, and `getValues` remain available. Call the hook at the top level of a React component or custom hook. Rules belong to the form schema; putting them only on mounted controls cannot validate an unmounted page. Parsed submission output can differ from editing values; parsing does not overwrite those values. `isSubmitSuccessful` describes an RHF action attempt, not domain completion or acknowledged persistence.
 
@@ -161,18 +161,18 @@ const navigation = useFormNavigation<Settings, "settings" | "destination" | "rev
 });
 
 <Form form={form}
-  navigation={navigation.page === "review" ? undefined : {
+  scopedAction={navigation.page === "review" ? undefined : {
     id: navigation.revision,
-    fields: navigation.page === "settings"
+    errorPaths: navigation.page === "settings"
       ? ["showAdvanced", "retries", "timeoutSeconds"]
       : ["endpoint"],
     onValid: () => {
       if (navigation.page === "settings") navigation.goToField("endpoint");
-      else navigation.goTo("review");
+      else navigation.goToPage("review");
     },
   }}
   onInvalid={(errors) => {
-    if (!navigation.correct(errors)) {
+    if (!navigation.goToFirstError(errors)) {
       form.setError("root.submit", { message: "Review the form errors before continuing." });
     }
   }}
@@ -182,15 +182,15 @@ const navigation = useFormNavigation<Settings, "settings" | "destination" | "rev
 </Form>
 ```
 
-The [complete example](../../examples/react/src/advanced-options.tsx) includes all pages, mapped review edit links, and focus on the review summary. `goTo(page, focus?)` permits an optional post-commit focus callback, such as focusing a heading ref. `goToField(name)` reveals and focuses a mapped editor without validating, so the host can use it for Back or edit links. Both return behavior and available page names are typed. `initialPage` only initializes the hook; later location changes use its methods.
+The [complete example](../../examples/react/src/advanced-options.tsx) includes all pages, mapped review edit links, and focus on the review summary. `goToPage(page, focusAfterCommit?)` permits an optional post-commit focus callback, such as focusing a heading ref. `goToField(name)` reveals and focuses a mapped editor without validating, so the host can use it for Back or edit links. Page names and field paths are checked by TypeScript. `initialPage` only initializes the hook; later location changes use its methods.
 
-Destinations are in correction priority order and can use an explicit RHF editor path or a `FormScope`. A scope destination checks `correction` in order, falling back to `fields`, while the host still supplies the page and reveal policy. The same scope can gate Continue, drive a completion calculation, and render through a bound section without another list of internal paths. `correct(errors)` returns false when no destination matches, allowing form-level fallback feedback; `goToField` likewise returns false for an unmapped path. A section-root error can gate its action without pretending the object path is focusable; it falls through to host feedback unless a concrete editor also has an error. Separate group-error targets, unavailable-page fallback, portals, and async/suspended revelation remain open. The reveal callback must arrange for the control to mount in the same committed update; there is no polling or async readiness protocol.
+Destinations are in correction priority order and can use an explicit RHF editor path or a `FormScope`. A scope destination checks `focusPaths` in order, falling back to `errorPaths`, while the host still supplies the page and reveal policy. The same scope can gate Continue, drive a completion calculation, and render through a bound section without another list of internal paths. `goToFirstError(errors)` searches in destination order, then focus-path order, and returns false when no destination matches. This allows form-level fallback feedback; `goToField` likewise returns false for an unmapped path. A true result means navigation and focus were requested, not that the control has mounted or focus has succeeded. The navigation helper itself does not edit values, clear errors, or run validation; a host reveal callback can update values such as a disclosure checkbox. A section-root error can gate its action without pretending the object path is focusable; it falls through to host feedback unless a concrete editor also has an error. Separate group-error targets, unavailable-page fallback, portals, and async/suspended revelation remain open. The reveal callback must arrange for the control to mount in the same committed update; there is no polling or async readiness protocol.
 
-`Form.navigation.fields` or `Form.navigation.scope.fields` gates **error paths**, not an independently executed schema. RHF's resolver still runs against the full form. An object path includes descendant errors; a bound section supplies its declared leaf paths so correction can focus the actual editor. Only errors within the requested scope are sent to navigation's `onInvalid`. An empty scope permits navigation immediately without a validation run. Cross-field rules follow the schema's execution semantics; assign their error path to a scope when they should gate that action. A form-level rule outside the scope still runs at final submission. For Zod form-level feedback, leave the issue path empty; RHF reserves `root` for application errors and clears that namespace during submission.
+`Form.scopedAction.errorPaths` or `Form.scopedAction.scope.errorPaths` gates **error paths**, not an independently executed schema. RHF's resolver still runs against the full form. An object path includes descendant errors; a bound section supplies its declared leaf paths so correction can focus the actual editor. Only errors within the requested scope are sent to Form's `onInvalid`. An empty scope calls `onValid` without a validation run. Cross-field rules follow the schema's execution semantics; assign their error path to a scope when they should gate that action. A form-level rule outside the scope still runs at final submission. For Zod form-level feedback, leave the issue path empty; RHF reserves `root` for application errors and clears that namespace during submission.
 
-Navigation's `onValid` receives **no payload**: passing one scope does not establish a valid full parsed result. Omitting `navigation` restores full validation and parsed `onSubmit` output. Rendering Review never submits automatically or marks the form complete.
+The scoped action's `onValid` receives **no payload**: passing one scope does not establish a valid full parsed result. Omitting `scopedAction` restores full validation and parsed `onSubmit` output. Rendering Review never submits automatically or marks the form complete.
 
-Form suppresses validation callbacks after a value change/reset, a changed navigation ID/scope, a different runtime, or unmounting. `navigation.revision` changes even when returning to the same page; using it as the action ID prevents an old check from moving that new visit. If external policy changes the meaning of an action without changing its fields, change its ID as well. Use `shouldFocusError: false` with the correction helper to avoid independent RHF focus after obsolete validation.
+Form suppresses validation callbacks after a value change/reset, a changed action ID/scope, a different runtime, or unmounting. `navigation.revision` changes even when returning to the same page; using it as the action ID prevents an old check from moving that new visit. If external policy changes the meaning of an action without changing its fields, change its ID as well. Use `shouldFocusError: false` with `goToFirstError` to avoid independent RHF focus after obsolete validation.
 
 For requirements backed by external evidence, pass `getValidationRevision={() => evidence.getSnapshot().revision}` to Form. A form returned by `Definition.useChoiceForm` or the lower-level `useChoiceForm` already installs its choice-evidence getter, so no prop is needed unless the application must combine it with other evidence. The synchronous getter must read the live source and return a stable string or number that changes whenever evidence becomes obsolete, including a new request for the same input. Form captures it before checking and compares it before invoking scoped or final success/error callbacks. An obsolete attempt is cancelled; the user can retry against current evidence. Omit this prop for forms whose validation depends only on their editing values.
 
@@ -201,10 +201,10 @@ This is cancellation of navigation/correction callbacks, **not** cancellation of
 [Address](../../examples/react/src/declarations/address.tsx) is now a `defineSection` declaration. Each field supplies its schema, default, label, and control once. Its presentation uses local names and hooks:
 
 ```tsx
-function AddressFields({ title }: { title: ReactNode }) {
+function AddressFields({ title, layout }: SectionPresentationProps) {
   const country = Address.useWatch("countryCode");
   const trigger = Address.useTrigger();
-  return <Section title={title}>
+  return <Section title={title} layout={layout}>
     <Address.Field name="street" />
     <Address.Field name="countryCode"
       componentProps={{ onValueChange: () => { void trigger("postcode"); } }} />
@@ -214,7 +214,7 @@ function AddressFields({ title }: { title: ReactNode }) {
 }
 ```
 
-The section's options accept `render: AddressFields`, a default `title`, and a `schema` customization callback. Without a custom renderer, the use renders a Section shell and its members in declaration order. Its title defaults to the definition title or the declared member name. Pass children to a particular use to supply another arrangement. Presentation components and definitions belong at module scope; passing render as a component preserves React hook semantics.
+Import `SectionPresentationProps` from Formulate for the presentation's props. The section's options accept `presentation: AddressFields`, a default `title`, and a `schema` customization callback. Without a custom renderer, the use renders a Section shell and its members in declaration order. Its title defaults to the definition title or the declared member name. Pass children to a particular use to supply another arrangement. Presentation components and definitions belong at module scope; passing presentation as a component preserves React hook semantics.
 
 The host declares each use once:
 
@@ -227,7 +227,7 @@ const delivery = Customer.bindSection("deliveryAddress");
 <delivery.Section title="Delivery address" />
 ```
 
-`bindSection(name)` is cached by the form definition, so its `Section` component is stable even when requested during render. Its `fields` contains the section object path for action gating, while `correction` contains its declared leaf editors in order. `field(localName)`, `choiceId(localName)` and `focusFirst(form)` resolve the same use for correction, review links and dependent presentation. The host still chooses pages and action destinations:
+`bindSection(name)` is cached by the form definition, so its `Section` component is stable even when requested during render. Its `errorPaths` contains the section object path for action gating, while `focusPaths` contains its declared leaf editors in order. `resolveFieldPath(localName)`, `resolveChoiceId(localName)` and `focusFirstField(form)` resolve the same use for correction, review links and dependent presentation. The host still chooses pages and action destinations:
 
 ```tsx
 const employment = EmployeeOnboarding.bindSection("employment");
@@ -237,9 +237,9 @@ const navigation = useFormNavigation({
 });
 
 <EmployeeOnboarding.Form form={form}
-  navigation={{ id: navigation.revision, scope: employment, onValid: openEquipment }}
-  onInvalid={navigation.correct} onSubmit={requestOnboarding}>
-  <employment.Section><EmploymentSetup id="setup" active /></employment.Section>
+  scopedAction={{ id: navigation.revision, scope: employment, onValid: openEquipment }}
+  onInvalid={navigation.goToFirstError} onSubmit={requestOnboarding}>
+  <employment.Section><EmploymentSetup pageId="setup" active /></employment.Section>
 </EmployeeOnboarding.Form>
 ```
 
@@ -250,18 +250,18 @@ const Details = defineSection({ address: Address });
 const Registration = defineForm({ details: Details });
 // Custom placement; the address fields bind at details.address.*:
 <Registration.Section name="details">
-  <Details.Subsection name="address" title="Address" />
+  <Details.Section name="address" title="Address" />
 </Registration.Section>
 ```
 
-`Subsection` is the same function as `Section`; `DefinedSubsection` aliases `DefinedSection`. Child binding composes recursively, without registering an additional writable object. Field accepts local field keys; Section accepts local section keys. Watch/trigger hooks resolve local editing paths in the matching definition's nearest use. Section members require that use and inherit its control; their Field/Fields helpers do not accept control overrides. Root definition fields still support explicit control overrides. Definition hooks must run below Form and, for sections, below the matching section use. The component that creates Form can continue using RHF hooks with its explicit form.control.
+`Section` uses the same contract at every nesting level. Child binding composes recursively, without registering an additional writable object. Field accepts local field keys; Section accepts local section keys. Watch/trigger hooks resolve local editing paths in the matching definition's nearest use. Section members require that use and inherit its control; their Field/Fields helpers do not accept control overrides. Root definition fields still support explicit control overrides. Definition hooks must run below Form and, for sections, below the matching section use. The component that creates Form can continue using RHF hooks with its explicit form.control.
 
-For unusual host shapes, `Address.Bind` accepts one typed `control` and a `SectionBindings` map at the boundary:
+For unusual host shapes, `Address.Bind` accepts one typed `control` and a `SectionPathMap` map at the boundary:
 
 ```tsx
 const bindings = {
   street: "shippingStreet", countryCode: "country", postcode: "postalCode",
-} satisfies SectionBindings<AddressValues, HostValues>;
+} satisfies SectionPathMap<AddressValues, HostValues>;
 <Address.Bind control={form.control} bindings={bindings} title="Delivery" />
 ```
 
@@ -274,10 +274,10 @@ const resource = Resource.bind<InfrastructureValues>({
 });
 const choices = resource.bindChoices({ values, services });
 
-<Resource.Bind control={form.control} use={resource} />
+<Resource.Bind control={form.control} binding={resource} />
 ```
 
-Compatibility is checked in both directions because editors read and write. A string editor cannot bind to a boolean, an optional string contract, or a narrower literal contract. Nested section members can map to compatible host objects; their descendants resolve relative to that mapping. Bind changes binding only: validation must be composed into the host schema. `useTrigger` requires the enclosing Form to own that control. `fieldNames` supplies unbound declared leaf paths; bound uses expose action `fields` and ordered `correction` paths. Neither form definitions nor bound sections infer page membership.
+Compatibility is checked in both directions because editors read and write. A string editor cannot bind to a boolean, an optional string contract, or a narrower literal contract. Nested section members can map to compatible host objects; their descendants resolve relative to that mapping. Bind changes binding only: validation must be composed into the host schema. `useTrigger` requires the enclosing Form to own that control. `fieldPaths` supplies unbound declared leaf paths; bound uses expose action `errorPaths` and ordered `focusPaths` paths. Neither form definitions nor bound sections infer page membership.
 
 The [customer boundary](../../examples/react/src/declarations/customer.ts) uses a discriminated union in its schema option to suspend manual delivery requirements while retaining its string editing shape. It then constructs validated delivery from billing or the manual source and excludes the toggle. The host uses Customer.useForm and its typed fields/sections throughout. Review and edit links select the active source; no effect copies billing into the manual draft.
 
@@ -291,10 +291,10 @@ Use `defineChoice` at module scope to give a field its dependency and membership
 
 ```tsx
 const regions = defineChoice({
-  input: (target: { accountId: string }) => target.accountId || null,
-  key: (input: string) => input,
-  loader: (services: { listRegions: ChoiceLoader }) => services.listRegions,
-  validate: (selection: string, options: readonly Choice[]) =>
+  getInput: (target: { accountId: string }) => target.accountId || null,
+  getRequestKey: (input: string) => input,
+  getLoader: (services: { listRegions: ChoiceLoader }) => services.listRegions,
+  validateSelection: (selection: string, options: readonly Choice[]) =>
     options.some((option) => option.value === selection) ? undefined : "Choose an available region.",
   messages: { missing: "Choose an account.", pending: "Checking regions…", failed: "Unable to load regions. Retry." },
 });
@@ -311,7 +311,7 @@ function useDeployment(listRegions: ChoiceLoader) {
 
 Import `defineChoice`, `defineForm`, `defineSection`, `Choice` and `ChoiceLoader` from `@formulate/react`; `z` is from Zod. The example uses native inputs to keep the control contract separate; [Cloud Deployment](../../examples/react/src/declarations/cloud-deployment.ts) uses the local select adapter. `Deployment.useChoiceForm` merges static prefills like `Deployment.useForm`, shallow-stabilizes an inline services object, and binds the complete definition independently of mounted editors.
 
-`bindChoices` traverses definitions independently of mounted editors. Under `primary`, the rule reads `primary.accountId` and checks `primary.regionId` without a host selector declaring that relationship. Moving or reusing the section carries both connections. For repeated or remapped uses, prefer `Section.bind({ id, bindings })`, then pass that use to `Section.Bind` and call `use.bindChoices({ values, services })`. The host supplies a stable item ID, never an array index. `use.choiceId(localName)` resolves each view ID (for example `resource-123.machineSize`); IDs must be unique within the form. A changed mapped path preserves surviving evidence and refreshes both old and new error paths. The lower-level `bindChoices({ id, values, bindings, services })` remains available.
+`bindChoices` traverses definitions independently of mounted editors. Under `primary`, the rule reads `primary.accountId` and checks `primary.regionId` without a host selector declaring that relationship. Moving or reusing the section carries both connections. For repeated or remapped uses, prefer `Section.bind({ id, bindings })`, then pass the descriptor as `binding` to `Section.Bind` and call `binding.bindChoices({ values, services })`. The host supplies a stable item ID, never an array index. `binding.resolveChoiceId(localName)` resolves each view ID (for example `resource-123.machineSize`); IDs must be unique within the form. A changed mapped path preserves surviving evidence and refreshes both old and new error paths. The lower-level `bindChoices({ id, values, bindings, services })` remains available.
 
 Reusable presentation reads its local view without rebuilding a host ID or importing the rule:
 
@@ -321,26 +321,47 @@ function TargetFields() {
   return <>
     <Target.Field name="accountId" />
     <Target.Field name="regionId" componentProps={{ options: request?.options ?? [] }} />
-    <p role="status">{request?.problem ?? "Ready"}</p>
+    <p role="status">{request?.validationMessage ?? "Ready"}</p>
     {request?.status === "failed" ? <button type="button" onClick={request.retry}>Retry</button> : null}
   </>;
 }
 ```
 
-`useChoice(name)` resolves the nearest declared or explicitly bound section use and returns a typed `{ status, options, problem, revision, retry }` snapshot. It must run below the matching Section/Bind and a choice-aware Form. Default `Fields` rendering still cannot assume that every application control accepts an `options` prop or choose the application's feedback/retry UI.
+`useChoice(name)` resolves the nearest declared or explicitly bound section use and returns a typed `{ status, options, validationMessage, revision, retry }` snapshot. It must run below the matching Section/Bind and a choice-aware Form. Default `Fields` rendering still cannot assume that every application control accepts an `options` prop or choose the application's feedback/retry UI.
 
-The lower-level `choices.get(id, rule)` remains available for coordinators outside a definition use. The rule argument checks the identity of the requested view; a missing or mismatched use returns `undefined`. Views are render snapshots; read again on the next render. The runtime subscribes to evidence changes; use RHF `useWatch` for live selected values.
+For dynamic or repeated bindings, the lower-level hook returns the same augmented form directly:
+
+```tsx
+const getChoiceBindings = useCallback((values: InfrastructureValues) =>
+  values.resources.flatMap((resource, index) =>
+    bindResource(resource.resourceId, index).bindChoices({
+      values,
+      services: { accountId, regionId: values.regionId, listMachineSizes },
+    }),
+  ), [accountId, listMachineSizes]);
+
+const form = useChoiceForm({
+  schema: infrastructureSchema,
+  defaultValues,
+  getChoiceBindings,
+});
+const { choices, getValidationRevision } = form;
+```
+
+This fragment uses the [Infrastructure example's declarations](../../examples/react/src/declarations/infrastructure.ts) inside a component or hook. Import `useCallback` from React and `useChoiceForm` from Formulate. The returned form can go directly into `<Form form={form}>`; choice evidence is installed automatically. Each `BoundChoice` carries a stable `choiceId`, a current `fieldPath`, and a `requestKey`. Moving an item changes its field path without changing its identity or equivalent request.
+
+The lower-level `choices.get(choiceId, rule)` remains available for coordinators outside a definition use. The rule argument checks the identity of the requested view; a missing or mismatched use returns `undefined`. Views are render snapshots; read again on the next render. The runtime subscribes to evidence changes; use RHF `useWatch` for live selected values.
 
 The choice-aware form installs its live form-wide evidence revision in `Form`, invalidating pending actions on retries, service replacement, removal and restoration, even when values or results match a previous attempt. Pass an explicit `getValidationRevision` only to combine choice evidence with another application lifetime. Each attempt’s AbortSignal rejects obsolete success and failure even if a service ignores cancellation; there is no separate generation counter. Replacing one loader cancels only uses of that loader. Selected values are never cleared or copied by the choice runtime; the declaration decides whether a retained value is acceptable.
 
-The resolver captures choice dependencies and selections from **editing input**, parses the schema once, then checks current evidence. It preserves schema issues and adds membership issues at editing paths. Output can rename/remove fields or change their types; it never feeds parsed output back into the dependency selector or overwrites RHF values. Services load outside validation; pending evidence blocks immediately with the declaration's message. `validate` is synchronous and returns a message or `undefined`.
+The resolver captures choice dependencies and selections from **editing input**, parses the schema once, then checks current evidence. It preserves schema issues and adds membership issues at editing paths. Output can rename/remove fields or change their types; it never feeds parsed output back into the dependency selector or overwrites RHF values. Services load outside validation; pending evidence blocks immediately with the declaration's message. `validateSelection` is synchronous and returns a message or `undefined`.
 
 Current restrictions and ownership:
 
 - Opt in with `Definition.useChoiceForm({ services })`. Plain `Definition.useForm()` / `useFormulate()` apply the schema only; choice metadata does not start services implicitly. Use the exported lower-level `useChoiceForm` when dynamic repeated uses must compute their own bindings.
-- Keep definitions and loaders stable. The definition hook shallow-stabilizes unchanged top-level service entries; the lower-level hook still requires a stable `fields` callback. Supply complete editing defaults for every dependency the callback reads. Validate external drafts before `reset`.
-- `null` input means no request and uses `messages.missing` as the blocking requirement. Empty strings, zero and false can otherwise be valid inputs. `key(input)` must encode every dependency relevant to the result; equal keys assert interchangeable input. Keys are per use, not a shared cache.
-- `choices.clear()` disposes evidence; use it immediately before `form.reset(restoredValues)` to start fresh requests even for an identical draft. Ordinary editor unmounts retain evidence; omitting a use from `fields` removes it. No deduplication, caching, debounce or dependency graph is provided.
+- Keep definitions and loaders stable. The definition hook shallow-stabilizes unchanged top-level service entries; the lower-level hook still requires a stable `getChoiceBindings` callback. Supply complete editing defaults for every dependency the callback reads. Validate external drafts before `reset`.
+- `null` input means no request and uses `messages.missing` as the blocking requirement. Empty strings, zero and false can otherwise be valid inputs. `getRequestKey(input)` must encode every dependency relevant to the result; equal keys assert interchangeable input. Keys are per use, not a shared cache.
+- `choices.clearRequests()` aborts requests and discards options without clearing selections or immediately reloading. Use it immediately before `form.reset(restoredValues)` to start fresh requests even for an identical draft. Ordinary editor unmounts retain evidence; omitting a binding from `getChoiceBindings` removes it. No deduplication, caching, debounce or dependency graph is provided.
 - Local selections and dependency types are checked at declaration time; binding and service types are checked at use time. Custom option types need compatible application controls. Arrays, applicability and cross-section context remain explicit host composition.
 - Async schema checks can still finish and write RHF errors after an obsolete action, as described above. Form's revision guard suppresses action callbacks, not arbitrary resolver work.
 
@@ -378,13 +399,13 @@ Children use the same context binding as mapped controls. Layout wrappers work n
 A local shadcn Input can be connected like this:
 
 ```tsx
-import { defineFieldControl, useFieldControl } from "@formulate/react";
+import { defineFieldControl, useFieldBinding } from "@formulate/react";
 import type { InputControlProps } from "@formulate/react";
 import { Input } from "./ui/input";
 
 export const LocalInputControl = defineFieldControl<string>()(
   function LocalInputControl(props: InputControlProps) {
-    const field = useFieldControl<string>();
+    const field = useFieldBinding<string>();
     return (
       <Input {...props} {...field}
         onChange={(event) => field.onChange(event.target.value)} />
@@ -393,7 +414,7 @@ export const LocalInputControl = defineFieldControl<string>()(
 );
 ```
 
-`defineFieldControl` declares the adapter's editing contract for map type checking; it does not wrap the component or create state. `useFieldControl` supplies name, value, value-based `onChange`, `onBlur`, focus ref, ID, disabled state, and accessible attributes. Adapter authors must honour the declared contract. A checkbox maps to `checked` and boolean changes; a picker may map to `onValueChange` and a trigger ref. No per-field render callback is needed.
+`defineFieldControl` declares the adapter's editing contract for map type checking; it does not wrap the component or create state. `useFieldBinding` supplies name, value, value-based `onChange`, `onBlur`, focus ref, ID, disabled state, and accessible attributes. Adapter authors must honour the declared contract. A checkbox maps to `checked` and boolean changes; a picker may map to `onValueChange` and a trigger ref. No per-field render callback is needed.
 
 Definitions and fields with an explicit typed control reject mismatched editing value types. All mapped fields check unknown keys, unsupported props, and missing required props at compile time. TypeScript cannot infer a wrapped child's value contract through arbitrary JSX; that composition path is the adapter author's responsibility. Built-in controls report incompatible runtime values, and controls used outside a Field throw an actionable error. This is not validation of a remotely supplied UI schema.
 

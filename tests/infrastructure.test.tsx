@@ -171,8 +171,8 @@ it("resolves pending correction by durable identity and falls back if that item 
   function StableHarness() {
     flow = useInfrastructure(stable);
     return <Form form={flow.form} onSubmit={() => undefined}>
-      <div ref={flow.collection} tabIndex={-1} role="group" aria-label="Collection">
-        {flow.array.fields.map((item, index) => <Resource.Bind key={item.id} control={flow.form.control}
+      <div ref={flow.resourceListRef} tabIndex={-1} role="group" aria-label="Collection">
+        {flow.resourceArray.fields.map((item, index) => <Resource.Bind key={item.id} control={flow.form.control}
           bindings={{ name: `resources.${index}.name`, machineSize: `resources.${index}.machineSize` }}>
           <Resource.Field name="name" label={`Name ${item.resourceId}`} />
         </Resource.Bind>)}
@@ -180,11 +180,11 @@ it("resolves pending correction by durable identity and falls back if that item 
     </Form>;
   }
   render(<StableHarness />);
-  await act(async () => { flow.correctResource("R1", "name"); flow.array.move(0, 1); });
+  await act(async () => { flow.goToResourceField("R1", "name"); flow.resourceArray.move(0, 1); });
   expect(screen.getByLabelText("Name R1")).toHaveFocus();
   await act(async () => {
-    flow.correctResource("R1", "name"); flow.array.remove(1);
-    flow.array.append({ resourceId: "R3", name: "Replacement", machineSize: "small" }, { shouldFocus: false });
+    flow.goToResourceField("R1", "name"); flow.resourceArray.remove(1);
+    flow.resourceArray.append({ resourceId: "R3", name: "Replacement", machineSize: "small" }, { shouldFocus: false });
   });
   expect(screen.getByRole("group", { name: "Collection" })).toHaveFocus();
   expect(screen.getByLabelText("Name R3")).not.toHaveFocus();

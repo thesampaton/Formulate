@@ -5,8 +5,8 @@ function EmploymentBindings() {
   const transfer = InternalTransfer.useForm();
   const onboardingSetup = EmployeeOnboarding.bindSection("employment");
   const transferSetup = InternalTransfer.bindSection("proposedEmployment");
-  onboardingSetup.focusFirst(onboarding);
-  transferSetup.focusFirst(transfer);
+  onboardingSetup.focusFirstField(onboarding);
+  transferSetup.focusFirstField(transfer);
   // @ts-expect-error An equipment string cannot supply the Employment editing contract.
   EmployeeOnboarding.bindSection("equipment");
   // @ts-expect-error The page cannot guess a path from another host.

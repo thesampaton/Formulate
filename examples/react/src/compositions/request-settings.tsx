@@ -22,7 +22,7 @@ export function RequestSettingsForm({ onSave }: { onSave: (payload: RequestConfi
     ],
   });
   const { page } = navigation;
-  const reviewHeading = useRef<HTMLDivElement>(null);
+  const reviewHeadingRef = useRef<HTMLDivElement>(null);
   const [showAdvanced, retries, timeoutSeconds, endpoint] = useWatch({
     control: form.control,
     name: ["showAdvanced", "retries", "timeoutSeconds", "endpoint"],
@@ -30,22 +30,22 @@ export function RequestSettingsForm({ onSave }: { onSave: (payload: RequestConfi
 
   return (
     <RequestSettings.Form form={form}
-      navigation={page === "review" ? undefined : {
+      scopedAction={page === "review" ? undefined : {
         id: navigation.revision,
-        fields: page === "settings" ? ["showAdvanced", "retries", "timeoutSeconds"] : ["endpoint"],
+        errorPaths: page === "settings" ? ["showAdvanced", "retries", "timeoutSeconds"] : ["endpoint"],
         onValid: () => {
           if (page === "settings") navigation.goToField("endpoint");
-          else navigation.goTo("review", () => reviewHeading.current?.focus());
+          else navigation.goToPage("review", () => reviewHeadingRef.current?.focus());
         },
       }}
       onInvalid={(errors) => {
-        if (!navigation.correct(errors)) form.setError("root.submit", { message: "Review the form errors before continuing." });
+        if (!navigation.goToFirstError(errors)) form.setError("root.submit", { message: "Review the form errors before continuing." });
       }}
       onSubmit={({ retries, timeoutSeconds, endpoint }) => onSave({ configuration: { retries, timeoutSeconds, endpoint } })}>
       <p className="step-indicator" aria-live="polite">
         Step {page === "settings" ? "1" : page === "destination" ? "2" : "3"} of 3 · {page === "settings" ? "Settings" : page === "destination" ? "Destination" : "Review"}
       </p>
-      <Page layout={Stack} id="settings" title="Request settings" active={page === "settings"}>
+      <Page layout={Stack} pageId="settings" title="Request settings" active={page === "settings"}>
         <p>Start with the defaults, or adjust how requests retry and time out.</p>
         <RequestSettings.Field name="showAdvanced" />
         {showAdvanced ? (
@@ -60,7 +60,7 @@ export function RequestSettingsForm({ onSave }: { onSave: (payload: RequestConfi
         ) : null}
         <FormContinueButton>Next: destination</FormContinueButton>
       </Page>
-      <Page layout={Stack} id="destination" title="Request destination" active={page === "destination"}>
+      <Page layout={Stack} pageId="destination" title="Request destination" active={page === "destination"}>
         <p>Choose where requests will go.</p>
         <RequestSettings.Field name="endpoint" />
         <ActionRow>
@@ -68,8 +68,8 @@ export function RequestSettingsForm({ onSave }: { onSave: (payload: RequestConfi
           <FormContinueButton>Review settings</FormContinueButton>
         </ActionRow>
       </Page>
-      <Page layout={Stack} id="review" title="Review settings" active={page === "review"}>
-        <div ref={reviewHeading} tabIndex={-1} role="group" aria-label="Configuration summary" className="review-summary">
+      <Page layout={Stack} pageId="review" title="Review settings" active={page === "review"}>
+        <div ref={reviewHeadingRef} tabIndex={-1} role="group" aria-label="Configuration summary" className="review-summary">
           <p>These values will be used for every request.</p>
           <dl>
             <div><dt>Request URL</dt><dd className="break-all">{endpoint}</dd></div>

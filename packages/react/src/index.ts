@@ -1,16 +1,16 @@
 "use client";
 
 export { Form } from "./form/form.js";
-export type { FormProps, FormNavigationAction, FormScope } from "./form/form.js";
+export type { FormProps, ScopedFormAction, FormScope } from "./form/form.js";
 export { useFormActionStatus } from "./form/form-action-status.js";
 export { useFormNavigation } from "./form/use-form-navigation.js";
-export type { CorrectionDestination, FormNavigationOptions, FormNavigation } from "./form/use-form-navigation.js";
+export type { FieldDestination, FormNavigationOptions, FormNavigation } from "./form/use-form-navigation.js";
 export { Field, createFormulate, defaultComponents, defineForm, defineSection } from "./definitions/create-formulate.js";
 export type { FieldProps, ConfiguredFieldProps, FieldComponentMap } from "./definitions/create-formulate.js";
 export type { FieldPresentationProps } from "./fields/field.js";
 export { InputControl, NumberControl, CheckboxControl, defineFieldControl } from "./fields/controls.js";
 export type { FieldControlComponent, InputControlProps, NumberControlProps, CheckboxControlProps } from "./fields/controls.js";
-export { useFieldControl } from "./fields/field-context.js";
+export { useFieldBinding } from "./fields/field-context.js";
 export type { FieldControlBinding } from "./fields/field-context.js";
 export { Section } from "./presentation/section.js";
 export type { SectionProps } from "./presentation/section.js";
@@ -20,8 +20,8 @@ export { LayoutBody } from "./presentation/layout.js";
 export type { FormLayout, LayoutProps } from "./presentation/layout.js";
 export { useFormulate } from "./form/use-formulate.js";
 export type { FormulateOptions } from "./form/use-formulate.js";
-export type { SectionBindings, CompatibleFieldPath } from "./definitions/definition-scope.js";
-export type { FormDefinition, DefinedForm, DefinedSection, DefinedSubsection, BoundSectionUse, BoundSectionBinding, SectionPresentationProps } from "./definitions/define-form.js";
+export type { SectionPathMap, CompatibleFieldPath } from "./definitions/definition-scope.js";
+export type { FormDefinition, DefinedForm, DefinedSection, BoundSectionUse, BoundSectionBinding, SectionPresentationProps } from "./definitions/define-form.js";
 
 export { defineChoice } from "./choices/definition.js";
 export type { Choice, ChoiceLoader, ChoiceSnapshot, ChoiceView, ChoiceRule, BoundChoice } from "./choices/definition.js";

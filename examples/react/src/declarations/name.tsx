@@ -17,7 +17,7 @@ export const Name = defineSection({
     defaultValue: "", label: "Last name", component: "input",
     componentProps: { autoComplete: "family-name" },
   },
-}, { title: "Name", layout: Row, render: NameFields });
+}, { title: "Name", layout: Row, presentation: NameFields });
 
 function NameFields({ title, layout }: SectionPresentationProps) {
   return <FieldSet>

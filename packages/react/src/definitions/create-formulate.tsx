@@ -32,7 +32,7 @@ export type ControlSelection<Value, Components extends FieldComponentMap> = {
     } & ComponentConfiguration<Components[Key]>
     : never;
 }[keyof Components & string] | {
-  /** Connected control children instead of a component key. Read the field binding with useFieldControl. */
+  /** Connected control children instead of a component key. Read the field binding with useFieldBinding. */
   children: ReactNode;
   component?: never;
   componentProps?: never;
@@ -49,10 +49,18 @@ export function createFormulate<const Components extends FieldComponentMap>({ co
   function Field<Values extends FieldValues, Name extends FieldPath<Values>, Output = Values>(
     { component, componentProps, children, ...props }: ConfiguredFieldProps<Values, Name, Output, Components>,
   ) {
-    if (component === undefined) return <FieldRoot presentation={fieldPresentation} {...props}>{children}</FieldRoot>;
+    if (component === undefined) {
+      return <FieldRoot presentation={fieldPresentation} {...props}>{children}</FieldRoot>;
+    }
     const Component = Object.hasOwn(components, component) ? components[component] : undefined;
-    if (!Component) throw new Error(`Unknown Formulate field component: "${component}".`);
-    return <FieldRoot presentation={fieldPresentation} {...props}>{createElement(Component, componentProps)}</FieldRoot>;
+    if (!Component) {
+      throw new Error(`Unknown Formulate field component: "${component}".`);
+    }
+    return (
+      <FieldRoot presentation={fieldPresentation} {...props}>
+        {createElement(Component, componentProps)}
+      </FieldRoot>
+    );
   }
   return { Field, ...createDefinitionFactories<Components>(Field) };
 }

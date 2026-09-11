@@ -19,31 +19,31 @@ export function EmployeeOnboardingForm({ onSubmit, defaultValues, layout = Stack
     destinations: [{ scope: setup, page: "setup" }, { name: "equipment", page: "equipment" }],
   });
   const equipment = useWatch({ control: form.control, name: "equipment" });
-  const review = useRef<HTMLDivElement>(null);
-  const toSetup = () => navigation.goTo("setup", () => setup.focusFirst(form));
-  const toReview = () => navigation.goTo("review", () => review.current?.focus());
+  const reviewHeadingRef = useRef<HTMLDivElement>(null);
+  const goToEmploymentSetup = () => navigation.goToPage("setup", () => setup.focusFirstField(form));
+  const goToReview = () => navigation.goToPage("review", () => reviewHeadingRef.current?.focus());
 
   return <EmployeeOnboarding.Form aria-label="Employee onboarding" form={form} onSubmit={onSubmit}
     onInvalid={(errors) => {
-      if (!navigation.correct(errors)) form.setError("root.submit", { message: "Review the form errors before continuing." });
+      if (!navigation.goToFirstError(errors)) form.setError("root.submit", { message: "Review the form errors before continuing." });
     }}
-    navigation={navigation.page === "setup" ? { id: navigation.revision, scope: setup, onValid: () => navigation.goTo("equipment", () => form.setFocus("equipment")) }
-      : navigation.page === "equipment" ? { id: navigation.revision, fields: ["equipment"], onValid: toReview } : undefined}>
+    scopedAction={navigation.page === "setup" ? { id: navigation.revision, scope: setup, onValid: () => navigation.goToPage("equipment", () => form.setFocus("equipment")) }
+      : navigation.page === "equipment" ? { id: navigation.revision, errorPaths: ["equipment"], onValid: goToReview } : undefined}>
     <h2>Employee onboarding</h2>
     <setup.Section layout={null}>
-      <EmploymentSetup id="onboarding-setup" active={navigation.page === "setup"} layout={layout} />
+      <EmploymentSetup pageId="onboarding-setup" active={navigation.page === "setup"} layout={layout} />
     </setup.Section>
-    <Page id="onboarding-equipment" title="Equipment" active={navigation.page === "equipment"} layout={Stack}>
+    <Page pageId="onboarding-equipment" title="Equipment" active={navigation.page === "equipment"} layout={Stack}>
       <EmployeeOnboarding.Field name="equipment" />
-      <ActionRow><FormNavigationButton onClick={toSetup}>Back</FormNavigationButton><FormContinueButton>Continue</FormContinueButton></ActionRow>
+      <ActionRow><FormNavigationButton onClick={goToEmploymentSetup}>Back</FormNavigationButton><FormContinueButton>Continue</FormContinueButton></ActionRow>
     </Page>
-    <Page id="onboarding-review" title="Review onboarding" active={navigation.page === "review"} layout={Stack}>
-      <div ref={review} tabIndex={-1} role="group" aria-label="Onboarding summary">
+    <Page pageId="onboarding-review" title="Review onboarding" active={navigation.page === "review"} layout={Stack}>
+      <div ref={reviewHeadingRef} tabIndex={-1} role="group" aria-label="Onboarding summary">
         <setup.Section layout={null}><EmploymentSummary /></setup.Section>
         <p>Equipment: {equipment}</p>
       </div>
       <ActionRow>
-        <FormNavigationButton onClick={toSetup}>Edit employment</FormNavigationButton>
+        <FormNavigationButton onClick={goToEmploymentSetup}>Edit employment</FormNavigationButton>
         <FormNavigationButton onClick={() => navigation.goToField("equipment")}>Edit equipment</FormNavigationButton>
         <FormSubmitButton>Request onboarding</FormSubmitButton>
       </ActionRow>

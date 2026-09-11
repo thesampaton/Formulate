@@ -5,17 +5,17 @@ import { get } from "react-hook-form";
 import type { FieldErrors, FieldPath, FieldValues, UseFormReturn } from "react-hook-form";
 import type { FormScope } from "./form.js";
 
-type DestinationTarget<Values extends FieldValues> = {
+type FieldDestinationTarget<Values extends FieldValues> = {
   /** Explicit RHF path of the editor to focus. */
   name: FieldPath<Values>;
   scope?: never;
 } | {
-  /** Validation and correction paths from a bound or composed reusable unit. */
+  /** Error and focus paths from a bound or composed reusable unit. */
   scope: FormScope<Values>;
   name?: never;
 };
 
-export type CorrectionDestination<Values extends FieldValues, Page extends string> = DestinationTarget<Values> & {
+export type FieldDestination<Values extends FieldValues, Page extends string> = FieldDestinationTarget<Values> & {
   /** Host-owned page that renders this editor. */
   page: Page;
   /** Synchronously reveal the editor before React commits navigation and focus. */
@@ -23,60 +23,69 @@ export type CorrectionDestination<Values extends FieldValues, Page extends strin
 };
 
 export type FormNavigationOptions<Values extends FieldValues, Page extends string> = {
-  /** The existing form runtime; navigation creates no value store. Set shouldFocusError: false when coordinating correction. */
+  /** The existing form runtime. Set shouldFocusError: false when navigation coordinates error focus. */
   form: Pick<UseFormReturn<Values>, "setFocus">;
   /** Initial location for this mounted hook. Later prop changes do not navigate. */
   initialPage: Page;
-  /** Static correction destinations, independent of mounted editors and validation scope. */
-  destinations: readonly CorrectionDestination<Values, Page>[];
+  /** Ordered field destinations, independent of mounted editors and the current action scope. */
+  destinations: readonly FieldDestination<Values, Page>[];
 };
 
 export type FormNavigation<Values extends FieldValues, Page extends string> = {
   /** Current host-owned page. Pass comparisons to Page.active. */
   page: Page;
-  /** Changes on every navigation, including same-page visits. Use as Form navigation.id to invalidate older checks. */
+  /** Changes on every navigation, including same-page visits. Use as Form scopedAction.id to invalidate older checks. */
   revision: number;
   /** Navigate freely and replace any pending focus request. Optional focus runs once after the destination commits. */
-  goTo: (page: Page, focus?: () => void) => void;
-  /** Reveal and focus a mapped editor, for example from a review edit link. Returns false if the path is unmapped. */
-  goToField: (name: FieldPath<Values>) => boolean;
-  /** Correct the first mapped error in destination order. Returns false for unmapped errors; the host owns fallback feedback. */
-  correct: (errors: FieldErrors<Values>) => boolean;
+  goToPage: (page: Page, focusAfterCommit?: () => void) => void;
+  /** Reveal a mapped editor and request focus after navigation commits. Returns false if the path is unmapped. */
+  goToField: (fieldPath: FieldPath<Values>) => boolean;
+  /** Request navigation to the first error in destination/focus-path order. Returns false if none is mapped; true does not guarantee focus. */
+  goToFirstError: (errors: FieldErrors<Values>) => boolean;
 };
 
-/** Page location and correction focus only. The host defines actions; this is not a workflow graph. */
+/** Coordinates page location and editor focus. The host defines actions and their destinations. */
 export function useFormNavigation<Values extends FieldValues, Page extends string>({
-  form, initialPage, destinations,
+  form,
+  initialPage,
+  destinations,
 }: FormNavigationOptions<Values, Page>): FormNavigation<Values, Page> {
-  const sequence = useRef(0);
-  const focused = useRef(0);
-  const [location, setLocation] = useState<{ page: Page; revision: number; focus?: () => void }>({
-    page: initialPage, revision: 0,
+  const nextNavigationRevision = useRef(0);
+  const focusedRevision = useRef(0);
+  const [navigationState, setNavigationState] = useState<{
+    page: Page;
+    revision: number;
+    focusAfterCommit?: () => void;
+  }>({
+    page: initialPage,
+    revision: 0,
   });
 
   /** Navigate freely, replacing any pending focus request. Focus runs after the destination commits. */
-  function goTo(page: Page, focus?: () => void) {
-    setLocation({ page, revision: ++sequence.current, focus });
+  function goToPage(page: Page, focusAfterCommit?: () => void) {
+    setNavigationState({ page, revision: ++nextNavigationRevision.current, focusAfterCommit });
   }
 
-  function destinationFields(destination: CorrectionDestination<Values, Page>) {
-    return destination.scope ? destination.scope.correction ?? destination.scope.fields : [destination.name];
+  function getDestinationFocusPaths(destination: FieldDestination<Values, Page>) {
+    return destination.scope
+      ? destination.scope.focusPaths ?? destination.scope.errorPaths
+      : [destination.name];
   }
 
   /** Open a mapped editor, including disclosure. Useful for edit links on a review page. */
-  function goToField(name: FieldPath<Values>): boolean {
-    const destination = destinations.find((candidate) => destinationFields(candidate).includes(name));
+  function goToField(fieldPath: FieldPath<Values>): boolean {
+    const destination = destinations.find((candidate) => getDestinationFocusPaths(candidate).includes(fieldPath));
     if (!destination) return false;
     destination.reveal?.();
-    goTo(destination.page, () => form.setFocus(name));
+    goToPage(destination.page, () => form.setFocus(fieldPath));
     return true;
   }
 
   /** Reveal and focus the first mapped error. Returns false for unmapped/form-level errors so the host can provide a fallback. */
-  function correct(errors: FieldErrors<Values>): boolean {
+  function goToFirstError(errors: FieldErrors<Values>): boolean {
     for (const destination of destinations) {
-      const name = destinationFields(destination).find((candidate) => get(errors, candidate));
-      if (name) return goToField(name);
+      const errorPath = getDestinationFocusPaths(destination).find((fieldPath) => get(errors, fieldPath));
+      if (errorPath) return goToField(errorPath);
     }
     return false;
   }
@@ -84,17 +93,16 @@ export function useFormNavigation<Values extends FieldValues, Page extends strin
   // Focus needs the editor's committed ref. Consuming each request once also
   // prevents unrelated rerenders and Strict Mode effect replay from stealing focus.
   useEffect(() => {
-    if (focused.current === location.revision) return;
-    focused.current = location.revision;
-    location.focus?.();
-  }, [location]);
+    if (focusedRevision.current === navigationState.revision) return;
+    focusedRevision.current = navigationState.revision;
+    navigationState.focusAfterCommit?.();
+  }, [navigationState]);
 
   return {
-    page: location.page,
-    /** Changes on every navigation, even to the same page. Use as Form navigation.id to invalidate older checks. */
-    revision: location.revision,
-    goTo,
+    page: navigationState.page,
+    revision: navigationState.revision,
+    goToPage,
     goToField,
-    correct,
+    goToFirstError,
   };
 }

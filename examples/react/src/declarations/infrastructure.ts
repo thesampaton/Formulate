@@ -5,12 +5,15 @@ import { defineChoice } from "@formulate/react";
 import type { Choice, ChoiceLoader } from "@formulate/react";
 
 export const machineSizeChoices = defineChoice({
-  input: (_resource: { machineSize: string }, context: { accountId: string; regionId: string; listMachineSizes: ChoiceLoader }) =>
+  getInput: (_resource: { machineSize: string }, context: { accountId: string; regionId: string; listMachineSizes: ChoiceLoader }) =>
     context.regionId ? JSON.stringify([context.accountId, context.regionId]) : null,
-  key: (input: string) => input,
-  loader: (context: { accountId: string; regionId: string; listMachineSizes: ChoiceLoader }) => context.listMachineSizes,
-  validate: (selection: string, options: readonly Choice[]) => !selection ? "Choose an available option."
-    : options.some((option) => option.value === selection) ? undefined : "The retained choice is unavailable. Choose another option.",
+  getRequestKey: (input: string) => input,
+  getLoader: (context: { accountId: string; regionId: string; listMachineSizes: ChoiceLoader }) => context.listMachineSizes,
+  validateSelection: (selection: string, options: readonly Choice[]) => {
+    if (!selection) return "Choose an available option.";
+    const isAvailable = options.some((option) => option.value === selection);
+    return isAvailable ? undefined : "The retained choice is unavailable. Choose another option.";
+  },
   messages: { missing: "Choose a region first.", pending: "Checking available choices…", failed: "Choices could not be loaded. Retry to continue." },
 });
 

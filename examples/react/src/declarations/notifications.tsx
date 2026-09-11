@@ -15,7 +15,7 @@ export const Notifications = defineSection({
     description: "Demo format: + followed by 8 to 15 digits.", componentProps: { type: "tel", autoComplete: "tel", placeholder: "+61412345678" },
   },
 }, {
-  title: "Notifications", layout: Stack, render: NotificationFields,
+  title: "Notifications", layout: Stack, presentation: NotificationFields,
   schema: (schema) => schema.superRefine(({ channel, phone }, context) => {
     if (channel === "sms" && !/^\+[1-9]\d{7,14}$/.test(phone)) {
       context.addIssue({ code: "custom", path: ["phone"], message: "Enter a mobile number for SMS, starting with +." });

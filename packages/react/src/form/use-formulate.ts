@@ -11,17 +11,17 @@ export type FormulateOptions<Input extends FieldValues, Output extends FieldValu
 
 /** Validation lives at the form boundary, even when an editor unmounts. */
 export function useFormulate<Input extends FieldValues, Output extends FieldValues = Input>(
-  source: z.ZodType<Output, Input> | FormDefinition<Input, Output>,
+  schemaOrDefinition: z.ZodType<Output, Input> | FormDefinition<Input, Output>,
   options: FormulateOptions<NoInfer<Input>, NoInfer<Output>> = {},
 ) {
-  const definition = "schema" in source ? source : undefined;
-  const schema = definition ? definition.schema : source as z.ZodType<Output, Input>;
-  const { defaultValues: overrides, ...formOptions } = options;
+  const definition = "schema" in schemaOrDefinition ? schemaOrDefinition : undefined;
+  const schema = definition ? definition.schema : schemaOrDefinition as z.ZodType<Output, Input>;
+  const { defaultValues: defaultValueOverrides, ...formOptions } = options;
   // Merge static prefills by field, not by nested property. Structured editing
   // values stay atomic; schema-first and async RHF defaults keep their semantics.
-  const defaultValues = definition && typeof overrides !== "function"
-    ? { ...definition.defaultValues, ...overrides } as DefaultValues<Input>
-    : overrides;
+  const defaultValues = definition && typeof defaultValueOverrides !== "function"
+    ? { ...definition.defaultValues, ...defaultValueOverrides } as DefaultValues<Input>
+    : defaultValueOverrides;
   return useForm<Input, unknown, Output>({
     mode: "onBlur",
     ...formOptions,

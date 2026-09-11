@@ -12,7 +12,7 @@ it("keeps schema validation alive on a hidden page and parses without rewriting 
     const form = useFormulate(schema, { defaultValues: { contact: { email: "" } } });
     const [editing, setEditing] = useState(true);
     return <Form form={form} onSubmit={onSubmit} onInvalid={() => setEditing(true)}>
-      <Page id="details" title="Details" active={editing}>
+      <Page pageId="details" title="Details" active={editing}>
         <Section title="Contact"><Section title="Email details">
           <Field control={form.control} name="contact.email" label="Contact email" component="input" />
         </Section></Section>
@@ -51,7 +51,7 @@ it("preserves a page's React and DOM state while pausing its effects", async () 
     const [active, setActive] = useState(true);
     return <>
       <button onClick={() => setActive(!active)}>Switch page</button>
-      <Page id="editor" title="Editor" active={active}><Editor /></Page>
+      <Page pageId="editor" title="Editor" active={active}><Editor /></Page>
     </>;
   }
   const user = userEvent.setup();
@@ -76,10 +76,10 @@ it("retains uncontrolled RHF inputs through scoped Actions and final success", a
   function Example() {
     const form = useFormulate(schema, { defaultValues: { value: "" } });
     const [review, setReview] = useState(false);
-    return <Form form={form} onSubmit={save} navigation={review ? undefined : {
-      id: "edit", fields: ["value"], onValid: () => setReview(true),
+    return <Form form={form} onSubmit={save} scopedAction={review ? undefined : {
+      id: "edit", errorPaths: ["value"], onValid: () => setReview(true),
     }}>
-      <Page id="edit" title="Edit" active={!review}>
+      <Page pageId="edit" title="Edit" active={!review}>
         <input aria-label="Uncontrolled value" {...form.register("value")} />
       </Page>
       <button type="submit">{review ? "Save" : "Continue"}</button>

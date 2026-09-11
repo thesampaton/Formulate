@@ -3,10 +3,10 @@ import type { ChoiceLoader } from "@formulate/react";
 import { z } from "zod";
 
 const rule = defineChoice({
-  input: (values: { account: string }) => values.account || null,
-  key: (input: string) => input,
-  loader: (services: { load: ChoiceLoader<string, number> }) => services.load,
-  validate: (selection: number, options: readonly number[]) => options.includes(selection) ? undefined : "Unavailable",
+  getInput: (values: { account: string }) => values.account || null,
+  getRequestKey: (input: string) => input,
+  getLoader: (services: { load: ChoiceLoader<string, number> }) => services.load,
+  validateSelection: (selection: number, options: readonly number[]) => options.includes(selection) ? undefined : "Unavailable",
   messages: { missing: "Missing", pending: "Pending", failed: "Failed" },
 });
 const section = defineSection({
@@ -29,10 +29,10 @@ root.bindChoices({ values: root.defaultValues, services: { load: async () => ["w
 section.bindChoices({ values: { a: "", b: 1 }, services: { load }, bindings: { account: "a", selection: "b" } });
 const bound = section.bind<{ a: string; b: number }>({ id: "bound", bindings: { account: "a", selection: "b" } });
 bound.bindChoices({ values: { a: "", b: 1 }, services: { load } });
-bound.field("selection");
-bound.choiceId("selection");
+bound.resolveFieldPath("selection");
+bound.resolveChoiceId("selection");
 // @ts-expect-error Bound uses keep their local field names.
-bound.field("missing");
+bound.resolveFieldPath("missing");
 // @ts-expect-error Bound uses keep their required service contract.
 bound.bindChoices({ values: { a: "", b: 1 }, services: {} });
 // @ts-expect-error Binding a numeric selection to a string editing path is incompatible.

@@ -172,9 +172,9 @@
           "target": "@lib/formulate-config.ts"
         },
         {
-          "path": "examples/react/src/components/formulate/form-pending-fields.tsx",
+          "path": "examples/react/src/components/formulate/form-action-fieldset.tsx",
           "type": "registry:component",
-          "target": "@components/formulate/form-pending-fields.tsx"
+          "target": "@components/formulate/form-action-fieldset.tsx"
         }
       ],
       "categories": [

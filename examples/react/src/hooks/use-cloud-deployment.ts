@@ -16,38 +16,52 @@ export function useCloudDeployment({ listRegions, defaultValues }: CloudFormProp
   const form = CloudDeployment.useChoiceForm({ services: { listRegions }, defaultValues });
   const values = useWatch({ control: form.control });
   const [notice, setNotice] = useState("");
-  const review = useRef<HTMLDivElement>(null);
-  const targetsHeading = useRef<HTMLDivElement>(null);
+  const reviewHeadingRef = useRef<HTMLDivElement>(null);
+  const targetsHeadingRef = useRef<HTMLDivElement>(null);
   const primary = CloudDeployment.bindSection("primary");
   const recovery = CloudDeployment.bindSection("recovery");
-  const targets = {
-    fields: ["environment", ...primary.fields, ...recovery.fields],
-    correction: ["environment", ...primary.correction, ...recovery.correction],
+  const targetScope = {
+    errorPaths: ["environment", ...primary.errorPaths, ...recovery.errorPaths],
+    focusPaths: ["environment", ...primary.focusPaths, ...recovery.focusPaths],
   } as const;
   const navigation = useFormNavigation<CloudValues, CloudPage>({
     form, initialPage: "targets",
     destinations: [
-      { scope: targets, page: "targets" },
+      { scope: targetScope, page: "targets" },
       { name: "production", page: "production" },
     ],
   });
 
-  function goTo(requested: CloudPage) {
+  function goToPage(requestedPage: CloudPage) {
     setNotice("");
-    const page = requested === "production" && form.getValues("environment") !== "production" ? "targets" : requested;
-    navigation.goTo(page, page === "review" ? () => review.current?.focus() : page === "targets" ? () => targetsHeading.current?.focus() : () => form.setFocus("production"));
+    const requiresProduction = form.getValues("environment") === "production";
+    const page = requestedPage === "production" && !requiresProduction ? "targets" : requestedPage;
+    navigation.goToPage(page, () => {
+      if (page === "review") {
+        reviewHeadingRef.current?.focus();
+      } else if (page === "targets") {
+        targetsHeadingRef.current?.focus();
+      } else {
+        form.setFocus("production");
+      }
+    });
   }
   useEffect(() => {
     if (navigation.page === "production" && values.environment !== "production") {
       setNotice("Production is no longer required. Your draft is retained; continue from Targets.");
-      navigation.goTo("targets", () => form.setFocus("environment"));
-    } else if (values.environment === "production") setNotice("");
+      navigation.goToPage("targets", () => form.setFocus("environment"));
+    } else if (values.environment === "production") {
+      setNotice("");
+    }
   }, [navigation.page, values.environment]);
 
-  const step = navigation.page === "review" ? undefined : {
+  const scopedAction = navigation.page === "review" ? undefined : {
     id: navigation.revision,
-    ...(navigation.page === "targets" ? { scope: targets } : { fields: ["production"] as const }),
-    onValid: () => goTo(navigation.page === "targets" && form.getValues("environment") === "production" ? "production" : "review"),
+    ...(navigation.page === "targets" ? { scope: targetScope } : { errorPaths: ["production"] as const }),
+    onValid: () => {
+      const requiresProduction = navigation.page === "targets" && form.getValues("environment") === "production";
+      goToPage(requiresProduction ? "production" : "review");
+    },
   };
-  return { form, values, navigation, goTo, notice, review, targetsHeading, primary, recovery, step };
+  return { form, values, navigation, goToPage, notice, reviewHeadingRef, targetsHeadingRef, primary, recovery, scopedAction };
 }

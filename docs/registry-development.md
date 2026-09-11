@@ -86,7 +86,7 @@ Declare imported npm packages in `dependencies`, and installed source requiremen
 Install `@formulate/navigation` alongside the form declarations and controls. Its components compose within the owning Form:
 
 ```tsx
-<FormTabs pages={tabs} value={navigation.page} onValueChange={navigation.goTo}
+<FormTabs pages={tabs} value={navigation.page} onValueChange={navigation.goToPage}
   onNavigate={navigateToPage} label="Profile pages" pageLayout={FormStepLayout}>
   <FormTabPage value="profile" title="Your details">
     <Profile.Fields />
@@ -98,7 +98,7 @@ Install `@formulate/navigation` alongside the form declarations and controls. It
 </FormTabs>
 ```
 
-This fragment assumes the enclosing Form supplies `navigation` with the current scope and next destination. Continue submits that scoped action; FormSubmitButton submits the final action when no scope is supplied. Back/Edit never submits. All action buttons and tab triggers read the owning Form's pending state. FormPendingFields can disable the editors for the same period. Tabs use manual keyboard activation: arrows focus a trigger, Enter or Space selects it.
+This fragment assumes the enclosing Form supplies `scopedAction` with the current scope and next destination. Continue submits that scoped action; FormSubmitButton submits the final action when no scope is supplied. Back/Edit never submits. All action buttons and tab triggers read the owning Form's pending state. FormActionFieldset can disable the editors for the same period. Tabs use manual keyboard activation: arrows focus a trigger, Enter or Space selects it.
 
 The caller owns the selected page and supplies status values. [The multi-page-form scenario](03-scenarios/multi-page-form.md) shows the complete composition, synchronous completion rules and shared editing state. Active panels mount their editors in the same navigation commit so correction focus reaches the new field; inactive shadcn panel shells preserve ARIA relationships without keeping editors mounted.
 
@@ -106,4 +106,4 @@ FormTabPage combines a tab panel and a semantic Page, inheriting `pageLayout` fr
 
 FormReviewActions derives Edit links to the other available pages and supplies the final submit button. `onValueChange` handles tab selection; `onNavigate` handles Back/Edit and can additionally focus a destination editor. It defaults to `onValueChange`. Disabled pages are excluded from these actions. Validation scopes and Continue destinations remain the enclosing Form's responsibility, so a layout never becomes another value or workflow owner.
 
-ActionRow lives with layouts; FormReviewActions and FormPageActions live in `form-page-actions.tsx`. FormPendingFields lives in `form-pending-fields.tsx` and is distributed by the shadcn bindings item. Registry items carry standard category tags, and the example source browser identifies their actual item names.
+ActionRow lives with layouts; FormReviewActions and FormPageActions live in `form-page-actions.tsx`. FormActionFieldset lives in `form-action-fieldset.tsx` and is distributed by the shadcn bindings item. Registry items carry standard category tags, and the example source browser identifies their actual item names.

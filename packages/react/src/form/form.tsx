@@ -10,27 +10,27 @@ import type { ChoiceController, ChoiceRuntimeContextValue } from "../choices/con
 import { LayoutBody } from "../presentation/layout.js";
 import type { LayoutProps } from "../presentation/layout.js";
 
-export type FormNavigationAction<Input extends FieldValues> = {
+export type ScopedFormAction<Input extends FieldValues> = {
   /** Identity of this page visit/action. Change it to cancel a previous check; use useFormNavigation().revision. */
   id: string | number;
   /** Runs after this scope passes. Receives no payload: scoped validity does not prove the whole form's parsed output. */
   onValid: () => Promise<void> | void;
 } & ({
   /** Only errors at these RHF paths gate this action. The resolver still evaluates the form schema. */
-  fields: readonly FieldPath<Input>[];
+  errorPaths: readonly FieldPath<Input>[];
   scope?: never;
 } | {
   /** A reusable unit's bound error-path scope. The resolver still evaluates the form schema. */
   scope: FormScope<Input>;
-  fields?: never;
+  errorPaths?: never;
 });
 
-/** Error paths for a scoped action, with an optional ordered editor map for correction. */
+/** Error paths that gate an action, with optional ordered editor paths for error navigation. */
 export type FormScope<Input extends FieldValues> = {
   /** Error paths that gate the action. Object paths include their descendants. */
-  readonly fields: readonly FieldPath<Input>[];
-  /** Ordered focusable editor paths for correction; defaults to fields. */
-  readonly correction?: readonly FieldPath<Input>[];
+  readonly errorPaths: readonly FieldPath<Input>[];
+  /** Ordered focusable editor paths; defaults to errorPaths when omitted. */
+  readonly focusPaths?: readonly FieldPath<Input>[];
 };
 
 export type FormProps<Input extends FieldValues, Output extends FieldValues = Input> =
@@ -38,115 +38,148 @@ export type FormProps<Input extends FieldValues, Output extends FieldValues = In
     form: UseFormReturn<Input, unknown, Output>;
     onSubmit: SubmitHandler<Output>;
     onInvalid?: SubmitErrorHandler<Input>;
-    /** When present, submit/Enter checks this navigation scope instead of invoking the final onSubmit handler. */
-    navigation?: FormNavigationAction<Input>;
+    /** When present, submit/Enter checks this scope and calls onValid instead of the final onSubmit handler. */
+    scopedAction?: ScopedFormAction<Input>;
     /** Read a stable revision of additional external validation evidence. Choice-aware form runtimes
      * install theirs automatically. A changed live revision cancels callbacks from a pending check. */
     getValidationRevision?: () => string | number;
-    submissionErrorMessage?: string;
+    /** Feedback for a thrown validation check or action callback, including final submission. */
+    actionErrorMessage?: string;
   };
 
 export function Form<Input extends FieldValues, Output extends FieldValues = Input>({
   form,
   onSubmit,
   onInvalid,
-  navigation,
+  scopedAction,
   getValidationRevision,
-  submissionErrorMessage = "Unable to submit. Please try again.",
+  actionErrorMessage = "Unable to complete this action. Please try again.",
   children,
   layout,
   ...props
 }: FormProps<Input, Output>) {
-  const installedValidationRevision = (form as typeof form & {
+  const getInstalledValidationRevision = (form as typeof form & {
     getValidationRevision?: () => string | number;
   }).getValidationRevision;
   const installedChoices = (form as typeof form & { choices?: ChoiceController }).choices;
-  const resolvedValidationRevision = getValidationRevision ?? installedValidationRevision;
-  const choiceRuntime = useMemo(() => installedChoices ? {
-    control: form.control,
-    choices: installedChoices,
-  } as ChoiceRuntimeContextValue : null, [form.control, installedChoices]);
-  const pending = useRef(false);
+  const readValidationRevision = getValidationRevision ?? getInstalledValidationRevision;
+  const choiceRuntime = useMemo(() => {
+    if (!installedChoices) return null;
+    return {
+      control: form.control,
+      choices: installedChoices,
+    } as ChoiceRuntimeContextValue;
+  }, [form.control, installedChoices]);
+  const isActionInFlight = useRef(false);
   const [isPending, startTransition] = useTransition();
-  const epoch = useRef(0);
-  const live = useRef(false);
-  const subscription = useRef<(() => void) | undefined>(undefined);
-  const validationSource = useRef(resolvedValidationRevision);
-  useEffect(() => { validationSource.current = resolvedValidationRevision; }, [resolvedValidationRevision]);
+  const actionGeneration = useRef(0);
+  const isActionContextActive = useRef(false);
+  const valueSubscriptionCleanup = useRef<(() => void) | undefined>(undefined);
+  const validationRevisionReader = useRef(readValidationRevision);
+  useEffect(() => {
+    validationRevisionReader.current = readValidationRevision;
+  }, [readValidationRevision]);
   const { errors } = form.formState;
-  const navigationFields = navigation ? (navigation.scope?.fields ?? navigation.fields) : undefined;
-  const scopeKey = JSON.stringify(navigation ? { fields: navigationFields, correction: navigation.scope?.correction } : undefined);
+  const actionErrorPaths = scopedAction
+    ? scopedAction.scope?.errorPaths ?? scopedAction.errorPaths
+    : undefined;
+  const scopeKey = JSON.stringify(scopedAction ? {
+    errorPaths: actionErrorPaths,
+    focusPaths: scopedAction.scope?.focusPaths,
+  } : undefined);
 
   useEffect(() => {
-    live.current = true;
+    isActionContextActive.current = true;
     return () => {
-      live.current = false;
-      epoch.current++;
-      subscription.current?.();
+      isActionContextActive.current = false;
+      actionGeneration.current++;
+      valueSubscriptionCleanup.current?.();
     };
-  }, [form.control, navigation?.id, scopeKey]);
+  }, [form.control, scopedAction?.id, scopeKey]);
 
   // React requires a new transition for state updates made after an awaited check.
-  // Keep rejection in submit's error handler while awaiting the callback.
-  function continueAction(callback: () => unknown) {
-    return new Promise<void>((resolve, reject) => startTransition(async () => {
-      try { await callback(); resolve(); } catch (error) { reject(error); }
-    }));
+  // Keep rejected callbacks in the form action's error handler.
+  function runActionCallback(callback: () => unknown) {
+    return new Promise<void>((resolve, reject) => {
+      startTransition(async () => {
+        try {
+          await callback();
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
+      });
+    });
   }
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  async function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // Close the gap before React renders pending state, including async validation.
-    if (pending.current) return;
-    pending.current = true;
-    const attempt = epoch.current;
-    const validationRevision = validationSource.current?.();
-    let changed = false;
-    let handlerStarted = false;
-    const current = () => live.current && epoch.current === attempt && !changed &&
-      Object.is(validationRevision, validationSource.current?.());
-    const unsubscribe = form.subscribe({ formState: { values: true }, callback: () => { changed = true; } });
-    subscription.current = unsubscribe;
+    // Block duplicate actions before React renders pending state, including during async validation.
+    if (isActionInFlight.current) return;
+    isActionInFlight.current = true;
+    const attemptGeneration = actionGeneration.current;
+    const capturedValidationRevision = validationRevisionReader.current?.();
+    let valuesChanged = false;
+    let hasStartedSuccessHandler = false;
+    const isActionContextCurrent = () =>
+      isActionContextActive.current && actionGeneration.current === attemptGeneration;
+    const isAttemptCurrent = () =>
+      isActionContextCurrent() &&
+      !valuesChanged &&
+      Object.is(capturedValidationRevision, validationRevisionReader.current?.());
+    const unsubscribeFromValues = form.subscribe({
+      formState: { values: true },
+      callback: () => { valuesChanged = true; },
+    });
+    valueSubscriptionCleanup.current = unsubscribeFromValues;
     form.clearErrors("root.submit");
     try {
-      if (navigation) {
-        const fields = [...navigationFields!];
-        const valid = fields.length === 0 || await form.trigger(fields, { shouldFocus: false });
-        if (!current()) return;
-        if (valid) {
-          handlerStarted = true;
-          await continueAction(navigation.onValid);
-        }
-        else {
+      if (scopedAction) {
+        const errorPaths = [...actionErrorPaths!];
+        const isScopeValid = errorPaths.length === 0 || await form.trigger(errorPaths, { shouldFocus: false });
+        if (!isAttemptCurrent()) return;
+        if (isScopeValid) {
+          hasStartedSuccessHandler = true;
+          await runActionCallback(scopedAction.onValid);
+        } else {
           const scopedErrors: FieldErrors<Input> = {};
-          for (const name of fields) {
-            const error = form.getFieldState(name).error;
-            if (error) set(scopedErrors, name, error);
+          for (const errorPath of errorPaths) {
+            const error = form.getFieldState(errorPath).error;
+            if (error) set(scopedErrors, errorPath, error);
           }
-          if (onInvalid) await continueAction(() => onInvalid(scopedErrors, event));
-          else {
-            const first = fields.find((name) => form.getFieldState(name).invalid);
-            if (first) form.setFocus(first);
+          if (onInvalid) {
+            await runActionCallback(() => onInvalid(scopedErrors, event));
+          } else {
+            const firstInvalidPath = errorPaths.find((errorPath) => form.getFieldState(errorPath).invalid);
+            if (firstInvalidPath) form.setFocus(firstInvalidPath);
           }
         }
       } else {
         await form.handleSubmit(
           async (values) => {
-            if (!current()) return;
-            handlerStarted = true;
-            await continueAction(() => onSubmit(values, event));
+            if (!isAttemptCurrent()) return;
+            hasStartedSuccessHandler = true;
+            await runActionCallback(() => onSubmit(values, event));
           },
-          async (invalid) => { if (current() && onInvalid) await continueAction(() => onInvalid(invalid, event)); },
+          async (validationErrors) => {
+            if (isAttemptCurrent() && onInvalid) {
+              await runActionCallback(() => onInvalid(validationErrors, event));
+            }
+          },
         )(event);
       }
     } catch {
-      if (handlerStarted ? live.current && epoch.current === attempt : current()) {
-        form.setError("root.submit", { type: "submission", message: submissionErrorMessage });
+      // A started handler may intentionally edit values; its failure still belongs to this action context.
+      const canReportFailure = hasStartedSuccessHandler ? isActionContextCurrent() : isAttemptCurrent();
+      if (canReportFailure) {
+        form.setError("root.submit", { type: "submission", message: actionErrorMessage });
       }
     } finally {
-      unsubscribe();
-      if (subscription.current === unsubscribe) subscription.current = undefined;
-      pending.current = false;
+      unsubscribeFromValues();
+      if (valueSubscriptionCleanup.current === unsubscribeFromValues) {
+        valueSubscriptionCleanup.current = undefined;
+      }
+      isActionInFlight.current = false;
     }
   }
 
@@ -154,7 +187,13 @@ export function Form<Input extends FieldValues, Output extends FieldValues = Inp
     <ChoiceRuntimeContext value={choiceRuntime}>
       <FormProvider {...form}>
         <FormActionStatusContext value={{ isPending }}>
-          <form {...props} noValidate onSubmit={(event) => startTransition(() => submit(event))} aria-busy={isPending} data-formulate="form">
+          <form
+            {...props}
+            noValidate
+            onSubmit={(event) => startTransition(() => handleFormSubmit(event))}
+            aria-busy={isPending}
+            data-formulate="form"
+          >
             <LayoutBody layout={layout}>{children}</LayoutBody>
             {errors.root?.submit?.message ? (
               <p role="alert" data-formulate="submission-error">{errors.root.submit.message}</p>

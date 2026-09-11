@@ -16,23 +16,23 @@ export function InternalTransferForm({ onSubmit, defaultValues, layout = Row }: 
   const navigation = useFormNavigation<InternalTransferValues, "setup" | "review">({
     form, initialPage: "setup", destinations: [{ scope: setup, page: "setup" }],
   });
-  const review = useRef<HTMLDivElement>(null);
+  const reviewHeadingRef = useRef<HTMLDivElement>(null);
 
   return <InternalTransfer.Form aria-label="Internal transfer" form={form} onSubmit={onSubmit}
     onInvalid={(errors) => {
-      if (!navigation.correct(errors)) form.setError("root.submit", { message: "Review the form errors before continuing." });
+      if (!navigation.goToFirstError(errors)) form.setError("root.submit", { message: "Review the form errors before continuing." });
     }}
-    navigation={navigation.page === "setup" ? { id: navigation.revision, scope: setup, onValid: () => navigation.goTo("review", () => review.current?.focus()) } : undefined}>
+    scopedAction={navigation.page === "setup" ? { id: navigation.revision, scope: setup, onValid: () => navigation.goToPage("review", () => reviewHeadingRef.current?.focus()) } : undefined}>
     <h2>Internal transfer</h2>
     <setup.Section layout={null}>
-      <EmploymentSetup id="transfer-setup" active={navigation.page === "setup"} layout={layout} />
+      <EmploymentSetup pageId="transfer-setup" active={navigation.page === "setup"} layout={layout} />
     </setup.Section>
-    <Page id="transfer-review" title="Review transfer" active={navigation.page === "review"} layout={Stack}>
-      <div ref={review} tabIndex={-1} role="group" aria-label="Transfer summary">
+    <Page pageId="transfer-review" title="Review transfer" active={navigation.page === "review"} layout={Stack}>
+      <div ref={reviewHeadingRef} tabIndex={-1} role="group" aria-label="Transfer summary">
         <setup.Section layout={null}><EmploymentSummary /></setup.Section>
       </div>
       <ActionRow>
-        <FormNavigationButton onClick={() => navigation.goTo("setup", () => setup.focusFirst(form))}>Edit employment</FormNavigationButton>
+        <FormNavigationButton onClick={() => navigation.goToPage("setup", () => setup.focusFirstField(form))}>Edit employment</FormNavigationButton>
         <FormSubmitButton>Request transfer</FormSubmitButton>
       </ActionRow>
     </Page>

@@ -18,8 +18,10 @@ export type FieldControlBinding<Value> = {
 export const FieldContext = createContext<FieldControlBinding<unknown> | null>(null);
 
 /** For connected control authors. The adapter declares its accepted editing value. */
-export function useFieldControl<Value>(): FieldControlBinding<Value> {
+export function useFieldBinding<Value>(): FieldControlBinding<Value> {
   const field = useContext(FieldContext);
-  if (!field) throw new Error("A Formulate control must be rendered inside a Field.");
+  if (!field) {
+    throw new Error("A Formulate control must be rendered inside a Field.");
+  }
   return field as FieldControlBinding<Value>;
 }

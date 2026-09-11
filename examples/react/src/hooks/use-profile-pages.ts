@@ -21,26 +21,31 @@ export function useProfilePages({ onSave, defaultValues }: ProfileFormProps) {
     form, initialPage: "profile",
     destinations: profilePages.map((page) => ({ scope: page, page: page.id })),
   });
-  const currentIndex = profilePages.findIndex((page) => page.id === navigation.page);
-  const current = profilePages[currentIndex];
-  const reviewHeading = useRef<HTMLDivElement>(null);
+  const currentPageIndex = profilePages.findIndex((page) => page.id === navigation.page);
+  const currentPage = profilePages[currentPageIndex];
+  const reviewHeadingRef = useRef<HTMLDivElement>(null);
   const [saved, setSaved] = useState<MultiPageProfilePayload | null>(null);
-  const parsed = saved ? MultiPageProfile.schema.safeParse(values) : null;
-  const savedCurrent = parsed?.success && JSON.stringify(parsed.data) === JSON.stringify(saved);
+  const parsedValues = saved ? MultiPageProfile.schema.safeParse(values) : null;
+  const savedCurrent = parsedValues?.success && JSON.stringify(parsedValues.data) === JSON.stringify(saved);
 
   const navigateToPage = (page: ProfilePage) => {
     const destination = profilePages.find((entry) => entry.id === page);
-    if (destination) navigation.goToField(destination.correction[0]!);
-    else navigation.goTo("review", () => reviewHeading.current?.focus());
+    if (destination) {
+      navigation.goToField(destination.focusPaths[0]!);
+    } else {
+      navigation.goToPage("review", () => reviewHeadingRef.current?.focus());
+    }
   };
-  const step = current ? {
-    id: navigation.revision, scope: current,
-    onValid: () => navigateToPage(profilePages[currentIndex + 1]?.id ?? "review"),
+  const scopedAction = currentPage ? {
+    id: navigation.revision, scope: currentPage,
+    onValid: () => navigateToPage(profilePages[currentPageIndex + 1]?.id ?? "review"),
   } : undefined;
-  const correct = (errors: FieldErrors<MultiPageProfileValues>) => {
-    if (!navigation.correct(errors)) form.setError("root.submit", { message: "Review the form errors before saving." });
+  const handleInvalid = (errors: FieldErrors<MultiPageProfileValues>) => {
+    if (!navigation.goToFirstError(errors)) {
+      form.setError("root.submit", { message: "Review the form errors before saving." });
+    }
   };
-  const submit = async (payload: MultiPageProfilePayload) => {
+  const handleSubmit = async (payload: MultiPageProfilePayload) => {
     setSaved(null);
     await onSave(payload);
     setSaved(payload);
@@ -49,5 +54,5 @@ export function useProfilePages({ onSave, defaultValues }: ProfileFormProps) {
     ...completion.map(({ id, title, complete }) => ({ id, label: title, status: complete ? "complete" as const : "incomplete" as const })),
     { id: "review" as const, label: "Review", status: completeCount === 3 ? "ready" as const : "pending" as const },
   ];
-  return { form, navigation, navigateToPage, step, correct, submit, tabs, completeCount, reviewHeading, saved, savedCurrent };
+  return { form, navigation, navigateToPage, scopedAction, handleInvalid, handleSubmit, tabs, completeCount, reviewHeadingRef, saved, savedCurrent };
 }

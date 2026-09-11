@@ -5,12 +5,12 @@ import { ActionRow, Stack } from "./layouts";
 import { FormContinueButton } from "./form-actions";
 
 /** Reusable page presentation. Its host supplies one bound Employment section
- * for rendering, the Continue scope and correction while choosing destinations. */
-export function EmploymentSetup({ id, active, layout = Stack }: {
-  id: string;
+ * for rendering, the Continue scope and error focus while choosing destinations. */
+export function EmploymentSetup({ pageId, active, layout = Stack }: {
+  pageId: string;
   active: boolean;
 } & LayoutProps) {
-  return <Page id={id} title="Employment details" active={active} layout={Stack}>
+  return <Page pageId={pageId} title="Employment details" active={active} layout={Stack}>
     <p>Choose the employment arrangement, start date and manager.</p>
     <LayoutBody layout={layout}><Employment.Fields /></LayoutBody>
     <ActionRow><FormContinueButton>Continue</FormContinueButton></ActionRow>

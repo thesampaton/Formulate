@@ -44,7 +44,7 @@ import pageState from "./hooks/use-profile-pages.ts?raw";
 import pageRules from "./hooks/profile-pages.ts?raw";
 import profileSummary from "./components/formulate/profile-summary.tsx?raw";
 import pageActions from "./components/formulate/form-page-actions.tsx?raw";
-import pendingFields from "./components/formulate/form-pending-fields.tsx?raw";
+import actionFieldsetSource from "./components/formulate/form-action-fieldset.tsx?raw";
 import controls from "./components/formulate/controls.tsx?raw";
 import fieldPresentation from "./components/formulate/field-presentation.tsx?raw";
 import shadcnConfig from "../components.json?raw";
@@ -62,7 +62,7 @@ export const codeCategories = {
   actions: { label: "Actions", description: "Express Submit, Continue and Edit intents through the owning form and navigation." },
   controls: { label: "shadcn bindings", description: "Map form values, events and field presentation onto your local shadcn components. UI props come from those components." },
   installation: { label: "Installation", description: "The shadcn CLI resolves source locations and rewrites imports when you install. Forms use ordinary local imports at runtime." },
-  behaviour: { label: "Form behaviour", description: "This example's page scopes, completion, correction destinations and saved baseline." },
+  behaviour: { label: "Form behaviour", description: "This example's page scopes, completion, field destinations and saved baseline." },
 } as const;
 export type CodeCategory = keyof typeof codeCategories;
 export type CodeExcerpt = {
@@ -94,7 +94,7 @@ const pageActionSets = source("actions", "Page actions", "components/formulate/f
 const connectedControls = source("controls", "Control bindings", "components/formulate/controls.tsx", controls, "Attach core value, event, accessibility and focus bindings to installed shadcn primitives.", "@formulate/shadcn-bindings");
 const fieldChrome = source("controls", "Field presentation", "components/formulate/field-presentation.tsx", fieldPresentation, "Local shadcn labels, descriptions and errors receive the core field's accessible IDs.", "@formulate/shadcn-bindings");
 const map = source("controls", "Control map", "lib/formulate-config.ts", controlMap, "Map declaration keys to bindings over local shadcn components. This is the runtime map; installation paths belong to components.json.", "@formulate/shadcn-bindings");
-const pending = source("controls", "Pending editors", "components/formulate/form-pending-fields.tsx", pendingFields, "Disable editors while the owning Form validates or submits.", "@formulate/shadcn-bindings");
+const actionFieldset = source("controls", "Action fieldset", "components/formulate/form-action-fieldset.tsx", actionFieldsetSource, "Disable editors while the owning Form validates or submits.", "@formulate/shadcn-bindings");
 const installedInput: CodeExcerpt = {
   ...source("controls", "Local Input", "components/ui/input.tsx", localInput, "The actual shadcn Input source used by InputControl and NumberControl. Customise this component locally; its props flow into the bindings."),
   provenance: "Installed from shadcn/ui · editable local source",
@@ -135,7 +135,7 @@ export const exampleCode = {
     source("form", "Internal transfer", "compositions/internal-transfer.tsx", internalTransfer, "A second host of the same complete page, with its own binding root, layout and destination."),
     declaration("declarations/employee-workflows.ts", employeeWorkflows), sample("employment"),
     source("fields", "Employment", "declarations/employment.ts", employment, "One declaration of local values, defaults, controls and requirements for both hosts."),
-    source("navigation", "Employment page", "components/formulate/employment-setup.tsx", employmentSetup, "Reusable page presentation; each host's bound Employment use supplies rendering, action scope and correction without a page API."),
+    source("navigation", "Employment page", "components/formulate/employment-setup.tsx", employmentSetup, "Reusable page presentation; each host's bound Employment use supplies rendering, action scope and error focus without a page API."),
     bodyLayouts, buttons, ...integration,
   ],
   simple: [
@@ -154,8 +154,8 @@ export const exampleCode = {
     composition("compositions/multi-page-form.tsx", multiPage), declaration("declarations/multi-page-profile.ts", multiPageDeclaration), sample("multiPage"),
     source("form", "Review summary", "components/formulate/profile-summary.tsx", profileSummary, "A reader of this form's existing values; it does not register editors."),
     nameSection, addressSection, notificationSection, emailField,
-    bodyLayouts, stepLayout, tabs, buttons, pageActionSets, ...integration, pending,
-    source("behaviour", "Page state", "hooks/use-profile-pages.ts", pageState, "Connect this form's navigation scopes, correction focus and save handler."),
+    bodyLayouts, stepLayout, tabs, buttons, pageActionSets, ...integration, actionFieldset,
+    source("behaviour", "Page state", "hooks/use-profile-pages.ts", pageState, "Connect this form's navigation scopes, error focus and save handler."),
     source("behaviour", "Page scopes & completion", "hooks/profile-pages.ts", pageRules, "Compose bound section uses with direct page fields, then derive completion from the same synchronous schema."),
   ],
   layout: [

@@ -59,8 +59,8 @@ At completion of this extraction, the revised implementation grew by 99 lines ag
 | Operation | Previous host/helper work | Current work |
 | --- | --- | --- |
 | Reuse Target under another root | Declare the section and also extend the host's target list/region-path selector, in addition to presentation/navigation. | Declare the section use. Recursive binding discovers its account/region relationship; presentation/navigation remain explicit. |
-| Change the local region dependency | Change the declaration and the host selector's `accountId` read. Every separately maintained host selector must agree. | Change `regionChoices.input` once; both target uses inherit it. |
-| Change a region membership requirement | Change the shared request's hard-coded policy, affecting unrelated choice fields, or introduce a policy escape hatch and connect hosts to it. | Change `regionChoices.validate` once. Both targets inherit it; machine sizes keep their own policy. |
+| Change the local region dependency | Change the declaration and the host selector's `accountId` read. Every separately maintained host selector must agree. | Change the region declaration’s `getInput` callback once; both target uses inherit it. |
+| Change a region membership requirement | Change the shared request's hard-coded policy, affecting unrelated choice fields, or introduce a policy escape hatch and connect hosts to it. | Change the region declaration’s `validateSelection` callback once. Both targets inherit it; machine sizes keep their own policy. |
 | Reuse Resource at another index/root | Maintain choice ID, size error path and dependency-input construction in the host, alongside editor bindings. | Supply stable ID, the binding map used by editors and account/region services. Resource owns the target field and input construction. |
 | Add a different loader/option shape | Extend or fork the single-loader/string-specific helpers and parsed-value selector. | Attach another typed rule; supply its service. No new coordinator. |
 

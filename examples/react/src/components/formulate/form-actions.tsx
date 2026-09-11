@@ -12,7 +12,7 @@ export function FormSubmitButton({ children, pendingLabel, disabled, ...props }:
   </Button>;
 }
 
-/** A Continue affordance; Form.navigation supplies validation and destination. */
+/** A Continue affordance; Form's scopedAction prop supplies validation and the continuation callback. */
 export function FormContinueButton({ pendingLabel = "Checking…", ...props }: FormSubmitButtonProps) {
   return <FormSubmitButton {...props} pendingLabel={pendingLabel} />;
 }

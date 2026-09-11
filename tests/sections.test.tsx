@@ -21,7 +21,7 @@ function NestedForm({ onSubmit }: { onSubmit: (values: z.output<typeof Registrat
   const [showFirst, setShowFirst] = useState(true);
   return <Form form={form} onSubmit={onSubmit}>
     <button type="button" onClick={() => setShowFirst(!showFirst)}>Toggle first</button>
-    {showFirst ? <FirstDetails.Section><Details.Subsection name="contact" /><Details.Field name="reference" /></FirstDetails.Section> : null}
+    {showFirst ? <FirstDetails.Section><Details.Section name="contact" /><Details.Field name="reference" /></FirstDetails.Section> : null}
     <SecondDetails.Section />
     <button type="submit">Save</button>
   </Form>;
@@ -56,12 +56,11 @@ describe("recursive section definitions", () => {
       second: { contact: { email: "second@example.com" }, reference: "default" },
     });
     expect(screen.getAllByLabelText("Reference")[0]).toHaveValue(" retained ");
-    expect(Registration.fieldNames).toEqual(["first.contact.email", "first.reference", "second.contact.email", "second.reference"]);
-    expect(FirstDetails.fields).toEqual(["first"]);
-    expect(FirstDetails.correction).toEqual(["first.contact.email", "first.reference"]);
-    expect(FirstDetails.field("contact.email")).toBe("first.contact.email");
+    expect(Registration.fieldPaths).toEqual(["first.contact.email", "first.reference", "second.contact.email", "second.reference"]);
+    expect(FirstDetails.errorPaths).toEqual(["first"]);
+    expect(FirstDetails.focusPaths).toEqual(["first.contact.email", "first.reference"]);
+    expect(FirstDetails.resolveFieldPath("contact.email")).toBe("first.contact.email");
     expect(Registration.bindSection("first")).toBe(FirstDetails);
-    expect(Details.Subsection).toBe(Details.Section);
   });
 
   it("routes explicit member maps through nested sections without extra value owners", async () => {
@@ -77,7 +76,7 @@ describe("recursive section definitions", () => {
         id: "mapped-details", bindings: { contact: "person", reference: "code" },
       });
       return <Form form={form} onSubmit={onSubmit}>
-        <Details.Bind control={form.control} use={details} />
+        <Details.Bind control={form.control} binding={details} />
         <button type="submit">Save</button>
       </Form>;
     }
@@ -97,7 +96,7 @@ describe("recursive section definitions", () => {
     expect(inputs[2]).toHaveValue("");
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
     try {
-      expect(() => render(<Contact.Field name="email" />)).toThrow("matching Section or Bind use");
+      expect(() => render(<Contact.Field name="email" />)).toThrow("matching Section or Bind");
     } finally { consoleError.mockRestore(); }
   });
 });

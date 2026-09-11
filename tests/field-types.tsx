@@ -1,19 +1,19 @@
 // Compile-time API checks, included in pnpm typecheck; never rendered.
-import { createFormulate, defaultComponents, defineFieldControl, defineForm, defineSection, Field, useFieldControl, useFormulate, useFormNavigation } from "@formulate/react";
-import type { FormNavigationAction } from "@formulate/react";
+import { createFormulate, defaultComponents, defineFieldControl, defineForm, defineSection, Field, useFieldBinding, useFormulate, useFormNavigation } from "@formulate/react";
+import type { ScopedFormAction } from "@formulate/react";
 import type { Control, FieldPath } from "react-hook-form";
 import { z } from "zod";
 import { Email } from "../examples/react/src/declarations/email";
 import { EmailConfirmation } from "../examples/react/src/declarations/email-confirmation";
 import { nestedEmailConfirmationSchema } from "./fixtures/nested-email-confirmation";
 import { Address } from "../examples/react/src/declarations/address";
-import type { SectionBindings } from "@formulate/react";
+import type { SectionPathMap } from "@formulate/react";
 import type { AddressValues } from "../examples/react/src/declarations/address";
 import { customerSchema } from "../examples/react/src/declarations/customer";
 import type { CustomerValues } from "../examples/react/src/declarations/customer";
 
 const Choice = defineFieldControl<string>()(function Choice({ options }: { options: string[] }) {
-  const field = useFieldControl<string>();
+  const field = useFieldBinding<string>();
   return <select {...field} onChange={(event) => field.onChange(event.target.value)}>{options.map((value) => <option key={value}>{value}</option>)}</select>;
 });
 const custom = createFormulate({ components: { ...defaultComponents, choice: Choice } });
@@ -107,19 +107,19 @@ export function NavigationTypes() {
   const navigation = useFormNavigation<Editing, "details" | "review">({
     form, initialPage: "details", destinations: [{ name: "email", page: "details" }],
   });
-  navigation.goTo("review");
+  navigation.goToPage("review");
   navigation.goToField("email");
-  const action: FormNavigationAction<Editing> = {
-    id: navigation.revision, fields: ["email", "count"], onValid: () => navigation.goTo("review"),
+  const action: ScopedFormAction<Editing> = {
+    id: navigation.revision, errorPaths: ["email", "count"], onValid: () => navigation.goToPage("review"),
   };
   // @ts-expect-error Host page names remain typed.
-  navigation.goTo("missing");
+  navigation.goToPage("missing");
   // @ts-expect-error Editor destinations use editing paths.
   navigation.goToField("missing");
   // @ts-expect-error Scopes cannot reference unknown paths.
-  const wrongScope: FormNavigationAction<Editing> = { ...action, fields: ["missing"] };
+  const wrongScope: ScopedFormAction<Editing> = { ...action, errorPaths: ["missing"] };
   // @ts-expect-error A scoped action cannot claim to receive validated form output.
-  const wrongHandler: FormNavigationAction<Editing> = { ...action, onValid: (values: z.output<typeof Details.schema>) => { void values; } };
+  const wrongHandler: ScopedFormAction<Editing> = { ...action, onValid: (values: z.output<typeof Details.schema>) => { void values; } };
   void wrongScope; void wrongHandler;
   return null;
 }
@@ -131,9 +131,9 @@ export function CustomerTypes() {
   const flat = useFormulate(z.object({ street: z.string(), country: z.string(), postal: z.string() }));
   <Address.Bind control={flat.control} bindings={{ street: "street", countryCode: "country", postcode: "postal" }} title="Address" />;
   // @ts-expect-error Reusable group members cannot bind to a boolean editor.
-  const wrongType: SectionBindings<AddressValues, CustomerValues> = { ...billingBindings, street: "deliverySameAsBilling" };
+  const wrongType: SectionPathMap<AddressValues, CustomerValues> = { ...billingBindings, street: "deliverySameAsBilling" };
   // @ts-expect-error Reusable group members must name existing editing paths.
-  const wrongPath: SectionBindings<AddressValues, CustomerValues> = { ...billingBindings, postcode: "billingAddress.missing" };
+  const wrongPath: SectionPathMap<AddressValues, CustomerValues> = { ...billingBindings, postcode: "billingAddress.missing" };
   form.handleSubmit((payload) => {
     const country: "AU" | "US" = payload.deliveryAddress.countryCode;
     // @ts-expect-error Parsed payload excludes the applicability toggle.
@@ -157,10 +157,10 @@ export function SectionTypes() {
   const form = TypedCustomer.useForm();
   const details = TypedCustomer.bindSection("details");
   <details.Section />;
-  details.focusFirst(form);
-  const detailPath: FieldPath<z.input<typeof TypedCustomer.schema>> = details.field("address.street");
+  details.focusFirstField(form);
+  const detailPath: FieldPath<z.input<typeof TypedCustomer.schema>> = details.resolveFieldPath("address.street");
   // @ts-expect-error Bound section members remain local and typed.
-  details.field("enabled");
+  details.resolveFieldPath("enabled");
   // @ts-expect-error Scalar members cannot be bound as sections.
   TypedCustomer.bindSection("enabled");
   <TypedCustomer.Form form={form} layout={null} onSubmit={(values) => {
@@ -173,7 +173,7 @@ export function SectionTypes() {
   <TypedCustomer.Form form={form} onSubmit={() => undefined} layout="stack" />;
   // @ts-expect-error A layout must work with children alone.
   <TypedCustomer.Section name="details" layout={(_: { required: string }) => null} />;
-  <TypedCustomer.Section name="details"><TypedDetails.Subsection name="address"><TypedAddress.Field name="street" /></TypedDetails.Subsection></TypedCustomer.Section>;
+  <TypedCustomer.Section name="details"><TypedDetails.Section name="address"><TypedAddress.Field name="street" /></TypedDetails.Section></TypedCustomer.Section>;
   // @ts-expect-error Sections are not single writable fields.
   <TypedCustomer.Field name="details" />;
   // @ts-expect-error A scalar field is not a section.

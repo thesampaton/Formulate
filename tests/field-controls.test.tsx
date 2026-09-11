@@ -2,10 +2,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import { z } from "zod";
-import { createFormulate, defaultComponents, defineFieldControl, Form, useFieldControl, useFormulate } from "@formulate/react";
+import { createFormulate, defaultComponents, defineFieldControl, Form, useFieldBinding, useFormulate } from "@formulate/react";
 
 const LocalInput = defineFieldControl<string>()(function LocalInput({ prefix }: { prefix: string }) {
-  const field = useFieldControl<string>();
+  const field = useFieldBinding<string>();
   return <div><span>{prefix}</span><input {...field} onChange={(event) => field.onChange(event.target.value)} /></div>;
 });
 

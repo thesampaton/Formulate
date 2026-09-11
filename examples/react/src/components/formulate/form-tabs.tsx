@@ -82,7 +82,7 @@ export function FormTabPanel({ children, ...props }: Omit<ComponentProps<typeof 
 }
 
 /** A semantic page inheriting its body layout and navigation from the parent tabs. */
-export function FormTabPage({ value, layout, actions, ...props }: Omit<PageProps, "id" | "active"> & {
+export function FormTabPage({ value, layout, actions, ...props }: Omit<PageProps, "pageId" | "active"> & {
   value: string;
   actions?: ReactNode;
 }) {
@@ -94,7 +94,7 @@ export function FormTabPage({ value, layout, actions, ...props }: Omit<PageProps
   const index = available.findIndex((page) => page.id === value);
   return <FormTabPanel value={value}>
     <FormPageContext value={{ current, pages: available, previous: available[index - 1], next: available[index + 1], navigate: tabs.navigate, actions }}>
-      <Page {...props} id={value} layout={layout === undefined ? tabs.pageLayout : layout} />
+      <Page {...props} pageId={value} layout={layout === undefined ? tabs.pageLayout : layout} />
     </FormPageContext>
   </FormTabPanel>;
 }

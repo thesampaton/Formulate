@@ -5,11 +5,14 @@ import { defineChoice } from "@formulate/react";
 import type { Choice, ChoiceLoader } from "@formulate/react";
 
 export const regionChoices = defineChoice({
-  input: (target: { accountId: string }) => target.accountId || null,
-  key: (input: string) => input,
-  loader: (services: { listRegions: ChoiceLoader }) => services.listRegions,
-  validate: (selection: string, options: readonly Choice[]) => !selection ? "Choose an available option."
-    : options.some((option) => option.value === selection) ? undefined : "The retained choice is unavailable. Choose another option.",
+  getInput: (target: { accountId: string }) => target.accountId || null,
+  getRequestKey: (input: string) => input,
+  getLoader: (services: { listRegions: ChoiceLoader }) => services.listRegions,
+  validateSelection: (selection: string, options: readonly Choice[]) => {
+    if (!selection) return "Choose an available option.";
+    const isAvailable = options.some((option) => option.value === selection);
+    return isAvailable ? undefined : "The retained choice is unavailable. Choose another option.";
+  },
   messages: { missing: "Choose an account first.", pending: "Checking available choices…", failed: "Choices could not be loaded. Retry to continue." },
 });
 

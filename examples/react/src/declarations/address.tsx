@@ -38,7 +38,7 @@ export const Address = defineSection({
     const format = postcodeFormats[countryCode];
     if (!format.pattern.test(postcode)) context.addIssue({ code: "custom", path: ["postcode"], message: format.message });
   }),
-  render: AddressFields,
+  presentation: AddressFields,
 });
 export type AddressValues = z.input<typeof Address.schema>;
 
