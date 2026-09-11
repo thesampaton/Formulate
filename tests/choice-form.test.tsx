@@ -16,16 +16,17 @@ it("cancels a pending submit when the choice service is replaced even if its inp
     validate: (selection: string, options: readonly { value: string; label: string }[]) => options.some((option) => option.value === selection) ? undefined : "Unavailable",
     messages: { missing: "Missing", pending: "Pending", failed: "Failed" },
   });
-  const definition = defineForm({ region: { schema: z.string(), defaultValue: "east", label: "Region", component: "input", choices: rule } });
+  const definition = defineForm({
+    region: { schema: z.string(), defaultValue: "east", label: "Region", component: "input", choices: rule },
+  }, { schema: () => schema });
   const options = [{ value: "east", label: "East" }];
   const first: ChoiceLoader = async () => options;
   const replacement: ChoiceLoader = async () => options;
   const onSubmit = vi.fn();
   function Harness({ loader }: { loader: ChoiceLoader }) {
-    const fields = useCallback((values: { region: string }) => definition.bindChoices({ values, services: { loader } }), [loader]);
-    const flow = useChoiceForm({ schema, fields, defaultValues: { region: "east" } });
-    return <Form form={flow.form} onSubmit={onSubmit} getValidationRevision={flow.getValidationRevision}>
-      <p>{flow.choices.get("region", rule)?.status}</p><button type="submit">Deploy</button>
+    const form = definition.useChoiceForm({ services: { loader } });
+    return <Form form={form} onSubmit={onSubmit}>
+      <p>{form.choices.get("region", rule)?.status}</p><button type="submit">Deploy</button>
     </Form>;
   }
   const view = render(<StrictMode><Harness loader={first} /></StrictMode>);
@@ -113,6 +114,37 @@ it("carries one local membership rule through nested reused sections even withou
   await act(async () => { expect(await current.form.trigger()).toBe(false); });
   expect(current.form.getFieldState("deployment.first.region").error?.message).toBe("Choose an unrestricted region");
   expect(current.form.getFieldState("deployment.second.region").error?.message).toBe("Choose an unrestricted region");
+});
+
+it("lets reusable presentation read the choice view for its current section use", async () => {
+  const load: ChoiceLoader = async (account) => [{ value: `${account}-east`, label: `${account} East` }];
+  const rule = defineChoice({
+    input: (values: { account: string }) => values.account || null,
+    key: (input: string) => input,
+    loader: (services: { load: ChoiceLoader }) => services.load,
+    validate: (selection: string, options: readonly { value: string; label: string }[]) =>
+      options.some((option) => option.value === selection) ? undefined : "Unavailable",
+    messages: { missing: "Missing", pending: "Checking", failed: "Retry" },
+  });
+  const target = defineSection({
+    account: { schema: z.string(), defaultValue: "A", label: "Account", component: "input" },
+    region: { schema: z.string(), defaultValue: "A-east", label: "Region", component: "input", choices: rule },
+  });
+  const definition = defineForm({ primary: target, recovery: target });
+  function Status({ label }: { label: string }) {
+    const request = target.useChoice("region");
+    return <p>{label}: {request?.options[0]?.label ?? request?.problem ?? "Starting"}</p>;
+  }
+  function Harness() {
+    const form = definition.useChoiceForm({ services: { load } });
+    return <Form form={form} onSubmit={vi.fn()}>
+      <definition.Section name="primary"><Status label="Primary" /></definition.Section>
+      <definition.Section name="recovery"><Status label="Recovery" /></definition.Section>
+    </Form>;
+  }
+  render(<Harness />);
+  await screen.findByText("Primary: A East");
+  await screen.findByText("Recovery: A East");
 });
 
 it("moves error paths with a binding while keeping its request lifetime", async () => {

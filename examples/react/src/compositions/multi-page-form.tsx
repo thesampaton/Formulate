@@ -5,6 +5,7 @@ import { FormReviewActions } from "@/components/formulate/form-page-actions";
 import { ProfileSummary } from "@/components/formulate/profile-summary";
 import { MultiPageProfile } from "@/declarations/multi-page-profile";
 import { useProfilePages } from "@/hooks/use-profile-pages";
+import { profileSections } from "@/hooks/profile-pages";
 import type { ProfileFormProps } from "@/hooks/use-profile-pages";
 
 export function MultiPageForm(props: ProfileFormProps) {
@@ -19,14 +20,14 @@ export function MultiPageForm(props: ProfileFormProps) {
       <FormTabs pages={tabs} value={navigation.page} onValueChange={navigation.goTo} onNavigate={navigateToPage}
         label="Profile pages" pageLayout={FormStepLayout}>
         <FormTabPage value="profile" title="Your details">
-          <MultiPageProfile.Section name="name" title="Your name" />
+          <profileSections.name.Section title="Your name" />
           <MultiPageProfile.Field name="email" />
         </FormTabPage>
         <FormTabPage value="delivery" title="Delivery details">
-          <MultiPageProfile.Section name="address" title="Delivery address" />
+          <profileSections.address.Section title="Delivery address" />
         </FormTabPage>
         <FormTabPage value="notifications" title="How we contact you">
-          <MultiPageProfile.Section name="notifications" />
+          <profileSections.notifications.Section />
         </FormTabPage>
         <FormTabPage value="review" title="Review your profile"
           actions={<FormReviewActions pendingLabel="Saving…">Save profile</FormReviewActions>}>

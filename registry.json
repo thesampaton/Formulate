@@ -16,6 +16,11 @@
       ],
       "files": [
         {
+          "path": "packages/react/src/choices/context.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/choices/context.tsx"
+        },
+        {
           "path": "packages/react/src/choices/definition.ts",
           "type": "registry:lib",
           "target": "@lib/formulate/choices/definition.ts"

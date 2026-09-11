@@ -15,6 +15,7 @@ import cloudDeclaration from "./declarations/cloud-deployment.ts?raw";
 import cloudBehaviour from "./hooks/use-cloud-deployment.ts?raw";
 import cloudDemo from "./cloud-deployment.tsx?raw";
 import choiceDefinition from "../../../packages/react/src/choices/definition.ts?raw";
+import choiceContext from "../../../packages/react/src/choices/context.tsx?raw";
 import definitions from "../../../packages/react/src/definitions/define-form.tsx?raw";
 import formRuntime from "../../../packages/react/src/form/form.tsx?raw";
 import pageRuntime from "../../../packages/react/src/presentation/page.tsx?raw";
@@ -108,6 +109,7 @@ const dependentChoices = [
   source("navigation", "Page lifecycle", "packages/react/src/presentation/page.tsx", pageRuntime, "React Activity preserves inactive editor state and pauses effects; form-level validation survives outside it.", "@formulate/core"),
   source("behaviour", "Choice requests", "packages/react/src/choices/request.ts", choiceRequest, "AbortSignal rejects obsolete results even when the service ignores cancellation.", "@formulate/core"),
   source("behaviour", "Choice declarations", "packages/react/src/choices/definition.ts", choiceDefinition, "Typed dependency inputs, services and application-owned selection policy.", "@formulate/core"),
+  source("behaviour", "Choice presentation context", "packages/react/src/choices/context.tsx", choiceContext, "Carries the installed choice controller to reusable presentation without reconstructing use IDs.", "@formulate/core"),
   source("behaviour", "Definition binding", "packages/react/src/definitions/define-form.tsx", definitions, "Recursive definition binding carries field rules into each use.", "@formulate/core"),
   source("behaviour", "Dependent choice fields", "packages/react/src/choices/use-choice-form.ts", choiceForm, "Package runtime validates editing values against current choice evidence alongside schema parsing.", "@formulate/core"),
   source("behaviour", "Choice lifetimes", "packages/react/src/choices/store.ts", choiceFields, "Keeps request evidence with surviving use IDs, independent of paths and array indexes.", "@formulate/core"),
@@ -133,7 +135,7 @@ export const exampleCode = {
     source("form", "Internal transfer", "compositions/internal-transfer.tsx", internalTransfer, "A second host of the same complete page, with its own binding root, layout and destination."),
     declaration("declarations/employee-workflows.ts", employeeWorkflows), sample("employment"),
     source("fields", "Employment", "declarations/employment.ts", employment, "One declaration of local values, defaults, controls and requirements for both hosts."),
-    source("navigation", "Employment page", "components/formulate/employment-setup.tsx", employmentSetup, "Reusable page, local action scope and correction targets. The binding adapter is a local experiment, not a core page API."),
+    source("navigation", "Employment page", "components/formulate/employment-setup.tsx", employmentSetup, "Reusable page presentation; each host's bound Employment use supplies rendering, action scope and correction without a page API."),
     bodyLayouts, buttons, ...integration,
   ],
   simple: [
@@ -154,7 +156,7 @@ export const exampleCode = {
     nameSection, addressSection, notificationSection, emailField,
     bodyLayouts, stepLayout, tabs, buttons, pageActionSets, ...integration, pending,
     source("behaviour", "Page state", "hooks/use-profile-pages.ts", pageState, "Connect this form's navigation scopes, correction focus and save handler."),
-    source("behaviour", "Page scopes & completion", "hooks/profile-pages.ts", pageRules, "Assign fields to this form's pages and derive completion from its synchronous schema."),
+    source("behaviour", "Page scopes & completion", "hooks/profile-pages.ts", pageRules, "Compose bound section uses with direct page fields, then derive completion from the same synchronous schema."),
   ],
   layout: [
     composition("compositions/profile.tsx", responsive), declaration("declarations/profile.ts", profileDeclaration), sample("layout"),

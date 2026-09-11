@@ -1,7 +1,7 @@
 "use client";
 
 export { Form } from "./form/form.js";
-export type { FormProps, FormNavigationAction } from "./form/form.js";
+export type { FormProps, FormNavigationAction, FormScope } from "./form/form.js";
 export { useFormActionStatus } from "./form/form-action-status.js";
 export { useFormNavigation } from "./form/use-form-navigation.js";
 export type { CorrectionDestination, FormNavigationOptions, FormNavigation } from "./form/use-form-navigation.js";
@@ -21,8 +21,10 @@ export type { FormLayout, LayoutProps } from "./presentation/layout.js";
 export { useFormulate } from "./form/use-formulate.js";
 export type { FormulateOptions } from "./form/use-formulate.js";
 export type { SectionBindings, CompatibleFieldPath } from "./definitions/definition-scope.js";
-export type { FormDefinition, DefinedForm, DefinedSection, DefinedSubsection, SectionPresentationProps } from "./definitions/define-form.js";
+export type { FormDefinition, DefinedForm, DefinedSection, DefinedSubsection, BoundSectionUse, BoundSectionBinding, SectionPresentationProps } from "./definitions/define-form.js";
 
 export { defineChoice } from "./choices/definition.js";
 export type { Choice, ChoiceLoader, ChoiceSnapshot, ChoiceView, ChoiceRule, BoundChoice } from "./choices/definition.js";
 export { useChoiceForm } from "./choices/use-choice-form.js";
+export type { ChoiceFormRuntime } from "./choices/use-choice-form.js";
+export type { ChoiceController } from "./choices/context.js";

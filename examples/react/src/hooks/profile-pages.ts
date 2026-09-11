@@ -1,10 +1,15 @@
 import { MultiPageProfile } from "@/declarations/multi-page-profile";
 
-// These scopes drive both Continue validation and the tab indicators.
+// The same bound uses drive presentation, Continue, correction and indicators.
+export const profileSections = {
+  name: MultiPageProfile.bindSection("name"),
+  address: MultiPageProfile.bindSection("address"),
+  notifications: MultiPageProfile.bindSection("notifications"),
+};
 export const profilePages = [
-  { id: "profile", title: "Profile", fields: MultiPageProfile.fieldNames.filter((name) => name.startsWith("name.") || name === "email") },
-  { id: "delivery", title: "Delivery", fields: MultiPageProfile.fieldNames.filter((name) => name.startsWith("address.")) },
-  { id: "notifications", title: "Notifications", fields: MultiPageProfile.fieldNames.filter((name) => name.startsWith("notifications.")) },
+  { id: "profile", title: "Profile", fields: [...profileSections.name.fields, "email"], correction: [...profileSections.name.correction, "email"] },
+  { id: "delivery", title: "Delivery", fields: profileSections.address.fields, correction: profileSections.address.correction },
+  { id: "notifications", title: "Notifications", fields: profileSections.notifications.fields, correction: profileSections.notifications.correction },
 ] as const;
 export type ProfilePage = (typeof profilePages)[number]["id"] | "review";
 

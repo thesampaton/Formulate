@@ -1,7 +1,7 @@
 // Compile-time API checks, included in pnpm typecheck; never rendered.
 import { createFormulate, defaultComponents, defineFieldControl, defineForm, defineSection, Field, useFieldControl, useFormulate, useFormNavigation } from "@formulate/react";
 import type { FormNavigationAction } from "@formulate/react";
-import type { Control } from "react-hook-form";
+import type { Control, FieldPath } from "react-hook-form";
 import { z } from "zod";
 import { Email } from "../examples/react/src/declarations/email";
 import { EmailConfirmation } from "../examples/react/src/declarations/email-confirmation";
@@ -155,6 +155,14 @@ const TypedCustomer = defineForm({ details: TypedDetails, enabled: { schema: z.b
 
 export function SectionTypes() {
   const form = TypedCustomer.useForm();
+  const details = TypedCustomer.bindSection("details");
+  <details.Section />;
+  details.focusFirst(form);
+  const detailPath: FieldPath<z.input<typeof TypedCustomer.schema>> = details.field("address.street");
+  // @ts-expect-error Bound section members remain local and typed.
+  details.field("enabled");
+  // @ts-expect-error Scalar members cannot be bound as sections.
+  TypedCustomer.bindSection("enabled");
   <TypedCustomer.Form form={form} layout={null} onSubmit={(values) => {
     const visits: number = values.saved.address.visits;
     // @ts-expect-error The definition's Form also exposes only parsed output.
@@ -195,5 +203,6 @@ export function SectionTypes() {
   <TypedAddress.Bind control={host.control} bindings={{ street: "narrow", visits: "street" }} />;
   // @ts-expect-error Binding uses editing string, not transformed number.
   <TypedAddress.Bind control={host.control} bindings={{ street: "street", visits: "count" }} />;
+  void detailPath;
   return null;
 }

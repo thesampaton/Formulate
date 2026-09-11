@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { useFormNavigation } from "@formulate/react";
 import { CloudDeployment } from "@/declarations/cloud-deployment";
 import type { CloudPayload, CloudValues } from "@/declarations/cloud-deployment";
-import { useChoiceForm } from "@formulate/react";
 import type { ChoiceLoader } from "@formulate/react";
 
 export type CloudPage = "targets" | "production" | "review";
@@ -14,20 +13,21 @@ export type CloudFormProps = {
 };
 
 export function useCloudDeployment({ listRegions, defaultValues }: CloudFormProps) {
-  const fields = useCallback((values: CloudValues) => CloudDeployment.bindChoices({ values, services: { listRegions } }), [listRegions]);
-  const { form, choices, getValidationRevision } = useChoiceForm({
-    schema: CloudDeployment.schema, defaultValues: { ...CloudDeployment.defaultValues, ...defaultValues },
-    fields,
-  });
+  const form = CloudDeployment.useChoiceForm({ services: { listRegions }, defaultValues });
   const values = useWatch({ control: form.control });
   const [notice, setNotice] = useState("");
   const review = useRef<HTMLDivElement>(null);
   const targetsHeading = useRef<HTMLDivElement>(null);
+  const primary = CloudDeployment.bindSection("primary");
+  const recovery = CloudDeployment.bindSection("recovery");
+  const targets = {
+    fields: ["environment", ...primary.fields, ...recovery.fields],
+    correction: ["environment", ...primary.correction, ...recovery.correction],
+  } as const;
   const navigation = useFormNavigation<CloudValues, CloudPage>({
     form, initialPage: "targets",
     destinations: [
-      { name: "environment", page: "targets" },
-      ...CloudDeployment.fieldNames.filter((name) => name.startsWith("primary.") || name.startsWith("recovery.")).map((name) => ({ name, page: "targets" as const })),
+      { scope: targets, page: "targets" },
       { name: "production", page: "production" },
     ],
   });
@@ -46,8 +46,8 @@ export function useCloudDeployment({ listRegions, defaultValues }: CloudFormProp
 
   const step = navigation.page === "review" ? undefined : {
     id: navigation.revision,
-    fields: navigation.page === "targets" ? ["environment", "primary", "recovery"] as const : ["production"] as const,
+    ...(navigation.page === "targets" ? { scope: targets } : { fields: ["production"] as const }),
     onValid: () => goTo(navigation.page === "targets" && form.getValues("environment") === "production" ? "production" : "review"),
   };
-  return { form, choices, getValidationRevision, values, navigation, goTo, notice, review, targetsHeading, step };
+  return { form, values, navigation, goTo, notice, review, targetsHeading, primary, recovery, step };
 }

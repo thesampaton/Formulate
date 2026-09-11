@@ -22,6 +22,7 @@ export type DefinitionScope = {
   identity: symbol;
   control: Control<any, unknown, any>;
   resolve: (name: string) => string;
+  resolveChoice: (name: string) => string;
   parent: DefinitionScope | null;
 };
 export const DefinitionScopeContext = createContext<DefinitionScope | null>(null);
@@ -34,5 +35,11 @@ export function useDefinitionScope(identity: symbol, kind: "form" | "section", c
   if (kind === "section" && !matching) throw new Error("Section members need a matching Section or Bind use.");
   const resolvedControl = control ?? matching?.control ?? form?.control;
   if (!resolvedControl) throw new Error("Defined fields need a parent Form or an explicit control.");
-  return { control: resolvedControl, resolve: matching?.resolve ?? ((name: string) => name), parent, form };
+  return {
+    control: resolvedControl,
+    resolve: matching?.resolve ?? ((name: string) => name),
+    resolveChoice: matching?.resolveChoice ?? ((name: string) => name),
+    parent,
+    form,
+  };
 }

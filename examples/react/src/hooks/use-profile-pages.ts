@@ -19,7 +19,7 @@ export function useProfilePages({ onSave, defaultValues }: ProfileFormProps) {
   const completeCount = completion.filter((page) => page.complete).length;
   const navigation = useFormNavigation<MultiPageProfileValues, ProfilePage>({
     form, initialPage: "profile",
-    destinations: profilePages.flatMap((page) => page.fields.map((name) => ({ name, page: page.id }))),
+    destinations: profilePages.map((page) => ({ scope: page, page: page.id })),
   });
   const currentIndex = profilePages.findIndex((page) => page.id === navigation.page);
   const current = profilePages[currentIndex];
@@ -30,11 +30,11 @@ export function useProfilePages({ onSave, defaultValues }: ProfileFormProps) {
 
   const navigateToPage = (page: ProfilePage) => {
     const destination = profilePages.find((entry) => entry.id === page);
-    if (destination) navigation.goToField(destination.fields[0]!);
+    if (destination) navigation.goToField(destination.correction[0]!);
     else navigation.goTo("review", () => reviewHeading.current?.focus());
   };
   const step = current ? {
-    id: navigation.revision, fields: current.fields,
+    id: navigation.revision, scope: current,
     onValid: () => navigateToPage(profilePages[currentIndex + 1]?.id ?? "review"),
   } : undefined;
   const correct = (errors: FieldErrors<MultiPageProfileValues>) => {

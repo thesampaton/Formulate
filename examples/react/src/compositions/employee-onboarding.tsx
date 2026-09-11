@@ -4,7 +4,7 @@ import { Page, useFormNavigation } from "@formulate/react";
 import type { LayoutProps } from "@formulate/react";
 import { EmployeeOnboarding } from "@/declarations/employee-workflows";
 import type { EmployeeOnboardingPayload, EmployeeOnboardingValues } from "@/declarations/employee-workflows";
-import { bindEmploymentSetup, EmploymentSetup, EmploymentSummary } from "@/components/formulate/employment-setup";
+import { EmploymentSetup, EmploymentSummary } from "@/components/formulate/employment-setup";
 import { Stack, ActionRow } from "@/components/formulate/layouts";
 import { FormContinueButton, FormNavigationButton, FormSubmitButton } from "@/components/formulate/form-actions";
 
@@ -13,33 +13,33 @@ export function EmployeeOnboardingForm({ onSubmit, defaultValues, layout = Stack
   defaultValues?: EmployeeOnboardingValues;
 } & LayoutProps) {
   const form = EmployeeOnboarding.useForm({ defaultValues, shouldFocusError: false });
-  const setup = bindEmploymentSetup(form, "employment");
+  const setup = EmployeeOnboarding.bindSection("employment");
   const navigation = useFormNavigation<EmployeeOnboardingValues, "setup" | "equipment" | "review">({
     form, initialPage: "setup",
-    destinations: [...setup.destinations("setup"), { name: "equipment", page: "equipment" }],
+    destinations: [{ scope: setup, page: "setup" }, { name: "equipment", page: "equipment" }],
   });
   const equipment = useWatch({ control: form.control, name: "equipment" });
   const review = useRef<HTMLDivElement>(null);
-  const toSetup = () => navigation.goTo("setup", setup.focusFirst);
+  const toSetup = () => navigation.goTo("setup", () => setup.focusFirst(form));
   const toReview = () => navigation.goTo("review", () => review.current?.focus());
 
   return <EmployeeOnboarding.Form aria-label="Employee onboarding" form={form} onSubmit={onSubmit}
     onInvalid={(errors) => {
       if (!navigation.correct(errors)) form.setError("root.submit", { message: "Review the form errors before continuing." });
     }}
-    navigation={navigation.page === "setup" ? setup.continueAction(navigation.revision, () => navigation.goTo("equipment", () => form.setFocus("equipment")))
+    navigation={navigation.page === "setup" ? { id: navigation.revision, scope: setup, onValid: () => navigation.goTo("equipment", () => form.setFocus("equipment")) }
       : navigation.page === "equipment" ? { id: navigation.revision, fields: ["equipment"], onValid: toReview } : undefined}>
     <h2>Employee onboarding</h2>
-    <EmployeeOnboarding.Section name={setup.root} layout={null}>
+    <setup.Section layout={null}>
       <EmploymentSetup id="onboarding-setup" active={navigation.page === "setup"} layout={layout} />
-    </EmployeeOnboarding.Section>
+    </setup.Section>
     <Page id="onboarding-equipment" title="Equipment" active={navigation.page === "equipment"} layout={Stack}>
       <EmployeeOnboarding.Field name="equipment" />
       <ActionRow><FormNavigationButton onClick={toSetup}>Back</FormNavigationButton><FormContinueButton>Continue</FormContinueButton></ActionRow>
     </Page>
     <Page id="onboarding-review" title="Review onboarding" active={navigation.page === "review"} layout={Stack}>
       <div ref={review} tabIndex={-1} role="group" aria-label="Onboarding summary">
-        <EmployeeOnboarding.Section name={setup.root} layout={null}><EmploymentSummary /></EmployeeOnboarding.Section>
+        <setup.Section layout={null}><EmploymentSummary /></setup.Section>
         <p>Equipment: {equipment}</p>
       </div>
       <ActionRow>

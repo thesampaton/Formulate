@@ -3,7 +3,8 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event";
 import { expect, it, vi } from "vitest";
 import { z } from "zod";
-import { Field, Form, Page, useFormNavigation, useFormulate } from "@formulate/react";
+import { defineForm, defineSection, Field, Form, Page, useFormNavigation, useFormulate } from "@formulate/react";
+import type { FormScope } from "@formulate/react";
 import { FormSubmitButton } from "../examples/react/src/components/formulate/form-actions";
 
 const schema = z.object({
@@ -11,6 +12,12 @@ const schema = z.object({
   second: z.string().min(1, "Second value is required."),
 });
 type Values = z.input<typeof schema>;
+const firstScope = { fields: ["first.value"] } as const satisfies FormScope<Values>;
+const Group = defineSection({
+  value: { schema: z.string(), defaultValue: "blocked", label: "Group value", component: "input" },
+}, { schema: (group) => group.refine(({ value }) => value !== "blocked", { message: "Change the group value." }) });
+const GroupForm = defineForm({ group: Group });
+const BoundGroup = GroupForm.bindSection("group");
 
 function Harness({ validation = schema, onSubmit = vi.fn(), onInvalid = vi.fn(), initialFirst = "valid", initialSecond = "", getValidationRevision }: {
   validation?: z.ZodType<Values, Values>;
@@ -29,15 +36,14 @@ function Harness({ validation = schema, onSubmit = vi.fn(), onInvalid = vi.fn(),
   const navigation = useFormNavigation<Values, "first" | "second" | "review">({
     form, initialPage: "first",
     destinations: [
-      { name: "first.value", page: "first", reveal: () => setShown(true) },
+      { scope: firstScope, page: "first", reveal: () => setShown(true) },
       { name: "second", page: "second" },
     ],
   });
   return <Form form={form} onSubmit={onSubmit} getValidationRevision={getValidationRevision}
     navigation={navigation.page === "review" ? undefined : {
       id: navigation.revision,
-      // An object path scopes its descendant errors; correction uses the leaf editor.
-      fields: navigation.page === "first" ? ["first"] : ["second"],
+      ...(navigation.page === "first" ? { scope: firstScope } : { fields: ["second"] as const }),
       onValid: () => {
         if (navigation.page === "first") navigation.goToField("second");
         else navigation.goTo("review", () => summary.current?.focus());
@@ -119,6 +125,28 @@ it("runs a cross-page rule at final submission and reports unmapped errors witho
   expect(await screen.findByRole("alert")).toHaveTextContent("No correction destination is available.");
   expect(screen.getByRole("heading", { name: "Review page" })).toBeInTheDocument();
   expect(onSubmit).not.toHaveBeenCalled();
+});
+
+it("gates a bound section-level issue without treating its object path as a focusable editor", async () => {
+  const user = userEvent.setup();
+  const onContinue = vi.fn();
+  function Example() {
+    const form = GroupForm.useForm({ shouldFocusError: false });
+    const navigation = useFormNavigation({ form, initialPage: "group" as const, destinations: [{ scope: BoundGroup, page: "group" as const }] });
+    return <GroupForm.Form form={form} onSubmit={() => undefined}
+      navigation={{ id: navigation.revision, scope: BoundGroup, onValid: onContinue }}
+      onInvalid={(errors) => {
+        if (!navigation.correct(errors)) form.setError("root.submit", { message: "The section needs attention." });
+      }}>
+      <BoundGroup.Section />
+      <button type="submit">Continue group</button>
+    </GroupForm.Form>;
+  }
+  render(<Example />);
+  await user.click(screen.getByRole("button", { name: "Continue group" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("The section needs attention.");
+  expect(onContinue).not.toHaveBeenCalled();
+  expect(screen.getByLabelText("Group value")).not.toHaveFocus();
 });
 
 it("replaces an earlier focus request when navigation happens again before commit", async () => {

@@ -16,11 +16,25 @@ const section = defineSection({
 const root = defineForm({ first: section, second: section });
 const load: ChoiceLoader<string, number> = async () => [1];
 root.bindChoices({ values: root.defaultValues, services: { load } });
+root.useChoiceForm({ services: { load } });
+// @ts-expect-error Definition-owned choice runtimes retain their required service contract.
+root.useChoiceForm({ services: {} });
+section.useChoice("selection");
+// @ts-expect-error Only fields with a dependent-choice rule have a choice view.
+section.useChoice("account");
 // @ts-expect-error Nested choice definitions retain their required service contract.
 root.bindChoices({ values: root.defaultValues, services: {} });
 // @ts-expect-error A loader's options must match the rule's membership policy.
 root.bindChoices({ values: root.defaultValues, services: { load: async () => ["wrong"] } });
 section.bindChoices({ values: { a: "", b: 1 }, services: { load }, bindings: { account: "a", selection: "b" } });
+const bound = section.bind<{ a: string; b: number }>({ id: "bound", bindings: { account: "a", selection: "b" } });
+bound.bindChoices({ values: { a: "", b: 1 }, services: { load } });
+bound.field("selection");
+bound.choiceId("selection");
+// @ts-expect-error Bound uses keep their local field names.
+bound.field("missing");
+// @ts-expect-error Bound uses keep their required service contract.
+bound.bindChoices({ values: { a: "", b: 1 }, services: {} });
 // @ts-expect-error Binding a numeric selection to a string editing path is incompatible.
 section.bindChoices({ values: { a: "", b: "" }, services: { load }, bindings: { account: "a", selection: "b" } });
 defineSection({

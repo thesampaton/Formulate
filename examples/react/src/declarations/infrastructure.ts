@@ -40,6 +40,11 @@ export const infrastructureSchema = z.object({
 });
 export type InfrastructureValues = z.input<typeof infrastructureSchema>;
 export type InfrastructurePayload = z.output<typeof infrastructureSchema>;
+/** One repeated use carries its durable choice ID and current editor paths. */
+export const bindResource = (resourceId: string, index: number) => Resource.bind<InfrastructureValues>({
+  id: resourceId,
+  bindings: resourceBindings(index),
+});
 export const draftSchema = z.object({ definition: z.literal("infrastructure-request"), version: z.literal(1), revision: z.string().min(1), values: infrastructureEditingSchema });
 export type InfrastructureDraft = z.output<typeof draftSchema>;
 export type DraftAdapter = { save: (draft: InfrastructureDraft) => Promise<void>; load: () => Promise<unknown> };

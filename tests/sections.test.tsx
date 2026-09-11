@@ -13,14 +13,16 @@ const Details = defineSection({
   reference: { schema: z.string().trim().min(1), defaultValue: " default ", label: "Reference", component: "input" },
 }, { title: "Details" });
 const Registration = defineForm({ first: Details, second: Details });
+const FirstDetails = Registration.bindSection("first");
+const SecondDetails = Registration.bindSection("second");
 
 function NestedForm({ onSubmit }: { onSubmit: (values: z.output<typeof Registration.schema>) => void }) {
   const form = Registration.useForm();
   const [showFirst, setShowFirst] = useState(true);
   return <Form form={form} onSubmit={onSubmit}>
     <button type="button" onClick={() => setShowFirst(!showFirst)}>Toggle first</button>
-    {showFirst ? <Registration.Section name="first"><Details.Subsection name="contact" /><Details.Field name="reference" /></Registration.Section> : null}
-    <Registration.Section name="second" />
+    {showFirst ? <FirstDetails.Section><Details.Subsection name="contact" /><Details.Field name="reference" /></FirstDetails.Section> : null}
+    <SecondDetails.Section />
     <button type="submit">Save</button>
   </Form>;
 }
@@ -55,22 +57,33 @@ describe("recursive section definitions", () => {
     });
     expect(screen.getAllByLabelText("Reference")[0]).toHaveValue(" retained ");
     expect(Registration.fieldNames).toEqual(["first.contact.email", "first.reference", "second.contact.email", "second.reference"]);
+    expect(FirstDetails.fields).toEqual(["first"]);
+    expect(FirstDetails.correction).toEqual(["first.contact.email", "first.reference"]);
+    expect(FirstDetails.field("contact.email")).toBe("first.contact.email");
+    expect(Registration.bindSection("first")).toBe(FirstDetails);
     expect(Details.Subsection).toBe(Details.Section);
   });
 
   it("routes explicit member maps through nested sections without extra value owners", async () => {
     const onSubmit = vi.fn();
+    expect(() => Details.bind<{ person: z.input<typeof Contact.schema>; code: string }>({
+      id: "", bindings: { contact: "person", reference: "code" },
+    })).toThrow("stable non-empty ID");
     function Mapped() {
       const form = useFormulate(z.object({ person: Contact.schema, code: z.string() }), {
         defaultValues: { person: { email: "mapped@example.com" }, code: "local code" },
       });
+      const details = Details.bind<{ person: z.input<typeof Contact.schema>; code: string }>({
+        id: "mapped-details", bindings: { contact: "person", reference: "code" },
+      });
       return <Form form={form} onSubmit={onSubmit}>
-        <Details.Bind control={form.control} bindings={{ contact: "person", reference: "code" }} />
+        <Details.Bind control={form.control} use={details} />
         <button type="submit">Save</button>
       </Form>;
     }
     render(<Mapped />);
     expect(screen.getByLabelText("Contact email")).toHaveValue("mapped@example.com");
+    expect(screen.getByLabelText("Contact email")).toHaveAttribute("name", "person.email");
     fireEvent.submit(screen.getByRole("button", { name: "Save" }).closest("form")!);
     await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
     expect(onSubmit.mock.calls[0]![0]).toEqual({ person: { email: "mapped@example.com" }, code: "local code" });

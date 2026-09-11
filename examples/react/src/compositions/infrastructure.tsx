@@ -1,11 +1,31 @@
 import { Form, Page } from "@formulate/react";
-import { Resource, resourceBindings, machineSizeChoices } from "@/declarations/infrastructure";
+import { bindResource, Resource } from "@/declarations/infrastructure";
+import type { InfrastructureValues } from "@/declarations/infrastructure";
 import { Field } from "@/lib/formulate-config";
 import { useInfrastructure } from "@/hooks/use-infrastructure";
 import type { InfrastructureProps } from "@/hooks/use-infrastructure";
 import { ActionRow, Stack } from "@/components/formulate/layouts";
 import { FormNavigationButton, FormSubmitButton } from "@/components/formulate/form-actions";
 import { Button } from "@/components/ui/button";
+
+function ResourceFields({ flow, index, resourceId, current }: {
+  flow: ReturnType<typeof useInfrastructure>;
+  index: number;
+  resourceId: string;
+  current: Partial<InfrastructureValues["resources"][number]> | undefined;
+}) {
+  const request = Resource.useChoice("machineSize");
+  return <>
+    <Resource.Field name="name" label={`Resource ${index + 1} name`} />
+    <Resource.Field name="machineSize" label={`Resource ${index + 1} size`} componentProps={{ options: request?.options ?? [] }} />
+    <p>Selected size: {current?.machineSize || "None"}</p>
+    {request?.status === "failed" ? <Button type="button" variant="outline" onClick={request.retry}>Retry sizes</Button> : null}
+    <ActionRow>
+      <Button type="button" variant="outline" disabled={index === 0} onClick={() => { flow.array.move(index, index - 1); flow.correctResource(resourceId, "name"); }}>Move up</Button>
+      <Button type="button" variant="outline" onClick={() => { flow.array.remove(index); flow.correctResource(resourceId, "name"); }}>Remove</Button>
+    </ActionRow>
+  </>;
+}
 
 export function InfrastructureForm(props: InfrastructureProps) {
   const flow = useInfrastructure(props);
@@ -24,19 +44,12 @@ export function InfrastructureForm(props: InfrastructureProps) {
       <Field control={flow.form.control} name="regionId" label="Region" component="select" componentProps={{ options: [{ value: "east", label: "East" }, { value: "west", label: "West" }] }} />
       <div ref={flow.collection} tabIndex={-1} role="group" aria-label="Resources">
         {flow.array.fields.map((item, index) => {
-          const request = flow.choices.get(`${item.resourceId}.machineSize`, machineSizeChoices);
+          const resource = bindResource(item.resourceId, index);
           const current = flow.values.resources?.[index];
           return <fieldset key={item.id} className="mb-6 rounded-lg border border-border p-4" data-resource-id={item.resourceId}>
             <legend>Resource {index + 1}</legend>
-            <Resource.Bind control={flow.form.control} layout={Stack} bindings={resourceBindings(index)}>
-              <Resource.Field name="name" label={`Resource ${index + 1} name`} />
-              <Resource.Field name="machineSize" label={`Resource ${index + 1} size`} componentProps={{ options: request?.options ?? [] }} />
-              <p>Selected size: {current?.machineSize || "None"}</p>
-              {request?.status === "failed" ? <Button type="button" variant="outline" onClick={request.retry}>Retry sizes</Button> : null}
-              <ActionRow>
-                <Button type="button" variant="outline" disabled={index === 0} onClick={() => { flow.array.move(index, index - 1); flow.correctResource(item.resourceId, "name"); }}>Move up</Button>
-                <Button type="button" variant="outline" onClick={() => { flow.array.remove(index); flow.correctResource(item.resourceId, "name"); }}>Remove</Button>
-              </ActionRow>
+            <Resource.Bind control={flow.form.control} layout={Stack} use={resource}>
+              <ResourceFields flow={flow} index={index} resourceId={item.resourceId} current={current} />
             </Resource.Bind>
           </fieldset>;
         })}

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
 import type { FieldErrors } from "react-hook-form";
 import { useFormNavigation } from "@formulate/react";
-import { draftSchema, infrastructureSchema, Resource, resourceBindings } from "@/declarations/infrastructure";
+import { bindResource, draftSchema, infrastructureSchema } from "@/declarations/infrastructure";
 import type { DraftAdapter, InfrastructurePayload, InfrastructureValues } from "@/declarations/infrastructure";
 import type { ChoiceLoader } from "@formulate/react";
 import { useChoiceForm } from "@formulate/react";
@@ -18,9 +18,8 @@ export type InfrastructureProps = {
 const empty: InfrastructureValues = { regionId: "", resources: [] };
 
 export function useInfrastructure({ accountId, defaultValues = empty, listMachineSizes, drafts, previewPlan, onProvision }: InfrastructureProps) {
-  const sizeFields = useCallback((values: InfrastructureValues) => values.resources.flatMap((item, index) => Resource.bindChoices({
-    id: item.resourceId, values, bindings: resourceBindings(index),
-    services: { accountId, regionId: values.regionId, listMachineSizes },
+  const sizeFields = useCallback((values: InfrastructureValues) => values.resources.flatMap((item, index) => bindResource(item.resourceId, index).bindChoices({
+    values, services: { accountId, regionId: values.regionId, listMachineSizes },
   })), [accountId, listMachineSizes]);
   const { form, choices, getValidationRevision } = useChoiceForm({
     schema: infrastructureSchema, defaultValues, fields: sizeFields,
@@ -52,7 +51,7 @@ export function useInfrastructure({ accountId, defaultValues = empty, listMachin
   const correctResource = (id: string, member: "name" | "machineSize") => navigation.goTo("configure", () => {
     const index = form.getValues("resources").findIndex((item) => item.resourceId === id);
     if (index < 0) collection.current?.focus();
-    else form.setFocus(`resources.${index}.${member}`);
+    else form.setFocus(bindResource(id, index).field(member));
   });
   function correct(errors: FieldErrors<InfrastructureValues>) {
     if (errors.regionId) { navigation.goTo("configure", () => form.setFocus("regionId")); return; }

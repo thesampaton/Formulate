@@ -1,18 +1,26 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
-import type { DefaultValues, FieldPath, FieldValues } from "react-hook-form";
+import type { FieldPath, FieldValues, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { useFormulate } from "../form/use-formulate.js";
+import type { FormulateOptions } from "../form/use-formulate.js";
 import { createChoiceStore } from "./store.js";
 import type { BoundChoice } from "./definition.js";
+import type { ChoiceController } from "./context.js";
+
+/** RHF's runtime plus the dependent-choice evidence installed for that form. */
+export type ChoiceFormRuntime<Input extends FieldValues, Output extends FieldValues = Input> =
+  UseFormReturn<Input, unknown, Output> & {
+    readonly choices: ChoiceController;
+    readonly getValidationRevision: () => string;
+  };
 
 /** Dependencies validate editing values before schema parsing can rename or remove paths. */
-export function useChoiceForm<Input extends FieldValues, Output extends FieldValues>({ schema, defaultValues, fields }: {
+export function useChoiceForm<Input extends FieldValues, Output extends FieldValues>({ schema, fields, ...formOptions }: {
   schema: z.ZodType<Output, Input>;
-  defaultValues: DefaultValues<Input>;
   fields: (values: Input) => readonly BoundChoice[];
-}) {
+} & FormulateOptions<Input, Output>) {
   const choices = useMemo(() => createChoiceStore(), []);
   const publicChoices = useMemo(() => ({ get: choices.get, clear: choices.clear }), [choices]);
   const previousNames = useRef<FieldPath<Input>[]>([]);
@@ -27,7 +35,14 @@ export function useChoiceForm<Input extends FieldValues, Output extends FieldVal
     }
     return parsed.success ? parsed.data : z.NEVER;
   }), [schema, choices, fields]);
-  const form = useFormulate(validation, { defaultValues, shouldFocusError: false });
+  const form = useFormulate<Input, Output>(validation as unknown as z.ZodType<Output, Input>, {
+    shouldFocusError: false,
+    ...formOptions,
+  });
+  const choiceForm = useMemo(() => Object.assign(form, {
+    choices: publicChoices,
+    getValidationRevision: choices.getValidationRevision,
+  }) as ChoiceFormRuntime<Input, Output>, [form, publicChoices, choices]);
   useEffect(() => () => choices.clear(), [choices]);
   useEffect(() => {
     const sync = () => choices.sync(fields(form.getValues()));
@@ -41,5 +56,5 @@ export function useChoiceForm<Input extends FieldValues, Output extends FieldVal
     previousNames.current = names;
     if (affected.length) void form.trigger(affected);
   }, [form, fields, revision]);
-  return { form, choices: publicChoices, getValidationRevision: choices.getValidationRevision };
+  return { form: choiceForm, choices: publicChoices, getValidationRevision: choices.getValidationRevision };
 }

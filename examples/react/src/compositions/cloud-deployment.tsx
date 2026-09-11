@@ -1,14 +1,14 @@
 import { Page } from "@formulate/react";
-import { CloudDeployment, DeploymentTarget, regionChoices } from "@/declarations/cloud-deployment";
+import { CloudDeployment, DeploymentTarget } from "@/declarations/cloud-deployment";
 import { useCloudDeployment } from "@/hooks/use-cloud-deployment";
 import type { CloudFormProps } from "@/hooks/use-cloud-deployment";
-import type { ChoiceView } from "@formulate/react";
 import { Stack, ActionRow } from "@/components/formulate/layouts";
 import { FormContinueButton, FormNavigationButton, FormSubmitButton } from "@/components/formulate/form-actions";
 import { Button } from "@/components/ui/button";
 
-function TargetFields({ title, request }: { title: string; request?: ChoiceView }) {
+function TargetFields({ title }: { title: string }) {
   const region = DeploymentTarget.useWatch("regionId");
+  const request = DeploymentTarget.useChoice("regionId");
 
   return <Stack>
     <DeploymentTarget.Field name="accountId" label={`${title} account`} />
@@ -19,10 +19,15 @@ function TargetFields({ title, request }: { title: string; request?: ChoiceView 
   </Stack>;
 }
 
+function TargetStatus({ title }: { title: string }) {
+  const request = DeploymentTarget.useChoice("regionId");
+  return <p>{title}: {request?.problem ?? "Ready"}</p>;
+}
+
 export function CloudDeploymentForm(props: CloudFormProps) {
   const flow = useCloudDeployment(props);
   return <CloudDeployment.Form aria-label="Cloud deployment" form={flow.form} navigation={flow.step}
-    getValidationRevision={flow.getValidationRevision} onSubmit={props.onDeploy} onInvalid={flow.navigation.correct}>
+    onSubmit={props.onDeploy} onInvalid={flow.navigation.correct}>
     <h2>Cloud deployment</h2>
     <p>Choose two deployment targets. Production details are kept when you switch to development.</p>
     <CloudDeployment.Field name="environment" />
@@ -34,8 +39,8 @@ export function CloudDeploymentForm(props: CloudFormProps) {
     {flow.notice ? <p role="status">{flow.notice}</p> : null}
     <Page id="deployment-targets" title="Targets" active={flow.navigation.page === "targets"} layout={Stack}>
       <div ref={flow.targetsHeading} tabIndex={-1} role="group" aria-label="Deployment targets">
-        <CloudDeployment.Section name="primary"><TargetFields title="Primary" request={flow.choices.get("primary.regionId", regionChoices)} /></CloudDeployment.Section>
-        <CloudDeployment.Section name="recovery"><TargetFields title="Recovery" request={flow.choices.get("recovery.regionId", regionChoices)} /></CloudDeployment.Section>
+        <flow.primary.Section><TargetFields title="Primary" /></flow.primary.Section>
+        <flow.recovery.Section><TargetFields title="Recovery" /></flow.recovery.Section>
       </div>
       <FormContinueButton>Continue</FormContinueButton>
     </Page>
@@ -49,8 +54,8 @@ export function CloudDeploymentForm(props: CloudFormProps) {
         <p>Primary: {flow.values.primary?.accountId} / {flow.values.primary?.regionId}</p>
         <p>Recovery: {flow.values.recovery?.accountId} / {flow.values.recovery?.regionId}</p>
         {flow.values.environment === "production" ? <p>Production change: {flow.values.production || "Required"}</p> : null}
-        <p>Primary: {flow.choices.get("primary.regionId", regionChoices)?.problem ?? "Ready"}</p>
-        <p>Recovery: {flow.choices.get("recovery.regionId", regionChoices)?.problem ?? "Ready"}</p>
+        <flow.primary.Section><TargetStatus title="Primary" /></flow.primary.Section>
+        <flow.recovery.Section><TargetStatus title="Recovery" /></flow.recovery.Section>
       </div>
       <ActionRow><FormNavigationButton onClick={() => flow.goTo("targets")}>Edit targets</FormNavigationButton><FormSubmitButton>Deploy</FormSubmitButton></ActionRow>
     </Page>
