@@ -1,3 +1,4 @@
+import type { Booking } from "@/declarations/structured-editing";
 import type { z } from "zod";
 import type { SignIn } from "@/declarations/sign-in";
 import type { RequestSettings } from "@/declarations/request-settings";
@@ -15,6 +16,7 @@ const sampleName = { firstName: " Ada ", lastName: "Lovelace" };
 const sampleAddress = { street: "1 Example Street", countryCode: "AU", postcode: "2000" };
 
 export const exampleData = {
+  structured: { dates: { from: new Date(2026, 8, 14), to: new Date(2026, 8, 18) }, activities: ["walking", "museum"] } satisfies z.input<typeof Booking.schema>,
   infrastructure: { regionId: "east", resources: [
     { resourceId: "resource-1", name: " Web ", machineSize: "small" },
     { resourceId: "resource-2", name: "Worker", machineSize: "large" },

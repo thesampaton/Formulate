@@ -109,6 +109,16 @@
           "path": "packages/react/src/presentation/section.tsx",
           "type": "registry:lib",
           "target": "@lib/formulate/presentation/section.tsx"
+        },
+        {
+          "path": "packages/react/src/fields/compound-field.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/fields/compound-field.tsx"
+        },
+        {
+          "path": "packages/react/src/presentation/heading.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/presentation/heading.tsx"
         }
       ],
       "categories": [
@@ -266,6 +276,33 @@
         "navigation",
         "actions",
         "layouts"
+      ]
+    },
+    {
+      "name": "pickers",
+      "type": "registry:component",
+      "title": "Structured picker bindings",
+      "description": "Date range and multiple selection adapters over locally installed shadcn UI, with compound focus, blur and portal bindings.",
+      "dependencies": [
+        "radix-ui@^1.6.7",
+        "cn@^0.2.6",
+        "lucide-react@^1.42.0"
+      ],
+      "registryDependencies": [
+        "@formulate/core",
+        "@formulate/shadcn-bindings",
+        "button",
+        "calendar",
+        "popover",
+        "checkbox",
+        "label"
+      ],
+      "files": [
+        {
+          "path": "examples/react/src/components/formulate/picker-controls.tsx",
+          "type": "registry:component",
+          "target": "@components/formulate/picker-controls.tsx"
+        }
       ]
     }
   ]

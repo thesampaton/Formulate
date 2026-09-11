@@ -7,8 +7,11 @@ import type { Control, FieldPath, FieldValues } from "react-hook-form";
 
 import { FieldContext } from "./field-context.js";
 
+export type FieldClassNames = Partial<Record<"label" | "content" | "description" | "error", string>>;
+
 export type FieldPresentationProps = Omit<ComponentPropsWithoutRef<"div">, "id"> & {
   controlId: string;
+  classNames?: FieldClassNames;
   label: ReactNode;
   description?: ReactNode;
   descriptionId?: string;
@@ -19,12 +22,12 @@ export type FieldPresentationProps = Omit<ComponentPropsWithoutRef<"div">, "id">
 };
 
 /** Plain HTML default; applications can supply their locally owned shadcn Field. */
-function DefaultFieldPresentation({ controlId, label, description, descriptionId, error, errorId, invalid, orientation, children, ...props }: FieldPresentationProps) {
+function DefaultFieldPresentation({ controlId, label, description, descriptionId, error, errorId, invalid, orientation, classNames, children, ...props }: FieldPresentationProps) {
   return <div {...props} data-formulate="field" data-invalid={invalid || undefined} data-orientation={orientation}>
-    <label htmlFor={controlId} data-formulate="label">{label}</label>
-    {description != null ? <p id={descriptionId} data-formulate="description">{description}</p> : null}
-    {children}
-    {errorId ? <p id={errorId} role="alert" data-formulate="error">{error}</p> : null}
+    <label id={`${controlId}-label`} className={classNames?.label} htmlFor={controlId} data-formulate="label">{label}</label>
+    {description != null ? <p className={classNames?.description} id={descriptionId} data-formulate="description">{description}</p> : null}
+    <div data-formulate="field-content" className={classNames?.content}>{children}</div>
+    {errorId ? <p className={classNames?.error} id={errorId} role="alert" data-formulate="error">{error}</p> : null}
   </div>;
 }
 
@@ -40,6 +43,8 @@ export type FieldRootProps<Values extends FieldValues, Name extends FieldPath<Va
     description?: ReactNode;
     /** Label/control arrangement inside the field, separate from its container layout. */
     orientation?: FieldPresentationProps["orientation"];
+    /** Styling slots for field chrome; control styling stays in componentProps. */
+    classNames?: FieldClassNames;
     /** Application-owned field chrome. Normally selected once with createFormulate. */
     presentation?: ComponentType<FieldPresentationProps>;
     /** Classes for the outer field wrapper. Use componentProps.className or the child's className to style the control. */
@@ -49,6 +54,17 @@ export type FieldRootProps<Values extends FieldValues, Name extends FieldPath<Va
     /** Connected control content receiving this field's value, events, and accessibility attributes. */
     children: ReactNode;
   };
+
+/** Structured editors register their root path; resolver issues may be below it. */
+function errorMessage(error: unknown): string | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  if ("message" in error && typeof error.message === "string") return error.message;
+  for (const [key, child] of Object.entries(error)) {
+    if (["ref", "type", "types"].includes(key)) continue;
+    const message = errorMessage(child);
+    if (message) return message;
+  }
+}
 
 /** Connected children share this binding and accessible context. */
 export function FieldRoot<Values extends FieldValues, Name extends FieldPath<Values>, Output = Values>({
@@ -74,7 +90,7 @@ export function FieldRoot<Values extends FieldValues, Name extends FieldPath<Val
 
   return (
     <Presentation {...props} controlId={controlId} label={label} description={description}
-      descriptionId={descriptionId} error={fieldState.error?.message} errorId={errorId}
+      descriptionId={descriptionId} error={errorMessage(fieldState.error)} errorId={errorId}
       invalid={fieldState.invalid} orientation={orientation}>
       <FieldContext value={{ ...field, id: controlId, "aria-invalid": fieldState.invalid || undefined, "aria-describedby": describedBy }}>
         {children}

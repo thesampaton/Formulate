@@ -1,0 +1,151 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: #f5f6f1;
+  --foreground: #253b2b;
+  --card: #fff;
+  --card-foreground: #253b2b;
+  --popover: #fff;
+  --popover-foreground: #253b2b;
+  --primary: #315d46;
+  --primary-foreground: #fff;
+  --secondary: #f0f3ec;
+  --secondary-foreground: #42604c;
+  --muted: #e5ebdf;
+  --muted-foreground: #637168;
+  --accent: #e5ebdf;
+  --accent-foreground: #254c37;
+  --destructive: #ae473a;
+  --border: #d2dacf;
+  --input: #d2dacf;
+  --ring: #85a983;
+}
+
+.dark {
+  --background: #18241d;
+  --foreground: #edf3e9;
+  --card: #213027;
+  --card-foreground: #edf3e9;
+  --popover: #213027;
+  --popover-foreground: #edf3e9;
+  --primary: #acd1b5;
+  --primary-foreground: #18241d;
+  --secondary: #2c3c31;
+  --secondary-foreground: #edf3e9;
+  --muted: #2c3c31;
+  --muted-foreground: #afbcad;
+  --accent: #354d3e;
+  --accent-foreground: #edf3e9;
+  --destructive: #ff9d8f;
+  --border: #49604e;
+  --input: #49604e;
+  --ring: #85a983;
+}
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  body { @apply m-0 bg-background font-sans text-foreground antialiased; }
+}
+
+/* Scaffold styles share shadcn's tokens and Tailwind's spacing/type scale.
+   Utilities remain later in the cascade for per-use overrides. */
+@layer components {
+  main { @apply mx-auto max-w-6xl px-6 py-8 md:px-12; }
+  .masthead { @apply flex items-center justify-between border-b pb-6; }
+  .masthead > span { @apply text-xs text-muted-foreground; }
+  .wordmark { @apply text-2xl font-extrabold tracking-tight no-underline; }
+  .wordmark span { @apply text-primary; }
+  .intro { @apply pb-10 pt-14; }
+  .eyebrow { @apply mb-3 text-xs font-bold tracking-widest text-muted-foreground; }
+  h1 { @apply mb-5 text-4xl font-semibold tracking-tight md:text-5xl; }
+  h1 span { @apply text-muted-foreground; }
+  .intro > p:last-child { @apply max-w-lg text-sm text-muted-foreground; }
+  .workspace { @apply grid items-start gap-8 md:grid-cols-[14rem_minmax(0,1fr)]; }
+  .workspace > nav { @apply flex flex-wrap gap-2 pt-2 md:block; }
+  .example-link { @apply mb-1 flex w-full justify-start gap-3 whitespace-normal px-4 py-3 text-left text-sm text-muted-foreground; }
+  .example-link span { @apply text-xs text-muted-foreground; }
+  .example-link:hover, .example-link.selected { @apply bg-accent text-accent-foreground; }
+  .nav-note { @apply hidden max-w-52 p-4 text-xs text-muted-foreground md:block; }
+  .example-card { @apply rounded-xl border bg-card p-6 text-card-foreground shadow-sm md:p-8; }
+  .card-heading { @apply mb-8 flex flex-wrap items-center justify-between gap-2; }
+  .card-heading .eyebrow { @apply m-0 text-xs; }
+  .badge { @apply rounded-sm border px-2 py-1 text-xs text-muted-foreground; }
+  h2 { @apply mb-2 text-2xl font-semibold tracking-tight; }
+  h3, h4, h5, h6 { @apply mb-1 text-base font-semibold; }
+  .card-description { @apply mb-6 text-sm text-muted-foreground; }
+  [data-formulate='form'], [data-formulate='page'] { @apply grid min-w-0 gap-5; }
+  [data-formulate='form'] > button { @apply justify-self-start; }
+  [data-formulate='field'] { @apply min-w-0; }
+  [data-formulate='submission-error'] { @apply text-sm text-destructive; }
+  [data-formulate='section'] { @apply grid min-w-0 gap-4 rounded-lg border bg-secondary/40 p-5; }
+  [data-formulate='section'] > [data-formulate='heading'] { @apply m-0; }
+  [data-formulate='section-description'], [data-formulate='page'] > p,
+  [data-formulate='page'] > [data-slot='field-group'] > p { @apply m-0 text-sm text-muted-foreground; }
+  .step-indicator { @apply m-0 text-xs text-muted-foreground; }
+  .actions { @apply flex flex-wrap gap-2; }
+  .review-summary { @apply rounded-md; }
+  .review-summary > p { @apply mt-0 text-sm text-muted-foreground; }
+  dl { @apply mt-5; }
+  dl > div { @apply flex justify-between gap-4 border-t py-3 text-sm; }
+  dt { @apply text-muted-foreground; }
+  dd { @apply font-semibold; }
+  [role='status'] { @apply text-sm text-primary; }
+  .result { @apply rounded-md bg-secondary p-4; }
+  pre { @apply overflow-x-auto text-xs; }
+  footer { @apply mt-14 border-t py-5 text-xs text-muted-foreground; }
+  footer span { @apply mx-1; }
+  .example-content { @apply grid min-w-0 gap-6; }
+  .code-panel { @apply min-w-0 overflow-hidden rounded-xl border bg-card; }
+  .code-heading { @apply flex items-center justify-between gap-3 px-6 pt-5; }
+  .code-heading h2 { @apply m-0 flex items-center gap-2 text-base; }
+  .code-heading h2 span { @apply font-mono text-sm text-muted-foreground; }
+  .code-language { @apply whitespace-nowrap text-xs text-muted-foreground; }
+  .code-description { @apply mx-6 mb-4 mt-2 text-sm text-muted-foreground; }
+  .code-views { @apply flex gap-1 overflow-x-auto border-b px-4; }
+  .code-views button { @apply shrink-0 rounded-t-md border-b-2 border-transparent bg-transparent px-3 py-2 text-sm text-muted-foreground; }
+  .code-views button:hover { @apply bg-accent; }
+  .code-views button[aria-pressed='true'] { @apply border-primary bg-accent text-accent-foreground; }
+  .code-views button:focus-visible { @apply outline-2 -outline-offset-2; }
+  .code-category-description { @apply mx-6 my-3 text-sm text-muted-foreground; }
+  .code-context { @apply border-b px-6 py-3 text-sm text-muted-foreground; }
+  .code-context p { @apply m-0; }
+  .code-context p + p { @apply mt-1 text-xs; }
+  .code-file { @apply flex justify-between gap-3 bg-secondary px-6 py-2 font-mono text-xs text-muted-foreground; }
+  .code-source { @apply m-0 max-h-96 overflow-auto overscroll-contain bg-card px-6 pb-6 pt-5 font-mono text-xs leading-relaxed text-foreground; tab-size: 2; }
+  .code-source:focus-visible { @apply outline-2 -outline-offset-2; }
+  .code-source code { font: inherit; }
+  .code-source .hljs-keyword, .code-source .hljs-selector-tag { @apply font-semibold text-primary; }
+  .code-source .hljs-string, .code-source .hljs-regexp { @apply text-primary; }
+  .code-source .hljs-comment { @apply italic text-muted-foreground; }
+  .code-source .hljs-number, .code-source .hljs-literal { @apply text-destructive; }
+  .code-loading { @apply p-6 text-sm text-muted-foreground; }
+}

@@ -7,7 +7,7 @@ export { useFormNavigation } from "./form/use-form-navigation.js";
 export type { FieldDestination, FormNavigationOptions, FormNavigation } from "./form/use-form-navigation.js";
 export { Field, createFormulate, defaultComponents, defineForm, defineSection } from "./definitions/create-formulate.js";
 export type { FieldProps, ConfiguredFieldProps, FieldComponentMap } from "./definitions/create-formulate.js";
-export type { FieldPresentationProps } from "./fields/field.js";
+export type { FieldPresentationProps, FieldClassNames } from "./fields/field.js";
 export { InputControl, NumberControl, CheckboxControl, defineFieldControl } from "./fields/controls.js";
 export type { FieldControlComponent, InputControlProps, NumberControlProps, CheckboxControlProps } from "./fields/controls.js";
 export { useFieldBinding } from "./fields/field-context.js";
@@ -28,3 +28,7 @@ export type { Choice, ChoiceLoader, ChoiceSnapshot, ChoiceView, ChoiceRule, Boun
 export { useChoiceForm } from "./choices/use-choice-form.js";
 export type { ChoiceFormRuntime } from "./choices/use-choice-form.js";
 export type { ChoiceController } from "./choices/context.js";
+
+export { useCompoundFieldBinding, FormulatePortalProvider, useFormulatePortalContainer } from "./fields/compound-field.js";
+
+export type { HeadingLevel, HeadingProps } from "./presentation/heading.js";

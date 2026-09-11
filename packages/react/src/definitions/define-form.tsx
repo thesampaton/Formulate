@@ -7,6 +7,7 @@ import type { Control, DefaultValues, FieldPath, FieldPathValue, FieldValues, Us
 import { z } from "zod";
 import type { ConfiguredFieldProps, ControlSelection, FieldComponentMap } from "./create-formulate.js";
 import type { FieldRootProps } from "../fields/field.js";
+import type { SectionProps } from "../presentation/section.js";
 import { Section as SectionShell } from "../presentation/section.js";
 import { Form as FormShell } from "../form/form.js";
 import type { FormProps, FormScope } from "../form/form.js";
@@ -30,7 +31,8 @@ export type FormDefinition<Input extends FieldValues, Output extends FieldValues
 };
 
 const sectionRuntime = Symbol("section-definition");
-export type SectionPresentationProps = { title: ReactNode } & LayoutProps;
+export type SectionPresentationProps = SectionProps;
+type SectionUsePresentation = Omit<SectionProps, "title"> & { title?: ReactNode };
 type SectionDefinitionToken = {
   schema: z.ZodType<FieldValues, FieldValues>;
   defaultValues: FieldValues;
@@ -39,7 +41,7 @@ type SectionDefinitionToken = {
   [sectionRuntime]: {
     identity: symbol;
     title?: ReactNode;
-    renderSection: (props: { scope: DefinitionScope; title?: ReactNode; children?: ReactNode } & LayoutProps) => ReactElement;
+    renderSection: (props: { scope: DefinitionScope } & SectionUsePresentation) => ReactElement;
   };
 };
 type FieldSchemaDeclaration = { schema: z.ZodType; choices?: ChoiceRule<any, any, any, any> };
@@ -66,7 +68,7 @@ type FieldKeys<Members extends Declarations> = { [Key in keyof Members]: Members
 type SectionKeys<Members extends Declarations> = { [Key in keyof Members]: Members[Key] extends SectionDefinitionToken ? Key : never }[keyof Members] & string;
 type ChoiceKeys<Members extends Declarations> = { [Key in keyof Members]: Members[Key] extends { choices: ChoiceRule<any, any, any, any> } ? Key : never }[keyof Members] & string;
 type ChoiceOption<Member> = Member extends { choices: ChoiceRule<any, any, any, infer Option> } ? Option : never;
-type FieldPresentation = Pick<FieldRootProps<FieldValues, string>, "label" | "description" | "className" | "style" | "orientation" | "presentation">;
+type FieldPresentation = Pick<FieldRootProps<FieldValues, string>, "label" | "description" | "className" | "style" | "orientation" | "presentation" | "classNames">;
 type FieldDeclaration<Schema extends z.ZodType, Components extends FieldComponentMap> = FieldPresentation & {
   schema: Schema;
   defaultValue: NoInfer<z.input<Schema>>;
@@ -86,7 +88,7 @@ type DefinedFieldProps<Members extends Declarations, Name extends FieldKeys<Memb
     label?: ReactNode;
   } & ({ componentProps?: DefaultControlProps<Members[Name], Components>; children?: never } | { children: ReactNode; componentProps?: never });
 type WithoutControl<Props> = Props extends unknown ? Omit<Props, "control"> : never;
-type SectionUseProps<Name extends string> = { name: Name; title?: ReactNode; children?: ReactNode } & LayoutProps;
+type SectionUseProps<Name extends string> = { name: Name } & SectionUsePresentation;
 type BoundSectionProps = Omit<SectionUseProps<string>, "name">;
 type FieldRenderer<Components extends FieldComponentMap> =
   <Values extends FieldValues, Name extends FieldPath<Values>, Output = Values>(props: ConfiguredFieldProps<Values, Name, Output, Components>) => ReactNode;
@@ -147,7 +149,7 @@ export type DefinedSection<Members extends Declarations, Components extends Fiel
     } | {
       binding: BoundSectionBinding<Inputs<Members>, NoInfer<Values>, RequiredServices<Members>>;
       bindings?: never;
-    }) & LayoutProps) => ReactElement;
+    }) & SectionUsePresentation) => ReactElement;
     /** Captures an explicit member map and stable use ID for rendering, choices and workflow scopes. */
     bind: <Values extends FieldValues>(options: {
       id: string;
@@ -296,7 +298,7 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
         />
       );
     }
-    function SectionView({ name, title, children, control, layout }: SectionUseProps<string> & { control?: Control<any, unknown, any> }) {
+    function SectionView({ name, title, children, control, layout, ...shellProps }: SectionUseProps<string> & { control?: Control<any, unknown, any> }) {
       const parent = useDefinitionScope(identity, kind, control);
       const member = Object.hasOwn(members, name) ? members[name] : undefined;
       if (!member || !isSection(member)) {
@@ -313,6 +315,7 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
         title: title ?? member[sectionRuntime].title ?? name,
         children,
         layout,
+        ...shellProps,
       });
     }
     function bindSection(name: string) {
@@ -378,15 +381,15 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
         return trigger(fieldPaths);
       };
     }
-    function renderSection({ scope, title = options.title ?? "Section", children, layout = options.layout }: { scope: DefinitionScope; title?: ReactNode; children?: ReactNode } & LayoutProps) {
+    function renderSection({ scope, title = options.title ?? "Section", children, layout = options.layout, bodyClassName = options.bodyClassName, ...shellProps }: { scope: DefinitionScope } & SectionUsePresentation) {
       const Presentation = options.presentation;
       let content: ReactNode;
       if (children !== undefined) {
-        content = <LayoutBody layout={layout}>{children}</LayoutBody>;
+        content = <LayoutBody layout={layout} bodyClassName={bodyClassName}>{children}</LayoutBody>;
       } else if (Presentation) {
-        content = <Presentation title={title} layout={layout} />;
+        content = <Presentation {...shellProps} title={title} layout={layout} bodyClassName={bodyClassName} />;
       } else {
-        content = <SectionShell title={title} layout={layout}><FieldsView /></SectionShell>;
+        content = <SectionShell {...shellProps} title={title} layout={layout} bodyClassName={bodyClassName}><FieldsView /></SectionShell>;
       }
       return <DefinitionScopeContext value={scope}>{content}</DefinitionScopeContext>;
     }
@@ -418,13 +421,13 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
         },
       };
     }
-    function Bind({ control, bindings, binding, title, children, layout }: {
+    function Bind({ control, bindings, binding, title, children, layout, ...shellProps }: {
       control: Control<any, unknown, any>;
       bindings?: Record<string, string>;
       binding?: BoundSectionBinding<any, any, any>;
       title?: ReactNode;
       children?: ReactNode;
-    } & LayoutProps) {
+    } & SectionUsePresentation) {
       const resolvedBindings = binding?.bindings ?? bindings;
       if (!resolvedBindings) throw new Error("Section Bind needs bindings or a binding descriptor.");
       const parent = useContext(DefinitionScopeContext);
@@ -440,6 +443,7 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
         title,
         children,
         layout,
+        ...shellProps,
       });
     }
     function useDefinedForm(formOptions?: FormulateOptions<FieldValues, FieldValues>) {
@@ -455,8 +459,8 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
       const initialValues = typeof overrides === "function" ? overrides : { ...defaultValues, ...overrides };
       return useChoiceFormRuntime({ schema, getChoiceBindings, defaultValues: initialValues, ...runtimeOptions });
     }
-    function FormView({ layout = options.layout, ...props }: FormProps<FieldValues, FieldValues>) {
-      return <FormShell {...props} layout={layout} />;
+    function FormView({ layout = options.layout, bodyClassName = options.bodyClassName, ...props }: FormProps<FieldValues, FieldValues>) {
+      return <FormShell {...props} layout={layout} bodyClassName={bodyClassName} />;
     }
     return {
       schema,

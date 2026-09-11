@@ -161,3 +161,5 @@ The [custom controls guide](docs/custom-controls.md) covers `createFormulate`, l
 For the current support boundaries and design decisions, see [rendering and workflow](../../docs/05-06-rendering-and-workflow.md). For contribution conventions, see [naming and readability](../../docs/naming-and-readability-audit.md).
 
 The public entry point is `src/index.ts`. Package builds emit ESM and TypeScript declarations; the source registry distributes the same runtime under `@/lib/formulate`.
+
+Structured objects/arrays and compound pickers use `useCompoundFieldBinding`; see the [control guide](docs/custom-controls.md#structured-values-and-compound-pickers) for focus, logical blur, portals, styling slots and heading conventions. The optional `@formulate/pickers` registry item supplies bindings over local shadcn components.

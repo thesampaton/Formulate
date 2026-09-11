@@ -56,6 +56,7 @@ export function Form<Input extends FieldValues, Output extends FieldValues = Inp
   actionErrorMessage = "Unable to complete this action. Please try again.",
   children,
   layout,
+  bodyClassName,
   ...props
 }: FormProps<Input, Output>) {
   const getInstalledValidationRevision = (form as typeof form & {
@@ -194,7 +195,7 @@ export function Form<Input extends FieldValues, Output extends FieldValues = Inp
             aria-busy={isPending}
             data-formulate="form"
           >
-            <LayoutBody layout={layout}>{children}</LayoutBody>
+            <LayoutBody layout={layout} bodyClassName={bodyClassName}>{children}</LayoutBody>
             {errors.root?.submit?.message ? (
               <p role="alert" data-formulate="submission-error">{errors.root.submit.message}</p>
             ) : null}

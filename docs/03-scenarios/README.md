@@ -18,7 +18,7 @@ These optional sketches anchor the [mental model](../03-mental-model.md) to the 
 | [Cloud deployment wizard](cloud-deployment-wizard.md) | Trace primitives, library fields, independent uses, pages, and submission. |
 | [Dynamic survey/questionnaire](dynamic-survey.md) | Preserve question identity across branches, repeats, and draft recovery. |
 
-Focused examples cover [advanced-option disclosure](advanced-options.md) and [responsive CSS layout](responsive-layout.md).
+Focused examples cover [advanced-option disclosure](advanced-options.md) , [responsive CSS layout](responsive-layout.md), and [structured values and compound pickers](structured-editing.md).
 
 ## Complex-workflow validation sequence
 

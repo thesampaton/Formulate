@@ -7,10 +7,10 @@ The checked-in [registry.json](../registry.json) builds standard shadcn source i
 The installation destination is configured in [components.json](../examples/react/components.json): `aliases.ui` points to `@/components/ui`, with the example TypeScript/Vite alias resolving `@` to `src`. Its `style` selects the installed shadcn style and `iconLibrary` selects Lucide. Install or update UI components from the example project with:
 
 ```sh
-pnpm --filter @formulate/examples exec shadcn add field input checkbox select button slider tabs
+pnpm --filter @formulate/examples exec shadcn add field input checkbox select button slider tabs popover calendar
 ```
 
-`components/ui` contains the installed source. `components/formulate` contains Formulate's bindings, layouts, navigation, actions and field presentation. `lib/formulate-config.ts` maps declaration keys to those bindings. Binding props derive from the local shadcn exports; backend imports such as Radix stay inside `components/ui`. The current installed style uses Radix. Changing the shadcn backend later should be checked at this local UI boundary; Formulate does not expose a backend selector or promise that every backend's component props are identical.
+`components/ui` contains the installed source. `components/formulate` contains Formulate's bindings, layouts, navigation, actions and field presentation. `lib/formulate-config.ts` maps declaration keys to those bindings. Binding props derive from the local shadcn exports; The optional picker bindings also use Radix Portal/Content for a custom portal destination, because the installed shadcn Content owns its default Portal internally. The current installed style uses Radix. Changing the shadcn backend later should be checked at this local UI boundary; Formulate does not expose a backend selector or promise that every backend's component props are identical.
 
 ### Installation config and runtime bindings
 
@@ -27,7 +27,7 @@ Formulate does not read `components.json` at runtime or dynamically discover con
 
 The local Select binding ignores empty changes emitted by Radix’s native form bridge as Activity reconnects effects. Empty is not a selectable Radix item; RHF reset/setValue still controls clearing. This adapter fix is covered by selection, retained-page and hidden-reset tests. The installed shadcn Select source is unchanged.
 
-The application supplies semantic theme tokens and imports `tw-animate-css`. Shadcn components own control styling and variants. The only local source adjustment to Slider forwards its existing ARIA label props to its generated thumbs, so the width control has an accessible name. No new Slider API is introduced.
+The application supplies semantic theme tokens through a single `src/globals.css`, using `@theme inline` and `:root`/`.dark` CSS variables. It imports Tailwind and `tw-animate-css`; scaffold layout and typography use Tailwind defaults. Shadcn components own control styling and variants. The only local source adjustment to Slider forwards its existing ARIA label props to its generated thumbs, so the width control has an accessible name. No new Slider API is introduced.
 
 ```sh
 pnpm registry:build
@@ -41,6 +41,7 @@ The build writes ignored artifacts into `examples/react/public/r`; Vite serves t
 | `@formulate/core` | Core runtime source under `@/lib/formulate`, including dependent-choice definitions, the hook and private request/store modules, requiring React 19.2+, RHF, resolver and Zod. |
 | `@formulate/layouts` | Stack, Row and ActionRow, built on the consumer's local shadcn FieldGroup. |
 | `@formulate/shadcn-bindings` | Bindings over local shadcn controls, field presentation, pending editor boundary and the declaration control map; UI source comes through standard shadcn registry dependencies. |
+| `@formulate/pickers` | Optional date-range and multiple-selection bindings; depends on core, the field presentation and locally installed shadcn Calendar, Popover, Button, Checkbox and Label. Add its exports to your control map. |
 | `@formulate/actions` | Submit, Continue and Back/Edit controls; depends on core and shadcn Button, with no tab/page dependency. |
 | `@formulate/navigation` | FormTabs/FormTabPage, page action sets and an inherited page layout; depends on core, layouts, actions and shadcn Tabs. |
 | `@formulate/name` | Reusable first/last name definition, fieldset presentation and all required items. |

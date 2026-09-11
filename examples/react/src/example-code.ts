@@ -1,4 +1,9 @@
 /// <reference types="vite/client" />
+import structured from "./structured-editing.tsx?raw";
+import structuredDeclaration from "./declarations/structured-editing.ts?raw";
+import pickerControls from "./components/formulate/picker-controls.tsx?raw";
+import compoundBinding from "../../../packages/react/src/fields/compound-field.tsx?raw";
+import globals from "./globals.css?raw";
 import simple from "./compositions/sign-in.tsx?raw";
 import advanced from "./compositions/request-settings.tsx?raw";
 import confirmation from "./compositions/email-confirmation.tsx?raw";
@@ -103,7 +108,7 @@ const installation: CodeExcerpt = {
   ...source("installation", "shadcn config", "components.json", shadcnConfig, "aliases.ui chooses where shadcn primitives live; aliases.components and aliases.lib locate Formulate source. The CLI rewrites the bindings' imports to match. This project config is not installed by Formulate."),
   provenance: "Project-owned shadcn CLI configuration · used at installation",
 };
-const integration = [map, connectedControls, fieldChrome, installedInput, installation];
+const integration = [source("installation", "Global theme", "globals.css", globals, "One CSS entry point maps shadcn theme variables and uses Tailwind spacing and typography."), map, connectedControls, fieldChrome, installedInput, installation];
 const dependentChoices = [
   source("actions", "Form actions", "packages/react/src/form/form.tsx", formRuntime, "React transitions own pending state; RHF validates scopes and output, with freshness checks before callbacks.", "@formulate/core"),
   source("navigation", "Page lifecycle", "packages/react/src/presentation/page.tsx", pageRuntime, "React Activity preserves inactive editor state and pauses effects; form-level validation survives outside it.", "@formulate/core"),
@@ -116,6 +121,12 @@ const dependentChoices = [
 ];
 
 export const exampleCode = {
+  structured: [
+    composition("structured-editing.tsx", structured), declaration("declarations/structured-editing.ts", structuredDeclaration), sample("structured"),
+    source("controls", "Picker adapters", "components/formulate/picker-controls.tsx", pickerControls, "Date ranges and arrays over local shadcn Calendar, Popover, Button and Checkbox.", "@formulate/pickers"),
+    source("controls", "Compound binding", "packages/react/src/fields/compound-field.tsx", compoundBinding, "Primary focus, logical blur and scoped portals without a UI dependency.", "@formulate/core"),
+    bodyLayouts, buttons, ...integration,
+  ],
   infrastructure: [
     composition("compositions/infrastructure.tsx", infrastructure), declaration("declarations/infrastructure.ts", infrastructureDeclaration), sample("infrastructure"),
     source("behaviour", "Resource coordination", "hooks/use-infrastructure.ts", infrastructureBehaviour, "RHF arrays, durable item identity, draft handoffs and current plan checks."),
