@@ -110,7 +110,7 @@ No deep-merge algorithm should be treated as the semantic definition of composit
 
 ## Section: members and their connections
 
-The current [package API](../packages/react/README.md#reusable-sections-and-subsections) implements a narrower defineSection slice: recursive declarations, typed bindings, local rendering/watch/trigger helpers, and schema customization. The requirement/reference records below remain the broader model.
+The current [package API](../packages/react/README.md#reuse-a-section) implements a narrower defineSection slice: recursive declarations, typed bindings, local rendering/watch/trigger helpers, and schema customization. The requirement/reference records below remain the broader model.
 
 A section's members can be fields or other sections. The same SectionDefinition and SectionUse contracts apply at every nesting level. A child section may be called a **subsection** for readability; it has no separate entity discriminator, runtime behaviour, or binding rules. If useful, names such as SubsectionDefinition and SubsectionUse can be aliases of the corresponding Section types, rather than additional contracts.
 

@@ -4,7 +4,7 @@
 
 **A library is a collection of reusable definitions built with Formulate's primitives.** Start with source exports that work in an application. A registry can distribute those exports individually or in useful groups.
 
-The examples below are proposed authoring notation. A narrower executable defineForm/defineSection API now supports recursive members, local bindings, presentation components, and schema customization; see the [package guide](../packages/react/README.md#reusable-sections-and-subsections). The sketches here also include future references, requirements, and publication contracts.
+The examples below are proposed authoring notation. A narrower executable defineForm/defineSection API now supports recursive members, local bindings, presentation components, and schema customization; see the [package guide](../packages/react/README.md#reuse-a-section). The sketches here also include future references, requirements, and publication contracts.
 
 ## 1. Define a field
 
