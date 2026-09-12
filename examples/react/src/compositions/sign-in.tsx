@@ -1,3 +1,4 @@
+import { Field } from "@/components/ui/field";
 import { SignIn } from "@/declarations/sign-in";
 import type { SignInValues } from "@/declarations/sign-in";
 import { FormSubmitButton } from "@/components/formulate/form-actions";
@@ -8,7 +9,7 @@ export function SignInForm({ onSignIn }: { onSignIn: (values: SignInValues) => P
   return (
     <SignIn.Form form={form} onSubmit={onSignIn}>
       <SignIn.Fields />
-      <FormSubmitButton pendingLabel="Signing in…">Sign in</FormSubmitButton>
+      <Field orientation="horizontal"><FormSubmitButton pendingLabel="Signing in…">Sign in</FormSubmitButton></Field>
     </SignIn.Form>
   );
 }

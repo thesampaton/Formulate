@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { defineForm } from "@/lib/formulate-config";
-import { Stack } from "@/components/formulate/layouts";
+import { FieldGroup } from "@/components/ui/field";
 
 export const RequestSettings = defineForm({
   showAdvanced: {
@@ -34,7 +34,7 @@ export const RequestSettings = defineForm({
     component: "input",
     componentProps: { type: "url", placeholder: "https://api.example.com" },
   },
-}, { layout: Stack });
+}, { layout: FieldGroup });
 
 export type Settings = z.output<typeof RequestSettings.schema>;
 export type RequestConfiguration = { configuration: Pick<Settings, "retries" | "timeoutSeconds" | "endpoint"> };

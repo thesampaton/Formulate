@@ -6,7 +6,7 @@ import { z } from "zod";
 import { defineForm, defineSection, Form, Page, Section, LayoutBody } from "@formulate/react";
 import { Name } from "../examples/react/src/declarations/name";
 import { defineForm as defineStyledForm } from "../examples/react/src/lib/formulate-config";
-import { Stack } from "../examples/react/src/components/formulate/layouts";
+import { FieldGroup } from "../examples/react/src/components/ui/field";
 import { ResponsiveLayout } from "../examples/react/src/responsive-layout";
 
 function FormLayout({ children }: { children?: ReactNode }) { return <div data-testid="form-layout">{children}</div>; }
@@ -79,14 +79,14 @@ it("supports direct form layouts and explicit section children without extra val
   expect(screen.getByTestId("page-layout")).not.toBeVisible();
 });
 
-it("reuses the shadcn Name group with independent bindings, layouts, accessible errors and parsed values", async () => {
-  const Contacts = defineStyledForm({ primary: Name, secondary: Name }, { layout: Stack });
+it.each([{ label: "FieldGroup", layout: FieldGroup }, { label: "null", layout: null }])("reuses the shadcn Name group with independent bindings, layout overrides, accessible errors and parsed values ($label)", async ({ layout }) => {
+  const Contacts = defineStyledForm({ primary: Name, secondary: Name }, { layout: FieldGroup });
   const onSubmit = vi.fn();
   function Example() {
     const form = Contacts.useForm();
     return <Contacts.Form form={form} onSubmit={onSubmit}>
       <Contacts.Section name="primary" title="Primary" />
-      <Contacts.Section name="secondary" title="Secondary" layout={Stack} />
+      <Contacts.Section name="secondary" title="Secondary" layout={layout} />
       <button>Save</button>
     </Contacts.Form>;
   }
@@ -94,8 +94,10 @@ it("reuses the shadcn Name group with independent bindings, layouts, accessible 
   const user = userEvent.setup();
   const primary = screen.getByRole("group", { name: "Primary" });
   const secondary = screen.getByRole("group", { name: "Secondary" });
-  expect(primary.querySelector('[data-formulate-layout="row"]')).not.toBeNull();
-  expect(secondary.querySelector('[data-formulate-layout="row"]')).toBeNull();
+  expect(primary.querySelector('[data-slot="field-group"]')).toHaveClass("grid");
+  const secondaryGroup = secondary.querySelector('[data-slot="field-group"]');
+  if (layout === null) expect(secondaryGroup).toBeNull();
+  else expect(secondaryGroup).not.toHaveClass("grid");
   await user.click(screen.getByRole("button", { name: "Save" }));
   const first = within(primary).getByLabelText("First name");
   await waitFor(() => expect(first).toHaveFocus());

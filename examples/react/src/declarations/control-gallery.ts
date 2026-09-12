@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { defineField } from "@/lib/formulate";
 import { defineForm, field } from "@/lib/formulate-config";
-import { Stack } from "@/components/formulate/layouts";
+import { FieldGroup } from "@/components/ui/field";
 import { Country, Email, Percentage } from "./common-fields";
 
 export const countryOptions = [
@@ -34,6 +34,6 @@ export const ControlGallery = defineForm({
   slider: field(Percentage, { label: "Slider", defaultValue: 50, component: "slider", componentProps: { min: 0, max: 100, step: 1 } }),
   calendar: field(SingleDate, { label: "Calendar", component: "calendar", componentProps: SingleDate.componentProps }),
   datePicker: field(SingleDate, { label: "DatePicker" }),
-}, { layout: Stack });
+}, { layout: FieldGroup });
 
 export type ControlGalleryValues = z.output<typeof ControlGallery.schema>;

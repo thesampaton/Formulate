@@ -1,6 +1,6 @@
 import { RequestSettings } from "@/declarations/request-settings";
 import type { Settings, RequestConfiguration } from "@/declarations/request-settings";
-import { Stack, Row, ActionRow } from "@/components/formulate/layouts";
+import { Field, FieldGroup } from "@/components/ui/field";
 import { useRef } from "react";
 import { useWatch } from "react-hook-form";
 import { Page, Section, useFormNavigation } from "@formulate/react";
@@ -45,30 +45,30 @@ export function RequestSettingsForm({ onSave }: { onSave: (payload: RequestConfi
       <p className="step-indicator" aria-live="polite">
         Step {page === "settings" ? "1" : page === "destination" ? "2" : "3"} of 3 · {page === "settings" ? "Settings" : page === "destination" ? "Destination" : "Review"}
       </p>
-      <Page layout={Stack} pageId="settings" title="Request settings" active={page === "settings"}>
+      <Page layout={FieldGroup} pageId="settings" title="Request settings" active={page === "settings"}>
         <p>Start with the defaults, or adjust how requests retry and time out.</p>
         <RequestSettings.Field name="showAdvanced" />
         {showAdvanced ? (
-          <Section layout={Stack} title="Advanced options" description="These settings still apply when this section is hidden.">
-            <Row>
+          <Section layout={FieldGroup} title="Advanced options" description="These settings still apply when this section is hidden.">
+            <FieldGroup className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,14rem),1fr))]">
               <RequestSettings.Field name="retries" />
               <RequestSettings.Field name="timeoutSeconds">
                 <NumberControl step="any" className="tabular-nums" />
               </RequestSettings.Field>
-            </Row>
+            </FieldGroup>
           </Section>
         ) : null}
-        <FormContinueButton>Next: destination</FormContinueButton>
+        <Field orientation="horizontal"><FormContinueButton>Next: destination</FormContinueButton></Field>
       </Page>
-      <Page layout={Stack} pageId="destination" title="Request destination" active={page === "destination"}>
+      <Page layout={FieldGroup} pageId="destination" title="Request destination" active={page === "destination"}>
         <p>Choose where requests will go.</p>
         <RequestSettings.Field name="endpoint" />
-        <ActionRow>
+        <Field orientation="horizontal" className="flex-wrap">
           <FormNavigationButton onClick={() => navigation.goToField("showAdvanced")}>Back to settings</FormNavigationButton>
           <FormContinueButton>Review settings</FormContinueButton>
-        </ActionRow>
+        </Field>
       </Page>
-      <Page layout={Stack} pageId="review" title="Review settings" active={page === "review"}>
+      <Page layout={FieldGroup} pageId="review" title="Review settings" active={page === "review"}>
         <div ref={reviewHeadingRef} tabIndex={-1} role="group" aria-label="Configuration summary" className="review-summary">
           <p>These values will be used for every request.</p>
           <dl>
@@ -77,11 +77,11 @@ export function RequestSettingsForm({ onSave }: { onSave: (payload: RequestConfi
             <div><dt>Timeout</dt><dd>{timeoutSeconds} seconds</dd></div>
           </dl>
         </div>
-        <ActionRow>
+        <Field orientation="horizontal" className="flex-wrap">
           <FormNavigationButton onClick={() => navigation.goToField("retries")}>Edit retries</FormNavigationButton>
           <FormNavigationButton onClick={() => navigation.goToField("endpoint")}>Edit destination</FormNavigationButton>
           <FormSubmitButton pendingLabel="Saving…">Save configuration</FormSubmitButton>
-        </ActionRow>
+        </Field>
       </Page>
     </RequestSettings.Form>
   );

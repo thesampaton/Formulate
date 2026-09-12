@@ -5,10 +5,10 @@ import type { LayoutProps } from "@formulate/react";
 import { EmployeeOnboarding } from "@/declarations/employee-workflows";
 import type { EmployeeOnboardingPayload, EmployeeOnboardingValues } from "@/declarations/employee-workflows";
 import { EmploymentSetup, EmploymentSummary } from "@/components/formulate/employment-setup";
-import { Stack, ActionRow } from "@/components/formulate/layouts";
+import { Field, FieldGroup } from "@/components/ui/field";
 import { FormContinueButton, FormNavigationButton, FormSubmitButton } from "@/components/formulate/form-actions";
 
-export function EmployeeOnboardingForm({ onSubmit, defaultValues, layout = Stack }: {
+export function EmployeeOnboardingForm({ onSubmit, defaultValues, layout = FieldGroup }: {
   onSubmit: (payload: EmployeeOnboardingPayload) => void | Promise<void>;
   defaultValues?: EmployeeOnboardingValues;
 } & LayoutProps) {
@@ -33,20 +33,20 @@ export function EmployeeOnboardingForm({ onSubmit, defaultValues, layout = Stack
     <setup.Section layout={null}>
       <EmploymentSetup pageId="onboarding-setup" active={navigation.page === "setup"} layout={layout} />
     </setup.Section>
-    <Page pageId="onboarding-equipment" title="Equipment" active={navigation.page === "equipment"} layout={Stack}>
+    <Page pageId="onboarding-equipment" title="Equipment" active={navigation.page === "equipment"} layout={FieldGroup}>
       <EmployeeOnboarding.Field name="equipment" />
-      <ActionRow><FormNavigationButton onClick={goToEmploymentSetup}>Back</FormNavigationButton><FormContinueButton>Continue</FormContinueButton></ActionRow>
+      <Field orientation="horizontal" className="flex-wrap"><FormNavigationButton onClick={goToEmploymentSetup}>Back</FormNavigationButton><FormContinueButton>Continue</FormContinueButton></Field>
     </Page>
-    <Page pageId="onboarding-review" title="Review onboarding" active={navigation.page === "review"} layout={Stack}>
+    <Page pageId="onboarding-review" title="Review onboarding" active={navigation.page === "review"} layout={FieldGroup}>
       <div ref={reviewHeadingRef} tabIndex={-1} role="group" aria-label="Onboarding summary">
         <setup.Section layout={null}><EmploymentSummary /></setup.Section>
         <p>Equipment: {equipment}</p>
       </div>
-      <ActionRow>
+      <Field orientation="horizontal" className="flex-wrap">
         <FormNavigationButton onClick={goToEmploymentSetup}>Edit employment</FormNavigationButton>
         <FormNavigationButton onClick={() => navigation.goToField("equipment")}>Edit equipment</FormNavigationButton>
         <FormSubmitButton>Request onboarding</FormSubmitButton>
-      </ActionRow>
+      </Field>
     </Page>
   </EmployeeOnboarding.Form>;
 }

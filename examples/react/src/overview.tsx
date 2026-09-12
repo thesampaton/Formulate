@@ -35,7 +35,7 @@ const concepts = [
   { name: "Page", description: "Presents a part of the experience. It can contain sections, individual fields or a review of existing values." },
   { name: "Section", description: "Packages related fields, rules and presentation for reuse. Each declared use binds to its own place in the form’s values." },
   { name: "Field", description: "Connects one declared value to its label, control, description and errors. The control renders your local shadcn component." },
-  { name: "Layout", description: "Arranges content and action slots. Stacks, rows and custom layouts do not add values or validation rules." },
+  { name: "Layout", description: "Arranges content and action slots. Field groups, CSS grids and composed page layouts do not add values or validation rules." },
   { name: "Action", description: "Expresses an intent: check a scope and continue, navigate back, or validate and submit the complete form." },
 ] as const;
 

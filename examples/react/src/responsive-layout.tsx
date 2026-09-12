@@ -7,8 +7,8 @@ export function ResponsiveLayout() {
   const [saved, setSaved] = useState(false);
   const widthLabel = useId();
   return <>
-    <h2>A layout you can reuse</h2>
-    <p className="card-description">First and last name share a row when there is room. Reduce the form width to see them stack.</p>
+    <h2>Related fields in a grid</h2>
+    <p className="card-description">First and last name use a shadcn FieldGroup with grid classes. Reduce the form width to see them stack.</p>
     <p className="text-xs font-medium"><span id={widthLabel}>Form width</span> · {width}%</p>
     <Slider aria-labelledby={widthLabel} min={45} max={100} value={[width]}
       className="mt-3 mb-6" onValueChange={(next) => setWidth(typeof next === "number" ? next : next[0]!)} />

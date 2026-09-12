@@ -6,7 +6,8 @@ import { EmployeeOnboardingForm } from "../examples/react/src/compositions/emplo
 import { InternalTransferForm } from "../examples/react/src/compositions/internal-transfer";
 import { EmployeeOnboarding, InternalTransfer } from "../examples/react/src/declarations/employee-workflows";
 import { exampleData } from "../examples/react/src/data/example-data";
-import { Row, Stack } from "../examples/react/src/components/formulate/layouts";
+import type { ReactNode } from "react";
+import { FieldGroup } from "../examples/react/src/components/ui/field";
 import type { EmploymentValues } from "../examples/react/src/declarations/employment";
 
 afterEach(() => vi.restoreAllMocks());
@@ -107,17 +108,21 @@ it.each(hosts)("%s validates an off-screen edit and corrects the existing page u
   expect(onSubmit).not.toHaveBeenCalled();
 });
 
+function EmploymentGrid({ children }: { children?: ReactNode }) {
+  return <FieldGroup className="grid grid-cols-2" data-testid="employment-grid">{children}</FieldGroup>;
+}
+
 it.each(hosts)("%s preserves values and exact payload when the host replaces the page layout", async (host) => {
   const user = userEvent.setup();
   const onSubmit = vi.fn();
-  const renderHost = (layout: typeof Row | typeof Stack) => host === "onboarding"
+  const renderHost = (layout: typeof FieldGroup | typeof EmploymentGrid) => host === "onboarding"
     ? <EmployeeOnboardingForm onSubmit={onSubmit} defaultValues={structuredClone(exampleData.employment.onboarding)} layout={layout} />
     : <InternalTransferForm onSubmit={onSubmit} defaultValues={structuredClone(exampleData.employment.transfer)} layout={layout} />;
-  const view = render(renderHost(Stack));
+  const view = render(renderHost(FieldGroup));
   fireEvent.change(screen.getByLabelText("Start date"), { target: { value: "2027-01-05" } });
-  view.rerender(renderHost(Row));
+  view.rerender(renderHost(EmploymentGrid));
   expect(screen.getByLabelText("Start date")).toHaveValue("2027-01-05");
-  expect(screen.getByLabelText("Start date").closest('[data-formulate-layout="row"]')).not.toBeNull();
+  expect(within(screen.getByTestId("employment-grid")).getByLabelText("Start date")).toBeInTheDocument();
   expect(screen.getAllByLabelText(/^(Employment type|Start date|Manager)$/).map((field) => field.getAttribute("name"))).toEqual([
     null, `${host === "onboarding" ? "employment" : "proposedEmployment"}.startDate`, null,
   ]);

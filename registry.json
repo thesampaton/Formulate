@@ -153,29 +153,6 @@
       ]
     },
     {
-      "name": "layouts",
-      "type": "registry:component",
-      "title": "Form layouts",
-      "description": "Reusable Stack and wrapping Row layouts for form, page and section bodies.",
-      "dependencies": [
-        "cn@^0.2.6",
-        "class-variance-authority@^0.7.1"
-      ],
-      "registryDependencies": [
-        "field"
-      ],
-      "files": [
-        {
-          "path": "examples/react/src/components/formulate/layouts.tsx",
-          "type": "registry:component",
-          "target": "@components/formulate/layouts.tsx"
-        }
-      ],
-      "categories": [
-        "layouts"
-      ]
-    },
-    {
       "name": "shadcn-bindings",
       "type": "registry:lib",
       "title": "Form bindings for local shadcn components",
@@ -260,14 +237,13 @@
       "name": "name",
       "type": "registry:component",
       "title": "Name",
-      "description": "Reusable first and last name fields in a semantic fieldset, sharing a responsive row.",
+      "description": "Reusable first and last name fields in a semantic fieldset, arranged with a responsive shadcn FieldGroup grid.",
       "dependencies": [
         "zod@^4.0.0"
       ],
       "registryDependencies": [
         "@formulate/core",
         "@formulate/shadcn-bindings",
-        "@formulate/layouts",
         "field"
       ],
       "files": [
@@ -311,7 +287,7 @@
       "description": "Page navigation, page action sets and a page layout, composed over local shadcn Tabs and Formulate actions.",
       "registryDependencies": [
         "@formulate/core",
-        "@formulate/layouts",
+        "field",
         "tabs",
         "@formulate/actions"
       ],

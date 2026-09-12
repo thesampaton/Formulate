@@ -66,7 +66,11 @@ it("separates responsibilities and installation metadata while preserving the li
   await user.click(screen.getByRole("button", { name: "Page actions" }));
   expect(screen.getByText("@formulate/navigation")).toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "Layouts" }));
-  expect(screen.getByRole("region", { name: "Content & action rows source code" })).toHaveTextContent("function ActionRow");
+  expect(screen.getByRole("region", { name: "Field & groups source code" })).toHaveTextContent("function FieldGroup");
+  expect(screen.getByText("Installed from shadcn/ui · editable local source")).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Page layout" }));
+  expect(screen.getByRole("region", { name: "Page layout source code" })).toHaveTextContent("FormStepLayout");
+  expect(screen.getByText("@formulate/navigation")).toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "Fields & sections" }));
   await user.click(screen.getByRole("button", { name: "Address" }));
   expect(screen.getByText("Local source · no registry item yet")).toBeInTheDocument();

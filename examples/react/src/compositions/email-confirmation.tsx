@@ -1,3 +1,4 @@
+import { Field } from "@/components/ui/field";
 import { EmailConfirmation } from "@/declarations/email-confirmation";
 import type { EmailConfirmationValues } from "@/declarations/email-confirmation";
 import { Form } from "@formulate/react";
@@ -7,6 +8,6 @@ export function EmailConfirmationForm({ onConfirm }: { onConfirm: (values: Email
   const form = EmailConfirmation.useForm();
   return <Form form={form} onSubmit={onConfirm}>
     <EmailConfirmation.Fields />
-    <FormSubmitButton pendingLabel="Confirming…">Confirm email address</FormSubmitButton>
+    <Field orientation="horizontal"><FormSubmitButton pendingLabel="Confirming…">Confirm email address</FormSubmitButton></Field>
   </Form>;
 }

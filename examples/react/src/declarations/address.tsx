@@ -1,6 +1,6 @@
 import { Section } from "@formulate/react";
 import type { SectionPresentationProps } from "@formulate/react";
-import { Row, Stack } from "@/components/formulate/layouts";
+import { FieldGroup } from "@/components/ui/field";
 import { z } from "zod";
 import { defineSection } from "@/lib/formulate-config";
 
@@ -33,7 +33,7 @@ export const Address = defineSection({
   },
 }, {
   title: "Address",
-  layout: Stack,
+  layout: FieldGroup,
   schema: (schema) => schema.superRefine(({ countryCode, postcode }, context) => {
     const format = postcodeFormats[countryCode];
     if (!format.pattern.test(postcode)) context.addIssue({ code: "custom", path: ["postcode"], message: format.message });
@@ -48,11 +48,11 @@ function AddressFields({ title, layout }: SectionPresentationProps) {
   const trigger = Address.useTrigger();
   return <Section title={title} layout={layout}>
     <Address.Field name="street" label={<>{title} street</>} />
-    <Row>
+    <FieldGroup className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,14rem),1fr))]">
       <Address.Field name="countryCode" label={<>{title} country</>}
         componentProps={{ onValueChange: () => { void trigger("postcode"); } }} />
       <Address.Field name="postcode" label={<>{title} postcode</>}
         description={country === "US" ? "Demo format: 5 digits." : "Demo format: 4 digits."} />
-    </Row>
+    </FieldGroup>
   </Section>;
 }

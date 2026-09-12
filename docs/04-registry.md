@@ -30,7 +30,7 @@ Formulate is a dependency of a user's registry. That registry can also distribut
 
 ## Formulate's primitive registry
 
-The current runtime is installed as **`@formulate/core`**, exporting Form, Field, Section, Page and the implemented declaration/coordination helpers. `@formulate/common-fields` supplies reusable semantic fields through the public `defineField` API. `@formulate/shadcn-bindings`, `@formulate/layouts`, `@formulate/actions` and `@formulate/navigation` distribute connected UI and composition components. `@formulate/name` demonstrates a reusable domain section.
+The current runtime is installed as **`@formulate/core`**, exporting Form, Field, Section, Page and the implemented declaration/coordination helpers. `@formulate/common-fields` supplies reusable semantic fields through the public `defineField` API. `@formulate/shadcn-bindings`, `@formulate/actions` and `@formulate/navigation` distribute connected UI and composition components. `@formulate/name` demonstrates a reusable domain section. Ordinary field spacing and grids use local shadcn FieldGroup directly; navigation supplies FormStepLayout for page and action composition.
 
 See the [actual installable catalogue](registry-development.md) for source paths and dependencies. The [earlier primitive catalogue](04-registry-catalogue.md) records candidates for later design; its proposed per-primitive addresses and rule/workflow helpers are not current installable APIs.
 

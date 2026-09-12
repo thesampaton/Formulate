@@ -2,7 +2,7 @@ import { z } from "zod";
 import { Section } from "@/lib/formulate";
 import type { SectionPresentationProps } from "@/lib/formulate";
 import { defineSection } from "@/lib/formulate-config";
-import { Stack } from "@/components/formulate/layouts";
+import { FieldGroup } from "@/components/ui/field";
 
 export const Notifications = defineSection({
   channel: {
@@ -15,7 +15,7 @@ export const Notifications = defineSection({
     description: "Demo format: + followed by 8 to 15 digits.", componentProps: { type: "tel", autoComplete: "tel", placeholder: "+61412345678" },
   },
 }, {
-  title: "Notifications", layout: Stack, presentation: NotificationFields,
+  title: "Notifications", layout: FieldGroup, presentation: NotificationFields,
   schema: (schema) => schema.superRefine(({ channel, phone }, context) => {
     if (channel === "sms" && !/^\+[1-9]\d{7,14}$/.test(phone)) {
       context.addIssue({ code: "custom", path: ["phone"], message: "Enter a mobile number for SMS, starting with +." });

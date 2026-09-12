@@ -38,7 +38,7 @@ Activity requires React **19.2 or later in the 19.x series**, reflected in packa
 | Host selects each field's dependency and validation path | The field's declaration owns its local dependency and policy. Recursive definition binding supplies paths. Repeated uses supply one typed map shared with editor binding and stable item IDs. |
 | Field mount owns work | The form owns request lifetimes. Activity hiding or editor unmounting does not remove a use; removal from the bound list does. Restoration clears evidence before RHF reset, including identical restored values. |
 
-Applications still own branch destinations, correction policy, durable IDs, draft storage/compatibility, plan acceptance and execution. RHF owns editing values, array operations and reset. Layouts/actions/navigation retain their existing registry items. The later bound-use slice removed the Employment adapter while leaving its destinations with each host.
+Applications still own branch destinations, correction policy, durable IDs, draft storage/compatibility, plan acceptance and execution. RHF owns editing values, array operations and reset. Actions and navigation retain their existing registry items; ordinary layout styling uses shadcn components directly. The later bound-use slice removed the Employment adapter while leaving its destinations with each host.
 
 ## Authoring comparison
 

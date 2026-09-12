@@ -4,10 +4,10 @@ import type { LayoutProps } from "@formulate/react";
 import { InternalTransfer } from "@/declarations/employee-workflows";
 import type { InternalTransferPayload, InternalTransferValues } from "@/declarations/employee-workflows";
 import { EmploymentSetup, EmploymentSummary } from "@/components/formulate/employment-setup";
-import { Row, Stack, ActionRow } from "@/components/formulate/layouts";
+import { Field, FieldGroup } from "@/components/ui/field";
 import { FormNavigationButton, FormSubmitButton } from "@/components/formulate/form-actions";
 
-export function InternalTransferForm({ onSubmit, defaultValues, layout = Row }: {
+export function InternalTransferForm({ onSubmit, defaultValues, layout = FieldGroup }: {
   onSubmit: (payload: InternalTransferPayload) => void | Promise<void>;
   defaultValues?: InternalTransferValues;
 } & LayoutProps) {
@@ -27,14 +27,14 @@ export function InternalTransferForm({ onSubmit, defaultValues, layout = Row }: 
     <setup.Section layout={null}>
       <EmploymentSetup pageId="transfer-setup" active={navigation.page === "setup"} layout={layout} />
     </setup.Section>
-    <Page pageId="transfer-review" title="Review transfer" active={navigation.page === "review"} layout={Stack}>
+    <Page pageId="transfer-review" title="Review transfer" active={navigation.page === "review"} layout={FieldGroup}>
       <div ref={reviewHeadingRef} tabIndex={-1} role="group" aria-label="Transfer summary">
         <setup.Section layout={null}><EmploymentSummary /></setup.Section>
       </div>
-      <ActionRow>
+      <Field orientation="horizontal" className="flex-wrap">
         <FormNavigationButton onClick={() => navigation.goToPage("setup", () => setup.focusFirstField(form))}>Edit employment</FormNavigationButton>
         <FormSubmitButton>Request transfer</FormSubmitButton>
-      </ActionRow>
+      </Field>
     </Page>
   </InternalTransfer.Form>;
 }

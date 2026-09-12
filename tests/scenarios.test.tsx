@@ -69,13 +69,13 @@ describe("advanced-options scenario", () => {
     expect(screen.queryByLabelText("Retries")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Next: destination" }));
     const endpoint = await screen.findByLabelText("Request URL");
-    expect(endpoint).toHaveFocus();
+    await waitFor(() => expect(endpoint).toHaveFocus());
     expect(endpoint).toHaveValue("");
     expect(endpoint).not.toHaveAttribute("aria-invalid", "true");
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     await finishDestination(user);
     const summary = await screen.findByRole("group", { name: "Configuration summary" });
-    expect(summary).toHaveFocus();
+    await waitFor(() => expect(summary).toHaveFocus());
     expect(within(summary).getByText("3")).toBeInTheDocument();
     expect(within(summary).getByText("30 seconds")).toBeInTheDocument();
     expect(summary.querySelectorAll("input")).toHaveLength(0);

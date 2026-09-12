@@ -3,7 +3,7 @@ import { createFormulate, defineField } from "@/lib/formulate";
 import { DateRange } from "./common-fields";
 import { ShadcnField } from "@/components/formulate/field-presentation";
 import { DateRangeControl, MultiSelectControl } from "@/components/formulate/picker-controls";
-import { Stack } from "@/components/formulate/layouts";
+import { FieldGroup } from "@/components/ui/field";
 
 const { defineForm, field } = createFormulate({
   fieldPresentation: ShadcnField,
@@ -27,5 +27,5 @@ export const Booking = defineForm({
     description: "Choose any activities you enjoy.",
     componentProps: { options: [{ value: "walking", label: "Walking" }, { value: "museum", label: "Museums" }, { value: "food", label: "Food" }] },
   },
-}, { layout: Stack });
+}, { layout: FieldGroup });
 export type BookingOutput = z.output<typeof Booking.schema>;

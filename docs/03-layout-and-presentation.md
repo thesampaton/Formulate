@@ -6,18 +6,22 @@
 
 ## Implemented composition API
 
-A layout is a module-level React component accepting `children`. The same component can be supplied to `Form`, `Page`, or `Section` using `layout={Stack}`, or reused directly around a few children. Layouts arrange each container's body; Page and Section headings and descriptions stay outside it. Form submission errors stay outside the form body layout.
+A layout is a module-level React component accepting `children`. The same component can be supplied to `Form`, `Page`, or `Section` using `layout={FieldGroup}`, or reused directly around a few children. Layouts arrange each container's body; Page and Section headings and descriptions stay outside it. Form submission errors stay outside the form body layout.
 
 ```tsx
-const Customer = defineForm({ name: Name, email: Email }, { layout: Stack });
+import { Field, FieldGroup } from "@/components/ui/field";
+
+const Customer = defineForm({ name: Name, email: Email }, { layout: FieldGroup });
 
 function CustomerForm() {
   const form = Customer.useForm();
   return <Customer.Form form={form} onSubmit={saveCustomer}>
-    <Page id="details" title="Details" layout={Stack}>
+    <Page pageId="details" title="Details" layout={FieldGroup}>
       <Customer.Section name="name" />
       <Customer.Field name="email" />
-      <button type="submit">Save</button>
+      <Field orientation="horizontal">
+        <button type="submit">Save</button>
+      </Field>
     </Page>
   </Customer.Form>;
 }
@@ -27,9 +31,18 @@ function CustomerForm() {
 
 Custom section renderers receive `{ title, layout }` and forward the layout to a Section or `LayoutBody`. Explicit section children replace the full presentation and are wrapped in the selected layout. Declare layout components at module scope; creating a new component type during render can remount its fields. Responsive CSS changes preserve the mounted controls and focus.
 
-The [local layouts](../examples/react/src/components/formulate/layouts.tsx) build on shadcn `FieldGroup`. `Stack` provides consistent body spacing. `Row` uses wrapping flex children with a preferred minimum of 14rem, so first and last name share available width and stack when the actual container is too narrow—even in a narrow panel on a wide screen. Callers can create a different layout component or adjust the local source. Reading and Tab order follow JSX order.
+The examples use the locally installed shadcn `FieldGroup` directly for body spacing and apply CSS grid classes where sibling fields share a line:
 
-The [Name definition](../examples/react/src/declarations/name.tsx) is a reusable group of fields, using the existing section binding contract, shadcn `FieldSet`/`FieldLegend`, and a default Row layout. A row alone adds no binding; declaring `name: Name` supplies `name.firstName` and `name.lastName`. Reusing the definition at another key creates independent values and IDs. No separate field-group entity is needed.
+```tsx
+<FieldGroup className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,14rem),1fr))]">
+  <Customer.Field name="name.firstName" />
+  <Customer.Field name="name.lastName" />
+</FieldGroup>
+```
+
+This grid fits columns to the actual container, including a narrow panel on a wide screen. The 14rem preferred minimum can shrink to the container's width. Reading and Tab order follow JSX order. Horizontal shadcn `Field` groups arrange action buttons. These arrangements need no additional Formulate layout components. See [shadcn Field](https://ui.shadcn.com/docs/components/base/field) and [Input composition](https://ui.shadcn.com/docs/components/base/input).
+
+The [Name definition](../examples/react/src/declarations/name.tsx) is a reusable group of fields using the existing section binding contract and shadcn `FieldSet`/`FieldLegend`. Its custom presentation supplies an inline `FieldGroup` grid by default and uses `LayoutBody` for a caller's replacement or `null` override. A grid alone adds no binding; declaring `name: Name` supplies `name.firstName` and `name.lastName`. Reusing the definition at another key creates independent values and IDs. No separate field-group entity is needed.
 
 Field `orientation` is a separate concern: shadcn uses it to arrange the label and control *inside one field*. It does not place sibling fields next to each other. The local configured `fieldPresentation` uses shadcn Field, FieldContent, FieldLabel, FieldDescription and FieldError while Formulate retains binding, error IDs and focus refs. [shadcn Field](https://ui.shadcn.com/docs/components/base/field).
 

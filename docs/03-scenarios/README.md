@@ -24,7 +24,7 @@ Focused examples cover [advanced-option disclosure](advanced-options.md) , [resp
 
 The implementation exercises deepen existing scenarios in this order; it does not add another set of hero examples:
 
-1. [Employee onboarding: complete page reuse](employee-onboarding.md#gate-1-complete-page-reuse) in two forms with different bindings, destinations, and layouts, retaining one set of local requirements.
+1. [Employee onboarding: complete page reuse](employee-onboarding.md#gate-1-complete-page-reuse) in two forms with different bindings and destinations, retaining one set of local requirements. Tests also exercise replacement layouts.
 2. [Cloud deployment: branching and async choices](cloud-deployment-wizard.md#gate-2-branching-with-dependent-async-choices) in one controlled sequence, including stale Regions responses, removal of the current page, and reactivation with retained values.
 3. [Infrastructure provisioning: repeated sections and restoration](infrastructure-provisioning.md#gate-3-repeated-sections-and-draft-restoration), using RHF field arrays and application-owned persistence. The survey supplies recovery cross-checks.
 

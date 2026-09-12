@@ -1,19 +1,19 @@
 import { LayoutBody, Page } from "@formulate/react";
 import type { LayoutProps } from "@formulate/react";
 import { Employment, employmentTypes, managers } from "@/declarations/employment";
-import { ActionRow, Stack } from "./layouts";
+import { Field, FieldGroup } from "@/components/ui/field";
 import { FormContinueButton } from "./form-actions";
 
 /** Reusable page presentation. Its host supplies one bound Employment section
  * for rendering, the Continue scope and error focus while choosing destinations. */
-export function EmploymentSetup({ pageId, active, layout = Stack }: {
+export function EmploymentSetup({ pageId, active, layout = FieldGroup }: {
   pageId: string;
   active: boolean;
 } & LayoutProps) {
-  return <Page pageId={pageId} title="Employment details" active={active} layout={Stack}>
+  return <Page pageId={pageId} title="Employment details" active={active} layout={FieldGroup}>
     <p>Choose the employment arrangement, start date and manager.</p>
     <LayoutBody layout={layout}><Employment.Fields /></LayoutBody>
-    <ActionRow><FormContinueButton>Continue</FormContinueButton></ActionRow>
+    <Field orientation="horizontal" className="flex-wrap"><FormContinueButton>Continue</FormContinueButton></Field>
   </Page>;
 }
 

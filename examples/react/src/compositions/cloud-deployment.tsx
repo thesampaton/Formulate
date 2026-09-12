@@ -2,7 +2,7 @@ import { Page } from "@formulate/react";
 import { CloudDeployment, DeploymentTarget } from "@/declarations/cloud-deployment";
 import { useCloudDeployment } from "@/hooks/use-cloud-deployment";
 import type { CloudFormProps } from "@/hooks/use-cloud-deployment";
-import { Stack, ActionRow } from "@/components/formulate/layouts";
+import { Field, FieldGroup } from "@/components/ui/field";
 import { FormContinueButton, FormNavigationButton, FormSubmitButton } from "@/components/formulate/form-actions";
 import { Button } from "@/components/ui/button";
 
@@ -10,13 +10,13 @@ function TargetFields({ title }: { title: string }) {
   const region = DeploymentTarget.useWatch("regionId");
   const regionChoices = DeploymentTarget.useChoice("regionId");
 
-  return <Stack>
+  return <FieldGroup>
     <DeploymentTarget.Field name="accountId" label={`${title} account`} />
     <DeploymentTarget.Field name="regionId" label={`${title} region`} componentProps={{ options: regionChoices?.options ?? [] }} />
     {region ? <p>Retained selection: {region}</p> : null}
     <p role="status">{title}: {regionChoices ? regionChoices.validationMessage ?? "Ready" : "Checking available choices…"}</p>
-    {regionChoices?.status === "failed" ? <Button type="button" variant="outline" onClick={regionChoices?.retry}>Retry {title.toLowerCase()} regions</Button> : null}
-  </Stack>;
+    {regionChoices?.status === "failed" ? <Field orientation="horizontal"><Button type="button" variant="outline" onClick={regionChoices?.retry}>Retry {title.toLowerCase()} regions</Button></Field> : null}
+  </FieldGroup>;
 }
 
 function TargetStatus({ title }: { title: string }) {
@@ -31,24 +31,24 @@ export function CloudDeploymentForm(props: CloudFormProps) {
     <h2>Cloud deployment</h2>
     <p>Choose two deployment targets. Production details are kept when you switch to development.</p>
     <CloudDeployment.Field name="environment" />
-    <ActionRow>
+    <Field orientation="horizontal" className="flex-wrap">
       <FormNavigationButton onClick={() => flow.goToPage("targets")}>Targets</FormNavigationButton>
       <FormNavigationButton disabled={flow.values.environment !== "production"} onClick={() => flow.goToPage("production")}>Production</FormNavigationButton>
       <FormNavigationButton onClick={() => flow.goToPage("review")}>Review</FormNavigationButton>
-    </ActionRow>
+    </Field>
     {flow.notice ? <p role="status">{flow.notice}</p> : null}
-    <Page pageId="deployment-targets" title="Targets" active={flow.navigation.page === "targets"} layout={Stack}>
+    <Page pageId="deployment-targets" title="Targets" active={flow.navigation.page === "targets"} layout={FieldGroup}>
       <div ref={flow.targetsHeadingRef} tabIndex={-1} role="group" aria-label="Deployment targets">
         <flow.primary.Section><TargetFields title="Primary" /></flow.primary.Section>
         <flow.recovery.Section><TargetFields title="Recovery" /></flow.recovery.Section>
       </div>
-      <FormContinueButton>Continue</FormContinueButton>
+      <Field orientation="horizontal"><FormContinueButton>Continue</FormContinueButton></Field>
     </Page>
-    <Page pageId="deployment-production" title="Production configuration" active={flow.navigation.page === "production" && flow.values.environment === "production"} layout={Stack}>
+    <Page pageId="deployment-production" title="Production configuration" active={flow.navigation.page === "production" && flow.values.environment === "production"} layout={FieldGroup}>
       <CloudDeployment.Field name="production" />
-      <ActionRow><FormNavigationButton onClick={() => flow.goToPage("targets")}>Back</FormNavigationButton><FormContinueButton>Continue</FormContinueButton></ActionRow>
+      <Field orientation="horizontal" className="flex-wrap"><FormNavigationButton onClick={() => flow.goToPage("targets")}>Back</FormNavigationButton><FormContinueButton>Continue</FormContinueButton></Field>
     </Page>
-    <Page pageId="deployment-review" title="Review deployment" active={flow.navigation.page === "review"} layout={Stack}>
+    <Page pageId="deployment-review" title="Review deployment" active={flow.navigation.page === "review"} layout={FieldGroup}>
       <div ref={flow.reviewHeadingRef} tabIndex={-1} role="group" aria-label="Deployment summary">
         <p>Environment: {flow.values.environment}</p>
         <p>Primary: {flow.values.primary?.accountId} / {flow.values.primary?.regionId}</p>
@@ -57,7 +57,7 @@ export function CloudDeploymentForm(props: CloudFormProps) {
         <flow.primary.Section><TargetStatus title="Primary" /></flow.primary.Section>
         <flow.recovery.Section><TargetStatus title="Recovery" /></flow.recovery.Section>
       </div>
-      <ActionRow><FormNavigationButton onClick={() => flow.goToPage("targets")}>Edit targets</FormNavigationButton><FormSubmitButton>Deploy</FormSubmitButton></ActionRow>
+      <Field orientation="horizontal" className="flex-wrap"><FormNavigationButton onClick={() => flow.goToPage("targets")}>Edit targets</FormNavigationButton><FormSubmitButton>Deploy</FormSubmitButton></Field>
     </Page>
   </CloudDeployment.Form>;
 }

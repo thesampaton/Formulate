@@ -1,6 +1,6 @@
 # Multi-page form
 
-The sixth example composes Profile, Delivery and Notifications pages with an informational Review page. It reuses Name and Address sections, Stack/Row layouts, and locally installed shadcn Tabs and Button primitives.
+The sixth example composes Profile, Delivery and Notifications pages with an informational Review page. It reuses Name and Address sections and FormStepLayout, with locally installed shadcn FieldGroup grids, horizontal Field action groups, Tabs and Button primitives.
 
 - [Composition](../../examples/react/src/compositions/multi-page-form.tsx) places fields, sections, pages and action components.
 - [Declaration](../../examples/react/src/declarations/multi-page-profile.ts) owns field defaults and validation, including the conditional SMS number requirement.

@@ -1,4 +1,4 @@
-import { Stack, ActionRow } from "@/components/formulate/layouts";
+import { Field, FieldGroup } from "@/components/ui/field";
 import { useRef } from "react";
 import { useWatch } from "react-hook-form";
 import { Page, useFormNavigation } from "@formulate/react";
@@ -34,7 +34,7 @@ export function CustomerForm({ onCreate, defaultValues = customerDefaults }: {
     }}
     onSubmit={onCreate}>
     <p className="step-indicator" aria-live="polite">Step {navigation.page === "details" ? "1 of 2 · Details" : "2 of 2 · Review"}</p>
-    <Page layout={Stack} pageId="customer-details" title="Customer details" active={navigation.page === "details"}>
+    <Page layout={FieldGroup} pageId="customer-details" title="Customer details" active={navigation.page === "details"}>
       <p>Choose billing and delivery addresses. This demo checks postcode formats for two countries.</p>
       <Customer.Field name="email" />
       <Customer.Section name="billingAddress" title="Billing address" />
@@ -42,9 +42,9 @@ export function CustomerForm({ onCreate, defaultValues = customerDefaults }: {
         componentProps={{ onValueChange: () => { void form.trigger("deliveryAddress"); } }} />
       {deliverySameAsBilling ? <p>Delivery uses your current billing address. Any separate delivery address is kept for later.</p> :
         <Customer.Section name="deliveryAddress" title="Delivery address" />}
-      <FormContinueButton>Review customer</FormContinueButton>
+      <Field orientation="horizontal"><FormContinueButton>Review customer</FormContinueButton></Field>
     </Page>
-    <Page layout={Stack} pageId="customer-review" title="Review customer" active={navigation.page === "review"}>
+    <Page layout={FieldGroup} pageId="customer-review" title="Review customer" active={navigation.page === "review"}>
       <div ref={reviewHeadingRef} tabIndex={-1} role="group" aria-label="Customer summary" className="review-summary">
         <dl>
           <div><dt>Email</dt><dd>{email}</dd></div>
@@ -52,12 +52,12 @@ export function CustomerForm({ onCreate, defaultValues = customerDefaults }: {
           <div><dt>Delivery address{deliverySameAsBilling ? " · from billing" : ""}</dt><dd><AddressSummary address={effectiveDelivery} /></dd></div>
         </dl>
       </div>
-      <ActionRow>
+      <Field orientation="horizontal" className="flex-wrap">
         <FormNavigationButton onClick={() => navigation.goToField("email")}>Edit email</FormNavigationButton>
         <FormNavigationButton onClick={() => navigation.goToField("billingAddress.street")}>Edit billing</FormNavigationButton>
         <FormNavigationButton onClick={() => navigation.goToField(`${deliverySource(form.getValues())}.street`)}>Edit delivery</FormNavigationButton>
         <FormSubmitButton pendingLabel="Creating…">Create customer</FormSubmitButton>
-      </ActionRow>
+      </Field>
     </Page>
   </Customer.Form>;
 }

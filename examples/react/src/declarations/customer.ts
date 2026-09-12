@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Address } from "./address";
 import { Email } from "./email";
-import { Stack } from "@/components/formulate/layouts";
+import { FieldGroup } from "@/components/ui/field";
 import { defineForm } from "@/lib/formulate-config";
 
 type DeliveryPolicy = { deliverySameAsBilling: boolean };
@@ -18,7 +18,7 @@ export const Customer = defineForm({
   },
   deliveryAddress: Address,
 }, {
-  layout: Stack,
+  layout: FieldGroup,
   schema: (schema) => {
     // The inactive draft keeps its editing shape but suspends domain requirements.
     const draft = z.object({ street: z.string(), countryCode: z.string(), postcode: z.string() });

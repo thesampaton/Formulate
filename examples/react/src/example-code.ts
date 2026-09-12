@@ -45,7 +45,7 @@ import multiPageDeclaration from "./declarations/multi-page-profile.ts?raw";
 import address from "./declarations/address.tsx?raw";
 import commonFields from "./declarations/common-fields.ts?raw";
 import name from "./declarations/name.tsx?raw";
-import layouts from "./components/formulate/layouts.tsx?raw";
+import localField from "./components/ui/field.tsx?raw";
 import formTabs from "./components/formulate/form-tabs.tsx?raw";
 import formActions from "./components/formulate/form-actions.tsx?raw";
 import pageLayouts from "./components/formulate/form-page-layouts.tsx?raw";
@@ -93,10 +93,13 @@ const sample = (example: ExampleName) => source("form", "Sample data", `data/exa
 const declaration = (filename: string, code: string) => source("form", "Declaration", filename, code, "Declares this form's members, validation and editing defaults.");
 const composition = (filename: string, code: string) => source("form", "Composition", filename, code, "Places declared fields, sections and pages into this form's rendered experience.");
 const emailField = source("fields", "Common fields", "declarations/common-fields.ts", commonFields, "Semantic field definitions nominate control names; each use supplies its own binding and overrides.", "@formulate/common-fields");
-const nameSection = source("fields", "Name", "declarations/name.tsx", name, "First and last name with local bindings and a default responsive row.", "@formulate/name");
+const nameSection = source("fields", "Name", "declarations/name.tsx", name, "First and last name with local bindings and a responsive shadcn FieldGroup grid.", "@formulate/name");
 const addressSection = source("fields", "Address", "declarations/address.tsx", address, "Address fields with country/postcode validation and local revalidation.");
 const notificationSection = source("fields", "Notifications", "declarations/notifications.tsx", notifications, "Notification preference fields with a conditional mobile-number requirement.");
-const bodyLayouts = source("layouts", "Content & action rows", "components/formulate/layouts.tsx", layouts, "Stack, Row and ActionRow arrange children without choosing actions.", "@formulate/layouts");
+const bodyLayouts: CodeExcerpt = {
+  ...source("layouts", "Field & groups", "components/ui/field.tsx", localField, "Shadcn FieldGroup supports related fields with grid classes; Field orientation arranges labels, controls and actions."),
+  provenance: "Installed from shadcn/ui · editable local source",
+};
 const stepLayout = source("layouts", "Page layout", "components/formulate/form-page-layouts.tsx", pageLayouts, "Places page content above default or supplied actions; inherits page context.", "@formulate/navigation");
 const tabs = source("navigation", "Tabs & pages", "components/formulate/form-tabs.tsx", formTabs, "Page selection, panel mounting, layout inheritance and navigation context.", "@formulate/navigation");
 const buttons = source("actions", "Action buttons", "components/formulate/form-actions.tsx", formActions, "Submit and Continue invoke the owning Form action; Back/Edit invoke a supplied callback.", "@formulate/actions");

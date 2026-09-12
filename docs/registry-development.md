@@ -42,11 +42,10 @@ The build writes ignored artifacts into `examples/react/public/r`; Vite serves t
 | --- | --- |
 | `@formulate/core` | Core runtime source under `@/lib/formulate`, including dependent-choice definitions, the hook and private request/store modules, requiring React 19.2+, RHF, resolver and Zod. |
 | `@formulate/common-fields` | Eight portable `defineField` definitions under `@/lib/formulate-fields/common-fields`; depends only on core and Zod. Controls remain locally bound. |
-| `@formulate/layouts` | Stack, Row and ActionRow, built on the consumer's local shadcn FieldGroup. |
 | `@formulate/shadcn-bindings` | Full control map, basic/group/search/date adapters, shared control utilities and Base UI Popover content, field presentation and pending boundary. UI source comes through standard shadcn registry dependencies with a `base-*` consumer style. |
 | `@formulate/pickers` | Optional date-range and multiple-selection bindings; depends on core, the field presentation and locally installed shadcn Calendar, Popover, Button, Checkbox and Label. Add its exports to your control map. |
 | `@formulate/actions` | Submit, Continue and Back/Edit controls; depends on core and shadcn Button, with no tab/page dependency. |
-| `@formulate/navigation` | FormTabs/FormTabPage, page action sets and an inherited page layout; depends on core, layouts, actions and shadcn Tabs. |
+| `@formulate/navigation` | FormTabs/FormTabPage, page action sets and FormStepLayout; depends on core, actions and shadcn Field and Tabs. |
 | `@formulate/name` | Reusable first/last name definition, fieldset presentation and all required items. |
 
 In a React 19.2+ (19.x) + Tailwind 4 consumer with shadcn configured, add this entry to its `components.json`. Use the actual port printed by Vite if 5173 is occupied:
@@ -68,20 +67,24 @@ pnpm dlx shadcn@latest add @formulate/name
 ```tsx
 import { defineForm } from "@/lib/formulate-config";
 import { Name } from "@/components/formulate/name";
-import { Stack } from "@/components/formulate/layouts";
+import { Field, FieldGroup } from "@/components/ui/field";
 
-const Profile = defineForm({ name: Name }, { layout: Stack });
+const Profile = defineForm({ name: Name }, { layout: FieldGroup });
 
 export function ProfileForm() {
   const form = Profile.useForm();
   return <Profile.Form form={form} onSubmit={(values) => console.info(values)}>
     <Profile.Fields />
-    <button type="submit">Save</button>
+    <Field orientation="horizontal">
+      <button type="submit">Save</button>
+    </Field>
   </Profile.Form>;
 }
 ```
 
 The registry installs local source, so consumers do not need the private `@formulate/react` workspace package. This repository uses a small development facade at `examples/react/src/lib/formulate.ts` to exercise the same public API against workspace source. Registry items install the actual core files at that alias instead. All installed primitives resolve the same React contexts.
+
+Import shadcn FieldGroup directly for body spacing and apply grid classes to it for sibling fields. Name's default presentation follows that approach inside FieldSet/FieldLegend. Horizontal shadcn Field groups arrange action buttons. These use the consumer's existing [Field](https://ui.shadcn.com/docs/components/base/field) and [Input](https://ui.shadcn.com/docs/components/base/input) composition patterns, without another layout registry item. Form/Page/Section layout defaults, replacement components and `layout={null}` remain available for reusable compositions.
 
 Declare imported npm packages in `dependencies`, and installed source requirements in `registryDependencies`, including dependencies on the same namespace. Shared shadcn components remain the consumer's local components. This follows the [registry item contract](https://ui.shadcn.com/docs/registry/registry-item-json). Hosting, public release URLs and release compatibility policy remain future work.
 
@@ -149,4 +152,4 @@ FormTabPage combines a tab panel and a semantic Page, inheriting `pageLayout` fr
 
 FormReviewActions derives Edit links to the other available pages and supplies the final submit button. `onValueChange` handles tab selection; `onNavigate` handles Back/Edit and can additionally focus a destination editor. It defaults to `onValueChange`. Disabled pages are excluded from these actions. Validation scopes and Continue destinations remain the enclosing Form's responsibility, so a layout never becomes another value or workflow owner.
 
-ActionRow lives with layouts; FormReviewActions and FormPageActions live in `form-page-actions.tsx`. FormActionFieldset lives in `form-action-fieldset.tsx` and is distributed by the shadcn bindings item. Registry items carry standard category tags, and the example source browser identifies their actual item names.
+FormReviewActions and FormPageActions live in `form-page-actions.tsx` and return their action controls. FormStepLayout arranges them in a horizontal shadcn Field group. FormActionFieldset lives in `form-action-fieldset.tsx` and is distributed by the shadcn bindings item. Registry items carry standard category tags, and the example source browser identifies their actual item names.
