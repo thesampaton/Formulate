@@ -23,6 +23,7 @@ export function useCompoundFieldBinding<Value>() {
   const isOpen = useRef(false);
   const trigger = useRef<HTMLElement | null>(null);
   const content = useRef<HTMLElement | null>(null);
+  const suspendedContent = useRef<{ node: HTMLElement; hidden: boolean; inert: boolean } | null>(null);
   const active = useRef(false);
 
   useLayoutEffect(() => {
@@ -33,6 +34,9 @@ export function useCompoundFieldBinding<Value>() {
       // Activity hides its DOM, but a primitive may retain a portal for exit animation.
       // Remove that surface from focus/accessibility immediately when effects detach.
       if (content.current) {
+        if (suspendedContent.current?.node !== content.current) {
+          suspendedContent.current = { node: content.current, hidden: content.current.hidden, inert: content.current.inert };
+        }
         content.current.hidden = true;
         content.current.inert = true;
       }
@@ -55,6 +59,13 @@ export function useCompoundFieldBinding<Value>() {
 
   function onOpenChange(next: boolean) {
     if (next && field.disabled) return;
+    // A reused popup stays hidden after Activity returns, until explicitly opened.
+    const suspended = suspendedContent.current;
+    if (next && suspended) {
+      suspended.node.hidden = suspended.hidden;
+      suspended.node.inert = suspended.inert;
+      suspendedContent.current = null;
+    }
     const wasOpen = isOpen.current;
     isOpen.current = next;
     setOpen(next);
@@ -76,6 +87,8 @@ export function useCompoundFieldBinding<Value>() {
     disabled: field.disabled,
     open: open && !field.disabled,
     onOpenChange,
+    // Each UI binding maps this policy to its own close/final-focus API.
+    canRestoreFocus: () => active.current && !field.disabled,
     portalContainer: container,
     triggerProps: {
       id: field.id, name: field.name, ref: triggerRef, disabled: field.disabled,
@@ -84,9 +97,6 @@ export function useCompoundFieldBinding<Value>() {
     },
     contentProps: {
       ref: contentRef, onBlur,
-      onCloseAutoFocus: (event: Event) => {
-        if (!active.current || field.disabled) event.preventDefault();
-      },
       "aria-labelledby": `${field.id}-label`,
       "aria-describedby": field["aria-describedby"],
       "data-formulate": "control-content",

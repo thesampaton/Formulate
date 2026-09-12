@@ -39,7 +39,7 @@ describe("simple-form scenario", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Unable to complete this action. Please try again.");
     expect(screen.getByLabelText("Email")).toHaveValue("person@example.com");
     expect(screen.getByLabelText("Password")).toHaveValue("demo-password");
-    await user.click(screen.getByRole("button", { name: "Sign in" }));
+    await user.click(await screen.findByRole("button", { name: "Sign in" }));
     await waitFor(() => expect(onSignIn).toHaveBeenCalledTimes(2));
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
@@ -91,17 +91,17 @@ describe("advanced-options scenario", () => {
     const user = userEvent.setup();
     const onSave = vi.fn();
     render(<AdvancedOptions onSave={onSave} />);
-    await user.click(screen.getByLabelText("Show advanced options"));
+    await user.click(screen.getByRole("checkbox", { name: "Show advanced options" }));
     await user.clear(screen.getByLabelText("Retries"));
     await user.type(screen.getByLabelText("Retries"), "11");
-    await user.click(screen.getByLabelText("Show advanced options"));
+    await user.click(screen.getByRole("checkbox", { name: "Show advanced options" }));
     expect(screen.queryByLabelText("Retries")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Next: destination" }));
     const retries = await screen.findByLabelText("Retries");
     await waitFor(() => expect(retries).toHaveFocus());
     expect(retries).toHaveValue(11);
     expect(retries).toHaveAccessibleDescription("A whole number from 0 to 10. Use 0 to 10 retries.");
-    expect(screen.getByLabelText("Show advanced options")).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Show advanced options" })).toBeChecked();
     expect(onSave).not.toHaveBeenCalled();
     await user.clear(retries);
     await user.type(retries, "5");
@@ -121,7 +121,7 @@ describe("advanced-options scenario", () => {
     const user = userEvent.setup();
     const onSave = vi.fn();
     render(<AdvancedOptions onSave={onSave} />);
-    await user.click(screen.getByLabelText("Show advanced options"));
+    await user.click(screen.getByRole("checkbox", { name: "Show advanced options" }));
     const timeout = screen.getByLabelText("Timeout (seconds)");
     await user.clear(timeout);
     await user.keyboard("{Enter}");

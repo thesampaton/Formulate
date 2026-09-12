@@ -57,7 +57,7 @@ it("combines out-of-order Regions, removal of the current page, retained drafts,
   await user.click(screen.getByRole("button", { name: "Review" }));
   await user.click(screen.getByRole("button", { name: "Deploy" }));
   expect(onDeploy).not.toHaveBeenCalled();
-  await waitFor(() => expect(screen.getByLabelText("Primary region")).toHaveFocus());
+  await waitFor(() => expect(screen.getByRole("combobox", { name: "Primary region" })).toHaveFocus());
   await act(async () => service.calls[4]!.reject(new Error("Offline")));
   await user.click(screen.getByRole("button", { name: "Retry primary regions" }));
   await act(async () => service.calls[5]!.resolve(options("A2")));

@@ -61,7 +61,7 @@ it("derives Back from available page order and uses the parent's focus navigatio
     <FormTabPage value="review" title="Review"><p>Ready</p></FormTabPage>
   </FormTabs></TestForm>);
   const user = userEvent.setup();
-  expect(screen.getByRole("tab", { name: "Skipped: Incomplete" })).toBeDisabled();
+  expect(screen.getByRole("tab", { name: "Skipped: Incomplete" })).toHaveAttribute("aria-disabled", "true");
   await user.click(screen.getByRole("button", { name: "Back to details" }));
   expect(navigate).toHaveBeenCalledWith("details");
   expect(select).not.toHaveBeenCalled();

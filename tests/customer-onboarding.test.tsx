@@ -44,7 +44,7 @@ describe("customer onboarding", () => {
     })} />);
     await user.click(screen.getByRole("button", { name: "Review customer" }));
     await waitFor(() => expect(screen.getByLabelText("Delivery address postcode")).toHaveFocus());
-    await user.click(screen.getByLabelText("Delivery same as billing"));
+    await user.click(screen.getByRole("checkbox", { name: "Delivery same as billing" }));
     expect(screen.queryByLabelText("Delivery address postcode")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Review customer" }));
     const summary = await screen.findByRole("group", { name: "Customer summary" });
@@ -59,12 +59,12 @@ describe("customer onboarding", () => {
     expect(street).toHaveValue("  1 Billing Street  ");
     await user.clear(street);
     await user.type(street, "  9 New Street  ");
-    await user.click(screen.getByLabelText("Delivery same as billing"));
+    await user.click(screen.getByRole("checkbox", { name: "Delivery same as billing" }));
     expect(screen.getByLabelText("Delivery address street")).toHaveValue("Keep my draft");
     expect(screen.getByRole("combobox", { name: "Delivery address country" })).toHaveTextContent("United States");
     expect(screen.getByLabelText("Delivery address postcode")).toHaveValue("123");
     await waitFor(() => expect(screen.getByLabelText("Delivery address postcode")).toHaveAttribute("aria-invalid", "true"));
-    await user.click(screen.getByLabelText("Delivery same as billing"));
+    await user.click(screen.getByRole("checkbox", { name: "Delivery same as billing" }));
     await user.click(screen.getByRole("button", { name: "Review customer" }));
     expect(within(await screen.findByRole("group", { name: "Customer summary" })).getAllByText(/9 New Street/)).toHaveLength(2);
     await user.click(screen.getByRole("button", { name: "Create customer" }));
@@ -103,7 +103,7 @@ describe("customer onboarding", () => {
     expect(streets[0]!.id).not.toBe(streets[1]!.id);
     await user.type(streets[0]!, "First customer");
     expect(streets[1]).toHaveValue("");
-    await user.click(screen.getAllByLabelText("Delivery same as billing")[0]!);
+    await user.click(screen.getAllByRole("checkbox", { name: "Delivery same as billing" })[0]!);
     expect(screen.getAllByLabelText("Delivery address street")).toHaveLength(1);
   });
 

@@ -179,18 +179,31 @@
       "name": "shadcn-bindings",
       "type": "registry:lib",
       "title": "Form bindings for local shadcn components",
-      "description": "Value, event and field-presentation bindings over local shadcn components, plus a control map. The shadcn CLI resolves UI dependencies and import paths at installation.",
+      "description": "Bindings for shadcn Base UI components and a local control map for inputs, choices, groups, sliders, calendars and OTP. Use a base-* shadcn style.",
       "dependencies": [
         "class-variance-authority@^0.7.1",
         "lucide-react@^1.42.0",
-        "cn@^0.2.6"
+        "cn@^0.2.6",
+        "@base-ui/react@^1.8.0"
       ],
       "registryDependencies": [
         "@formulate/core",
         "field",
         "input",
         "checkbox",
-        "select"
+        "select",
+        "textarea",
+        "switch",
+        "radio-group",
+        "combobox",
+        "command",
+        "toggle-group",
+        "slider",
+        "calendar",
+        "popover",
+        "input-otp",
+        "label",
+        "button"
       ],
       "files": [
         {
@@ -212,6 +225,31 @@
           "path": "examples/react/src/components/formulate/form-action-fieldset.tsx",
           "type": "registry:component",
           "target": "@components/formulate/form-action-fieldset.tsx"
+        },
+        {
+          "path": "examples/react/src/components/formulate/control-utils.ts",
+          "type": "registry:lib",
+          "target": "@components/formulate/control-utils.ts"
+        },
+        {
+          "path": "examples/react/src/components/formulate/group-controls.tsx",
+          "type": "registry:component",
+          "target": "@components/formulate/group-controls.tsx"
+        },
+        {
+          "path": "examples/react/src/components/formulate/choice-controls.tsx",
+          "type": "registry:component",
+          "target": "@components/formulate/choice-controls.tsx"
+        },
+        {
+          "path": "examples/react/src/components/formulate/calendar-controls.tsx",
+          "type": "registry:component",
+          "target": "@components/formulate/calendar-controls.tsx"
+        },
+        {
+          "path": "examples/react/src/components/formulate/picker-content.tsx",
+          "type": "registry:component",
+          "target": "@components/formulate/picker-content.tsx"
         }
       ],
       "categories": [
@@ -311,7 +349,6 @@
       "title": "Structured picker bindings",
       "description": "Date range and multiple selection adapters over locally installed shadcn UI, with compound focus, blur and portal bindings.",
       "dependencies": [
-        "radix-ui@^1.6.7",
         "cn@^0.2.6",
         "lucide-react@^1.42.0"
       ],

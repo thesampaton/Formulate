@@ -10,13 +10,15 @@
     "registry:build": "shadcn build registry.json --cwd ../.. --output examples/react/public/r"
   },
   "dependencies": {
+    "@base-ui/react": "^1.8.0",
     "@formulate/react": "workspace:*",
     "class-variance-authority": "^0.7.1",
+    "cmdk": "^1.1.1",
     "cn": "^0.2.6",
     "date-fns": "^4.4.0",
     "highlight.js": "^11.12.0",
+    "input-otp": "^1.5.0",
     "lucide-react": "^1.42.0",
-    "radix-ui": "^1.6.7",
     "react": "^19.2.8",
     "react-day-picker": "^10.0.1",
     "react-dom": "^19.2.8",

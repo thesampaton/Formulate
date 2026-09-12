@@ -118,7 +118,7 @@ it("retains edited controls while changing the example's available width", async
   await user.type(first, "Ada");
   screen.getByRole("slider", { name: "Form width" }).focus();
   await user.keyboard("{Home}");
-  expect(screen.getByText("Form width · 45%")).toBeInTheDocument();
+  expect(screen.getByRole("slider", { name: "Form width" })).toHaveValue("45");
   expect(screen.getByLabelText("First name")).toBe(first);
   expect(first).toHaveValue("Ada");
 });

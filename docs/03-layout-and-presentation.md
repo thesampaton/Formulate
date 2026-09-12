@@ -31,7 +31,7 @@ The [local layouts](../examples/react/src/components/formulate/layouts.tsx) buil
 
 The [Name definition](../examples/react/src/declarations/name.tsx) is a reusable group of fields, using the existing section binding contract, shadcn `FieldSet`/`FieldLegend`, and a default Row layout. A row alone adds no binding; declaring `name: Name` supplies `name.firstName` and `name.lastName`. Reusing the definition at another key creates independent values and IDs. No separate field-group entity is needed.
 
-Field `orientation` is a separate concern: shadcn uses it to arrange the label and control *inside one field*. It does not place sibling fields next to each other. The local configured `fieldPresentation` uses shadcn Field, FieldContent, FieldLabel, FieldDescription and FieldError while Formulate retains binding, error IDs and focus refs. [shadcn Field](https://ui.shadcn.com/docs/components/radix/field).
+Field `orientation` is a separate concern: shadcn uses it to arrange the label and control *inside one field*. It does not place sibling fields next to each other. The local configured `fieldPresentation` uses shadcn Field, FieldContent, FieldLabel, FieldDescription and FieldError while Formulate retains binding, error IDs and focus refs. [shadcn Field](https://ui.shadcn.com/docs/components/base/field).
 
 ## Styling targets
 

@@ -1,21 +1,26 @@
 import type { ComponentProps } from "react";
 import { cn } from "cn";
-import { defineFieldControl, useFieldBinding } from "@/lib/formulate";
+import { defineFieldControl, useCompoundFieldBinding, useFieldBinding } from "@/lib/formulate";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import type { BindingProps, ControlOption } from "./control-utils";
 
 // UI props come from the installed shadcn exports. Formulate reserves binding props.
-type BindingProps = "ref" | "id" | "name" | "value" | "defaultValue" | "onChange" | "onBlur" | "disabled" | "aria-invalid" | "aria-describedby";
 export type InputControlProps = Omit<ComponentProps<typeof Input>, BindingProps | "type" | "checked" | "defaultChecked"> & {
-  type?: "text" | "email" | "password" | "search" | "tel" | "url" | "date";
+  type?: "text" | "email" | "password" | "search" | "tel" | "url" | "date" | "time" | "datetime-local";
 };
 export type NumberControlProps = Omit<InputControlProps, "type">;
-export type CheckboxControlProps = Omit<ComponentProps<typeof Checkbox>, BindingProps | "checked" | "defaultChecked" | "onCheckedChange" | "type"> & {
+export type CheckboxControlProps = Pick<ComponentProps<typeof Checkbox>, "required" | "readOnly"> & {
+  className?: string;
   onValueChange?: (value: boolean) => void;
 };
-export type SelectControlProps = Omit<ComponentProps<typeof SelectTrigger>, BindingProps | "children" | "type"> & {
-  options: readonly { value: string; label: string }[];
+export type SelectControlProps = Pick<ComponentProps<typeof SelectTrigger>, "size"> & {
+  className?: string;
+  options: readonly ControlOption[];
   placeholder?: string;
   onValueChange?: (value: string) => void;
 };
@@ -50,22 +55,54 @@ export const CheckboxControl = defineFieldControl<boolean>()(function CheckboxCo
 });
 
 export const SelectControl = defineFieldControl<string>()(function SelectControl({ options, placeholder, onValueChange, ...props }: SelectControlProps) {
-  const { value, onChange, name, disabled, ...trigger } = useFieldBinding<string>();
-  if (typeof value !== "string") {
+  const field = useCompoundFieldBinding<string>();
+  const { name, ...trigger } = field.triggerProps;
+  if (typeof field.value !== "string") {
     throw new Error(`Field "${name}": SelectControl requires a string editing value.`);
   }
-  return <Select name={name} disabled={disabled} value={value} onValueChange={(next) => {
-    // Radix items cannot be empty. Its native form bridge can emit an empty
-    // change as Activity reconnects effects; clearing is owned by RHF setValue/reset.
-    if (next === "") return;
-    onChange(next);
-    onValueChange?.(next);
+  return <Select name={name} disabled={field.disabled} value={field.value || null} items={options}
+    open={field.open} onOpenChange={field.onOpenChange} onValueChange={(next) => {
+    const value = next ?? "";
+    field.onChange(value);
+    onValueChange?.(value);
   }}>
     <SelectTrigger {...props} {...trigger} className={cn("w-full", props.className)}>
       <SelectValue placeholder={placeholder} />
     </SelectTrigger>
-    <SelectContent>
-      {options.map(({ value, label }) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+    <SelectContent {...field.contentProps} finalFocus={field.canRestoreFocus}>
+      {options.map(({ value, label, disabled }) => <SelectItem key={value} value={value} disabled={disabled}>{label}</SelectItem>)}
     </SelectContent>
   </Select>;
+});
+
+export type TextareaControlProps = Omit<ComponentProps<typeof Textarea>, BindingProps>;
+export const TextareaControl = defineFieldControl<string>()(function TextareaControl(props: TextareaControlProps) {
+  const field = useFieldBinding<string>();
+  if (typeof field.value !== "string") throw new Error(`Field "${field.name}": TextareaControl requires a string editing value.`);
+  return <Textarea {...props} {...field} onChange={(event) => field.onChange(event.target.value)} />;
+});
+
+export type SwitchControlProps = Pick<ComponentProps<typeof Switch>, "size" | "required" | "readOnly"> & { className?: string };
+export const SwitchControl = defineFieldControl<boolean>()(function SwitchControl(props: SwitchControlProps) {
+  const { value, onChange, ...field } = useFieldBinding<boolean>();
+  if (typeof value !== "boolean") throw new Error(`Field "${field.name}": SwitchControl requires a boolean editing value.`);
+  return <Switch {...props} {...field} checked={value} onCheckedChange={onChange} />;
+});
+
+export type InputOTPControlProps = Omit<ComponentProps<typeof InputOTP>, BindingProps | "children" | "render" | "maxLength"> & {
+  maxLength?: number;
+  groupClassName?: string;
+  slotClassName?: string;
+};
+export const InputOTPControl = defineFieldControl<string>()(function InputOTPControl({
+  maxLength = 6, groupClassName, slotClassName, ...props
+}: InputOTPControlProps) {
+  const field = useFieldBinding<string>();
+  if (typeof field.value !== "string") throw new Error(`Field "${field.name}": InputOTPControl requires a string editing value.`);
+  if (!Number.isInteger(maxLength) || maxLength < 1) throw new Error("InputOTPControl maxLength must be a positive integer.");
+  return <InputOTP autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]*" {...props} {...field} maxLength={maxLength}>
+    <InputOTPGroup className={groupClassName}>
+      {Array.from({ length: maxLength }, (_, index) => <InputOTPSlot key={index} index={index} className={slotClassName} aria-invalid={field["aria-invalid"]} />)}
+    </InputOTPGroup>
+  </InputOTP>;
 });

@@ -54,10 +54,10 @@ export function FormTabs<Id extends string>({ pages, value, onValueChange, onNav
   return <Tabs value={value} onValueChange={(value) => {
     const target = pages.find((page) => page.id === value);
     if (!isPending && target && !target.disabled) onValueChange(target.id);
-  }} activationMode="manual" className={cn("min-w-0 gap-6", className)}>
+  }} className={cn("min-w-0 gap-6", className)}>
     <FormTabsContext value={{ value, pages, pageLayout, navigate }}>
       <div className="overflow-x-auto pb-1">
-        <TabsList aria-label={label} className="w-full min-w-max justify-start group-data-[orientation=horizontal]/tabs:h-auto">
+        <TabsList activateOnFocus={false} aria-label={label} className="w-full min-w-max justify-start group-data-horizontal/tabs:h-auto">
           {pages.map(({ id, label, status, disabled }) => {
             const Icon = status === "complete" ? CheckCircle2 : Circle;
             return <TabsTrigger key={id} value={id} disabled={disabled || isPending}
@@ -74,11 +74,11 @@ export function FormTabs<Id extends string>({ pages, value, onValueChange, onNav
 }
 
 /** Keep shadcn's panel shell/ARIA links; Activity preserves each tab's UI state. */
-export function FormTabPanel({ children, ...props }: Omit<ComponentProps<typeof TabsContent>, "forceMount" | "hidden">) {
+export function FormTabPanel({ children, ...props }: Omit<ComponentProps<typeof TabsContent>, "keepMounted" | "hidden">) {
   const tabs = useContext(FormTabsContext);
   if (!tabs) throw new Error("FormTabPanel needs a parent FormTabs.");
   const active = tabs.value === props.value;
-  return <TabsContent {...props} forceMount hidden={!active}><Activity mode={active ? "visible" : "hidden"}>{children}</Activity></TabsContent>;
+  return <TabsContent {...props} keepMounted hidden={!active}><Activity mode={active ? "visible" : "hidden"}>{children}</Activity></TabsContent>;
 }
 
 /** A semantic page inheriting its body layout and navigation from the parent tabs. */

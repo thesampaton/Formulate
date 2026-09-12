@@ -29,7 +29,7 @@ The third example, [email confirmation](examples/react/src/email-confirmation.ts
 pnpm check # TypeScript, interaction tests, package build, example build
 ```
 
-The [@formulate/react package](packages/react/README.md) provides `Form`, `Field`, `Section`, `Page`, and `useFormulate`. Examples use React and Tailwind CSS 4 with no Next.js dependency. The [local control map](examples/react/src/lib/formulate-config.ts) supplies styled controls, with per-use Tailwind overrides through `className`. The UI uses locally installed shadcn Field, Input, Checkbox, Select, Button, Slider and Tabs components. A [local source registry](docs/registry-development.md) installs the runtime, layouts and reusable groups into another codebase.
+The [@formulate/react package](packages/react/README.md) provides `Form`, `Field`, `Section`, `Page`, and `useFormulate`. Examples use React and Tailwind CSS 4 with no Next.js dependency. The [local control map](examples/react/src/lib/formulate-config.ts) supplies shadcn Base UI controls (`base-nova`), with per-use Tailwind overrides through `className`. UI-specific events, focus and popup behavior stay in those source-owned bindings; future Radix or React Aria bindings can use the same core field contracts. A [local source registry](docs/registry-development.md) installs the runtime, layouts and reusable groups into another codebase.
 
 The examples use `defineForm` to declare each field's schema, editing default, and presentation once. `Definition.useForm()` creates its runtime; static prefills preserve untouched defaults. Render all fields in declaration order or place individual typed fields in JSX. Field connections come from Form context by default; an explicit RHF `control` remains available.
 

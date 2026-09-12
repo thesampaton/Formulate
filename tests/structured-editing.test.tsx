@@ -105,6 +105,10 @@ it("closes an open portal across Activity hiding, retains structured values, and
   expect(screen.queryByRole("dialog")).toBeNull();
   act(() => setActive(true));
   expect(screen.queryByRole("dialog")).toBeNull();
+  // Repeated suspension must not resurrect an exiting popup or lose its original visibility.
+  act(() => setActive(false));
+  act(() => setActive(true));
+  expect(screen.queryByRole("dialog")).toBeNull();
   expect(screen.getByRole("button", { name: /^Activities / })).toHaveTextContent("Walking, Museums");
   await user.click(screen.getByRole("button", { name: /^Activities / }));
   expect(await screen.findByRole("dialog")).toBeVisible();

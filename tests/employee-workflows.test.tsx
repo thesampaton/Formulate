@@ -27,7 +27,7 @@ it.each(hosts.flatMap((host) => requirements.map((requirement) => ({ host, ...re
       ? <EmployeeOnboardingForm onSubmit={onSubmit} defaultValues={{ employment: details, equipment: "" }} />
       : <InternalTransferForm onSubmit={onSubmit} defaultValues={{ proposedEmployment: details }} />);
     await user.click(screen.getByRole("button", { name: "Continue" }));
-    await waitFor(() => expect(screen.getByLabelText(label)).toHaveFocus());
+    await waitFor(() => expect(screen.getByLabelText(label, { selector: "input:not([aria-hidden]), button" })).toHaveFocus());
     expect(screen.getByText(error)).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
     expect(screen.getByRole("heading", { name: "Employment details" })).toBeInTheDocument();
@@ -98,10 +98,10 @@ it.each(hosts)("%s validates an off-screen edit and corrects the existing page u
     : <InternalTransferForm onSubmit={onSubmit} defaultValues={structuredClone(exampleData.employment.transfer)} />);
   await user.click(screen.getByRole("button", { name: "Continue" }));
   if (host === "onboarding") await user.click(screen.getByRole("button", { name: "Continue" }));
-  expect(screen.getByLabelText("Manager")).not.toBeVisible();
+  expect(screen.getByLabelText("Manager", { selector: "button" })).not.toBeVisible();
   act(changeManager);
   await user.click(screen.getByRole("button", { name: host === "onboarding" ? "Request onboarding" : "Request transfer" }));
-  await waitFor(() => expect(screen.getByLabelText("Manager")).toHaveFocus());
+  await waitFor(() => expect(screen.getByLabelText("Manager", { selector: "button" })).toHaveFocus());
   expect(screen.getByText("Choose a manager.")).toBeInTheDocument();
   expect(screen.getByLabelText("Start date")).toHaveValue(host === "onboarding" ? "2026-10-01" : "2026-11-02");
   expect(onSubmit).not.toHaveBeenCalled();

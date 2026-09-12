@@ -4,13 +4,15 @@ Responsibilities and installation bundles are distinguished in the [building-blo
 
 The checked-in [registry.json](../registry.json) builds standard shadcn source items. The UI components in `examples/react/src/components/ui` were installed with the shadcn CLI; they are editable local source. The example app owns their package dependencies and theme. The core runtime stays independent of Tailwind and shadcn.
 
-The installation destination is configured in [components.json](../examples/react/components.json): `aliases.ui` points to `@/components/ui`, with the example TypeScript/Vite alias resolving `@` to `src`. Its `style` selects the installed shadcn style and `iconLibrary` selects Lucide. Install or update UI components from the example project with:
+The installation destination is configured in [components.json](../examples/react/components.json): `aliases.ui` points to `@/components/ui`, with the example TypeScript/Vite alias resolving `@` to `src`. Its `style` is `base-nova` and `iconLibrary` selects Lucide. The supplied bindings currently require shadcn Base UI components; configure consumers with a `base-*` style too. Install or update UI components from the example project with:
 
 ```sh
-pnpm --filter @formulate/examples exec shadcn add field input checkbox select button slider tabs popover calendar
+pnpm --filter @formulate/examples exec shadcn add field input textarea checkbox switch select radio-group combobox command toggle-group slider calendar popover input-otp button tabs
 ```
 
-`components/ui` contains the installed source. `components/formulate` contains Formulate's bindings, layouts, navigation, actions and field presentation. `lib/formulate-config.ts` maps declaration keys to those bindings. Binding props derive from the local shadcn exports; The optional picker bindings also use Radix Portal/Content for a custom portal destination, because the installed shadcn Content owns its default Portal internally. The current installed style uses Radix. Changing the shadcn backend later should be checked at this local UI boundary; Formulate does not expose a backend selector or promise that every backend's component props are identical.
+`components/ui` contains the installed source. `components/formulate` contains Formulate's bindings, layouts, navigation, actions and field presentation. `lib/formulate-config.ts` maps declaration keys to those bindings. All UI source now comes from shadcn's Base UI catalogue. Command, Calendar and OTP retain that catalogue's cmdk, React DayPicker and input-otp implementations. These dependencies do not enter core or common fields.
+
+Bindings expose editing values and a small set of configuration props. Base UI's `render`, internal refs, state callbacks, array-shaped single toggle values and popup focus APIs are handled locally. `useCompoundFieldBinding` supplies a UI-independent `canRestoreFocus()` policy, mapped to Base UI's `finalFocus`. Future Radix or React Aria bindings can implement the same field contracts through their own components. Their implementation and installation support remain future work; switching a consumer's shadcn style alone is not sufficient.
 
 ### Installation config and runtime bindings
 
@@ -21,13 +23,13 @@ pnpm --filter @formulate/examples exec shadcn add field input checkbox select bu
 | Value/event/ref bindings and field presentation | Local Formulate binding source | Rendering. Thin wrappers connect those shadcn exports to the core field contract. |
 | Declaration keys such as `input` and `checkbox` | `lib/formulate-config.ts` | Declaration authoring. Selects which local binding each key uses. |
 
-`@formulate/shadcn-bindings` names a source registry item, not an npm UI package or a separate copy of shadcn. Its own files contain only Formulate code. Standard registry dependencies (`field`, `input`, `checkbox`, `select`) let the shadcn CLI acquire the required UI source using the consumer's configuration. Existing components remain subject to the CLI's normal file-conflict choices; overwriting is not enabled by default. Consumers can also install missing primitives explicitly with `shadcn add` before adding the bindings.
+`@formulate/shadcn-bindings` names a source registry item, not an npm UI package or a separate copy of shadcn. Its own files contain only Formulate code. Standard registry dependencies install the full [control catalogue](../packages/react/docs/control-catalogue.md), including the underlying UI/package dependencies for Combobox, Command and OTP. Existing components remain subject to the CLI's normal file-conflict choices; overwriting is not enabled by default. Consumers can also install missing primitives explicitly with `shadcn add` before adding the bindings.
 
 Formulate does not read `components.json` at runtime or dynamically discover controls. Adapting paths is a distribution concern: the registry uses `@components/` and `@lib/` targets, and the CLI rewrites the corresponding imports during installation. The resulting code has ordinary local imports. Further install-time customisation can be added when needed without creating another runtime configuration system. See [components.json](https://ui.shadcn.com/docs/components-json), [registry targets](https://ui.shadcn.com/docs/registry/registry-item-json#target) and [CLI options](https://ui.shadcn.com/docs/cli#add).
 
-The local Select binding ignores empty changes emitted by Radix’s native form bridge as Activity reconnects effects. Empty is not a selectable Radix item; RHF reset/setValue still controls clearing. This adapter fix is covered by selection, retained-page and hidden-reset tests. The installed shadcn Select source is unchanged.
+Select and Combobox map Base UI's null selection to the existing empty string editing value. Select now shares the compound popup lifecycle: it closes on Activity/disabled transitions, validates on close and guards focus restoration. The previous Radix native-form-bridge workaround is removed.
 
-The application supplies semantic theme tokens through a single `src/globals.css`, using `@theme inline` and `:root`/`.dark` CSS variables. It imports Tailwind and `tw-animate-css`; scaffold layout and typography use Tailwind defaults. Shadcn components own control styling and variants. The only local source adjustment to Slider forwards its existing ARIA label props to its generated thumbs, so the width control has an accessible name. No new Slider API is introduced.
+The application supplies semantic theme tokens through a single `src/globals.css`, using `@theme inline` and `:root`/`.dark` CSS variables. It imports Tailwind and `tw-animate-css`; scaffold layout and typography use Tailwind defaults. Shadcn components own styling and variants. Slider's generated native range input is connected inside the binding; the width demo uses its standard `aria-labelledby` support. Two small accessibility fixes are retained in the installed UI source: Calendar attaches its day Button ref so keyboard focus works, and Combobox names its icon-only toggle/clear buttons. Apply these fixes in a consumer or preserve them when refreshing the UI files until upstream includes them; the bindings do not require extra component props.
 
 ```sh
 pnpm registry:build
@@ -41,7 +43,7 @@ The build writes ignored artifacts into `examples/react/public/r`; Vite serves t
 | `@formulate/core` | Core runtime source under `@/lib/formulate`, including dependent-choice definitions, the hook and private request/store modules, requiring React 19.2+, RHF, resolver and Zod. |
 | `@formulate/common-fields` | Eight portable `defineField` definitions under `@/lib/formulate-fields/common-fields`; depends only on core and Zod. Controls remain locally bound. |
 | `@formulate/layouts` | Stack, Row and ActionRow, built on the consumer's local shadcn FieldGroup. |
-| `@formulate/shadcn-bindings` | Bindings over local shadcn controls, field presentation, pending editor boundary and the declaration control map; UI source comes through standard shadcn registry dependencies. |
+| `@formulate/shadcn-bindings` | Full control map, basic/group/search/date adapters, shared control utilities and Base UI Popover content, field presentation and pending boundary. UI source comes through standard shadcn registry dependencies with a `base-*` consumer style. |
 | `@formulate/pickers` | Optional date-range and multiple-selection bindings; depends on core, the field presentation and locally installed shadcn Calendar, Popover, Button, Checkbox and Label. Add its exports to your control map. |
 | `@formulate/actions` | Submit, Continue and Back/Edit controls; depends on core and shadcn Button, with no tab/page dependency. |
 | `@formulate/navigation` | FormTabs/FormTabPage, page action sets and an inherited page layout; depends on core, layouts, actions and shadcn Tabs. |
@@ -105,7 +107,7 @@ const Contact = defineForm({
 });
 ```
 
-The default local map binds `currencyInput` to its numeric Input adapter. Applications can replace that entry with a formatted currency control accepting numbers. No currency symbol or locale is assumed. The common Country nominates `combobox`; supply that local control or choose the existing `select` binding as above. Register `DateRangeControl` from `@formulate/pickers` as `dateRange` to use the common DateRange with that UI. None of these names resolves an implementation in core.
+The default local map binds `currencyInput` to its numeric Input adapter. Applications can replace that entry with a formatted currency control accepting numbers. No currency symbol or locale is assumed. The common Country nominates the supplied `combobox`; the example above explicitly selects the existing `select` binding. `field(Country, { componentProps: { options } })` supplies Combobox's required options while retaining the common placeholder. Register `DateRangeControl` from `@formulate/pickers` as `dateRange` to use the common DateRange with that UI. None of these names resolves an implementation in core.
 
 | Export | Primitive / default control | Initial value and validation policy |
 | --- | --- | --- |

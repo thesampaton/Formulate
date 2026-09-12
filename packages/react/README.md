@@ -149,6 +149,8 @@ Formulate follows shadcn’s editable source model: controls, field markup, layo
 
 The [custom controls guide](docs/custom-controls.md) covers `createFormulate`, local adapters, composition, and styling. The [example control map](../../examples/react/src/lib/formulate-config.ts) is the starting point used above.
 
+See the [control catalogue](docs/control-catalogue.md) for all supplied shadcn bindings, including textarea, switch, radio/combobox/command choices, single/multiple toggle groups, slider, calendar, date picker and OTP. Each binding retains a concrete editing type and works with both inline and reusable fields.
+
 ## Find a working example
 
 | Build this | Example |
