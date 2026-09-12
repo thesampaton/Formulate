@@ -29,6 +29,8 @@ The third example, [email confirmation](examples/react/src/email-confirmation.ts
 
 Example 11, the [control gallery](examples/react/src/compositions/control-gallery.tsx), covers Input, Textarea, Checkbox, Switch, Select, RadioGroup, Combobox, Command, single/multiple ToggleGroup, Slider, Calendar, DatePicker and InputOTP. The [binding catalogue](packages/react/docs/control-catalogue.md) documents value types, empty states, configuration and interaction behavior.
 
+Example 12, [composed values](examples/react/src/compositions/composed-values.tsx) (`#/examples/composed`), builds one scalar from editable text, fixed segments, field/context bindings and transforms. Try company email addresses, URLs, resource names, customer references and SKUs. The [composition guide](packages/react/docs/composed-values.md) explains canonical state and section reuse; [string patterns](packages/react/docs/string-patterns.md) use ordinary Zod validation independently of composition.
+
 ```sh
 pnpm check # TypeScript, interaction tests, package build, example build
 ```

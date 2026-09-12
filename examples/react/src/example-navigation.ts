@@ -27,6 +27,7 @@ export const exampleGroups: { label: string; examples: ExampleLink[] }[] = [
     examples: [
       { id: "structured", number: "10", title: "Structured pickers" },
       { id: "controls", number: "11", title: "Control gallery" },
+      { id: "composed", number: "12", title: "Composed values" },
     ],
   },
 ];

@@ -122,6 +122,10 @@ Each section has separate values: `billing.street`, `delivery.street`, and so on
 
 A section can also carry its own presentation and dependent-choice rules. Reusing it carries those connections with it; each form chooses where to place it and how to use it. See [reusable sections and custom layouts](docs/fields-and-sections.md) for those patterns.
 
+## Composed values
+
+For a single string built from editable text and fixed or bound segments, add `composition: { segments: [...] }` to the field and select `composedInput` from the local shadcn map. It keeps one canonical value, updates with sources even when unmounted, and validates through the field's normal schema. See [composed values](docs/composed-values.md) and the independent [string patterns](docs/string-patterns.md) guide.
+
 ## Dependent choices
 
 Reuse behaviour alongside the fields it governs. When one answer determines another field’s available options—for example, an account determines its regions—declare that relationship with `defineChoice`.
@@ -156,6 +160,7 @@ See the [control catalogue](docs/control-catalogue.md) for all supplied shadcn b
 | Build this | Example |
 | --- | --- |
 | A simple form | [Sign in](../../examples/react/src/compositions/sign-in.tsx) |
+| Partly authored scalar values and regex validation | [Composed values](../../examples/react/src/compositions/composed-values.tsx) |
 | Reusable layouts and conditional fields | [Responsive layout](../../examples/react/src/responsive-layout.tsx) and [advanced settings](../../examples/react/src/compositions/request-settings.tsx) |
 | Reuse sections in different forms | [Employee onboarding](../../examples/react/src/compositions/employee-onboarding.tsx) and [internal transfer](../../examples/react/src/compositions/internal-transfer.tsx) |
 | A form with tabs and a review page | [Multi-page profile](../../examples/react/src/compositions/multi-page-form.tsx) |

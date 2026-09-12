@@ -12,6 +12,7 @@ const CloudDeploymentExample = lazy(() => import("./cloud-deployment").then((mod
 const InfrastructureExample = lazy(() => import("./infrastructure").then((module) => ({ default: module.InfrastructureExample })));
 const StructuredEditingExample = lazy(() => import("./structured-editing").then((module) => ({ default: module.StructuredEditingExample })));
 const ControlGalleryExample = lazy(() => import("./control-gallery").then((module) => ({ default: module.ControlGalleryExample })));
+const ComposedValuesExample = lazy(() => import("./composed-values").then((module) => ({ default: module.ComposedValuesExample })));
 const CodePanel = lazy(() => import("./code-panel"));
 
 function ExampleForm({ example }: { example: ExampleName }) {
@@ -27,6 +28,7 @@ function ExampleForm({ example }: { example: ExampleName }) {
     case "infrastructure": return <InfrastructureExample />;
     case "structured": return <StructuredEditingExample />;
     case "controls": return <ControlGalleryExample />;
+    case "composed": return <ComposedValuesExample />;
   }
 }
 

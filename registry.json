@@ -166,7 +166,7 @@
       "name": "shadcn-bindings",
       "type": "registry:lib",
       "title": "Form bindings for local shadcn components",
-      "description": "Bindings for shadcn Base UI components and a local control map for inputs, choices, groups, sliders, calendars and OTP. Use a base-* shadcn style.",
+      "description": "Bindings for shadcn Base UI components and a local control map for inputs, composed strings, choices, groups, sliders, calendars and OTP. Use a base-* shadcn style.",
       "dependencies": [
         "class-variance-authority@^0.7.1",
         "lucide-react@^1.42.0",
@@ -177,6 +177,7 @@
         "@formulate/core",
         "field",
         "input",
+        "input-group",
         "checkbox",
         "select",
         "textarea",
@@ -197,6 +198,11 @@
           "path": "examples/react/src/components/formulate/controls.tsx",
           "type": "registry:component",
           "target": "@components/formulate/controls.tsx"
+        },
+        {
+          "path": "examples/react/src/components/formulate/composed-input-control.tsx",
+          "type": "registry:component",
+          "target": "@components/formulate/composed-input-control.tsx"
         },
         {
           "path": "examples/react/src/components/formulate/field-presentation.tsx",

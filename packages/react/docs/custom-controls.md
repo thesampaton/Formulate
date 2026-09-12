@@ -28,6 +28,8 @@ This assumes your local `Input` accepts normal text-input props and forwards its
 
 `defineFieldControl<string>()` declares the type of value the adapter edits. It leaves the component unchanged. `useFieldBinding<string>()` reads the existing connection; it does not register another controller or create another value store.
 
+Internally, one field context carries the binding and its owning runtime identity separately. Feature hooks such as `useComposedFieldBinding` read that shared scope; they do not require `FieldRoot` to render a feature-specific provider. Additional runtime metadata can extend the context without changing the spreadable props returned by `useFieldBinding`.
+
 ## Register the adapter once
 
 Create a local configuration module. Extend `defaultComponents` when you want to keep the built-in controls:

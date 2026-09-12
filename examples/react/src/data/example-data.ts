@@ -1,5 +1,6 @@
 import type { Booking } from "@/declarations/structured-editing";
 import type { ControlGalleryValues } from "@/declarations/control-gallery";
+import type { ComposedValuesOutput } from "@/declarations/composed-values";
 import type { z } from "zod";
 import type { SignIn } from "@/declarations/sign-in";
 import type { RequestSettings } from "@/declarations/request-settings";
@@ -17,6 +18,10 @@ const sampleName = { firstName: " Ada ", lastName: "Lovelace" };
 const sampleAddress = { street: "1 Example Street", countryCode: "AU", postcode: "2000" };
 
 export const exampleData = {
+  composed: {
+    environment: "prd", region: "aue1", email: "sam@company.com", url: "https://example.com/monthly-report",
+    resourceName: "acme-prd-payments-aue1", customerReference: "CUS-AU-0042", sku: "SKU-TEE-XL", plainSlug: "monthly-report",
+  } satisfies ComposedValuesOutput,
   controls: {
     input: "person@example.com", textarea: "Please send updates by email.", checkbox: true, switch: true,
     select: "AU", radioGroup: "NZ", combobox: "AU", command: "NZ", toggleGroup: "AU", multiToggleGroup: ["AU", "NZ"],

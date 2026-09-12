@@ -4,6 +4,7 @@ import { CheckboxControl, InputControl, InputOTPControl, NumberControl, SelectCo
 import { MultiToggleGroupControl, RadioGroupControl, SliderControl, ToggleGroupControl } from "@/components/formulate/group-controls";
 import { ComboboxControl, CommandControl } from "@/components/formulate/choice-controls";
 import { CalendarControl, DatePickerControl } from "@/components/formulate/calendar-controls";
+import { ComposedInputControl } from "@/components/formulate/composed-input-control";
 
 // Map declaration keys to bindings over this project's local shadcn components.
 // The shadcn CLI resolves import paths at install time using components.json.
@@ -11,6 +12,7 @@ export const { Field, field, defineForm, defineSection } = createFormulate({
   fieldPresentation: ShadcnField,
   components: {
     input: InputControl,
+    composedInput: ComposedInputControl,
     textarea: TextareaControl,
     number: NumberControl,
     currencyInput: NumberControl,

@@ -7,7 +7,7 @@ The checked-in [registry.json](../registry.json) builds standard shadcn source i
 The installation destination is configured in [components.json](../examples/react/components.json): `aliases.ui` points to `@/components/ui`, with the example TypeScript/Vite alias resolving `@` to `src`. Its `style` is `base-nova` and `iconLibrary` selects Lucide. The supplied bindings currently require shadcn Base UI components; configure consumers with a `base-*` style too. Install or update UI components from the example project with:
 
 ```sh
-pnpm --filter @formulate/examples exec shadcn add field input textarea checkbox switch select radio-group combobox command toggle-group slider calendar popover input-otp button tabs
+pnpm --filter @formulate/examples exec shadcn add field input input-group textarea checkbox switch select radio-group combobox command toggle-group slider calendar popover input-otp button tabs
 ```
 
 `components/ui` contains the installed source. `components/formulate` contains Formulate's bindings, layouts, navigation, actions and field presentation. `lib/formulate-config.ts` maps declaration keys to those bindings. All UI source now comes from shadcn's Base UI catalogue. Command, Calendar and OTP retain that catalogue's cmdk, React DayPicker and input-otp implementations. These dependencies do not enter core or common fields.
@@ -37,6 +37,8 @@ pnpm dev
 ```
 
 The build writes ignored artifacts into `examples/react/public/r`; Vite serves them under `/r`. `pnpm build` also builds these artifacts into the example site's distribution. No registry has been published publicly.
+
+Composed scalar semantics ship in `core`; `shadcn-bindings` includes `ComposedInputControl`, the `composedInput` map entry and the standard `input-group` dependency. See [composed values](../packages/react/docs/composed-values.md). Regex patterns remain ordinary schemas, with no extra registry runtime or validation engine.
 
 | Item | Installs |
 | --- | --- |

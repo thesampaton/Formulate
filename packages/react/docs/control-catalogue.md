@@ -5,6 +5,7 @@ The `@formulate/shadcn-bindings` source item supplies the following controls thr
 | Control key | Export / source module | Editing value | Configuration |
 | --- | --- | --- | --- |
 | `input` | `InputControl` / `controls` | `string`, empty `""` | Native input props; text, email, password, search, tel, url, date, time or datetime-local. Date/time inputs here retain strings. |
+| `composedInput` | `ComposedInputControl` / `composed-input-control` | One canonical `string` | Field `composition.segments` supplies editable, literal and bound pieces. Input Group handles affixes; multiple inputs share logical blur. Class slots and text editing hints stay in control props. See [composed values](composed-values.md). |
 | `textarea` | `TextareaControl` / `controls` | `string`, empty `""` | Textarea props including rows, placeholder and className. |
 | `checkbox` | `CheckboxControl` / `controls` | `boolean` | Two states; no indeterminate value. |
 | `switch` | `SwitchControl` / `controls` | `boolean` | Local Switch props including size. |
@@ -66,4 +67,4 @@ Radix and React Aria implementations are future work. A future local binding can
 
 Configure the registry consumer with a `base-*` shadcn style for the current bindings. Changing `components.json` to a different backend does not automatically make its prop APIs compatible. There is no runtime backend selector or speculative shared widget interface.
 
-The [control gallery](../../../examples/react/src/compositions/control-gallery.tsx) demonstrates every key, loading sample data, reset and typed submission. Interaction/type tests cover validation focus, keyboard changes, grouped blur, disabled editors and retained popup state.
+The [control gallery](../../../examples/react/src/compositions/control-gallery.tsx) and [composed values gallery](../../../examples/react/src/compositions/composed-values.tsx) demonstrate the keys, loading sample data, reset and typed submission. Interaction/type tests cover validation focus, keyboard changes, grouped blur, disabled editors and retained popup state.

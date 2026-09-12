@@ -1,6 +1,10 @@
 /// <reference types="vite/client" />
 import controlGallery from "./compositions/control-gallery.tsx?raw";
 import controlGalleryDeclaration from "./declarations/control-gallery.ts?raw";
+import composedValues from "./compositions/composed-values.tsx?raw";
+import composedValuesDeclaration from "./declarations/composed-values.ts?raw";
+import composedInput from "./components/formulate/composed-input-control.tsx?raw";
+import stringPatterns from "./declarations/string-patterns.ts?raw";
 import groupControls from "./components/formulate/group-controls.tsx?raw";
 import choiceControls from "./components/formulate/choice-controls.tsx?raw";
 import calendarControls from "./components/formulate/calendar-controls.tsx?raw";
@@ -129,6 +133,12 @@ const dependentChoices = [
 ];
 
 export const exampleCode = {
+  composed: [
+    composition("compositions/composed-values.tsx", composedValues), declaration("declarations/composed-values.ts", composedValuesDeclaration), sample("composed"),
+    source("controls", "Composed input", "components/formulate/composed-input-control.tsx", composedInput, "InputGroup prefixes and suffixes, interleaved editors and one canonical named input.", "@formulate/shadcn-bindings"),
+    source("fields", "String patterns", "declarations/string-patterns.ts", stringPatterns, "Reusable regex schemas validate complete strings independently of the selected control."),
+    bodyLayouts, buttons, ...integration,
+  ],
   controls: [
     composition("compositions/control-gallery.tsx", controlGallery), declaration("declarations/control-gallery.ts", controlGalleryDeclaration), sample("controls"),
     emailField,
