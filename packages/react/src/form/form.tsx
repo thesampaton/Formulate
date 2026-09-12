@@ -117,6 +117,9 @@ export function Form<Input extends FieldValues, Output extends FieldValues = Inp
     event.preventDefault();
     // Block duplicate actions before React renders pending state, including during async validation.
     if (isActionInFlight.current) return;
+    // Flush composition before capturing validation evidence, including a
+    // programmatic source update followed by submit in the same event.
+    (form as typeof form & { synchronizeComposedValues?: () => void }).synchronizeComposedValues?.();
     isActionInFlight.current = true;
     const attemptGeneration = actionGeneration.current;
     const capturedValidationRevision = validationRevisionReader.current?.();

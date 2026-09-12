@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useSyncExternalStore } from "react";
-import type { FieldPath, FieldValues, UseFormReturn } from "react-hook-form";
+import type { DefaultValues, FieldPath, FieldValues, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { useFormulate } from "../form/use-formulate.js";
 import type { FormulateOptions } from "../form/use-formulate.js";
 import { createChoiceStore } from "./store.js";
 import type { BoundChoice } from "./definition.js";
 import type { ChoiceController } from "./context.js";
+import type { BoundStringComposition } from "../fields/string-composition.js";
 
 /** RHF's runtime plus the dependent-choice evidence installed for that form. */
 export type ChoiceFormRuntime<Input extends FieldValues, Output extends FieldValues = Input> =
@@ -20,10 +21,12 @@ export type ChoiceFormRuntime<Input extends FieldValues, Output extends FieldVal
 export function useChoiceForm<Input extends FieldValues, Output extends FieldValues>({
   schema,
   getChoiceBindings,
+  compositions,
   ...formOptions
 }: {
   schema: z.ZodType<Output, Input>;
   getChoiceBindings: (values: Input) => readonly BoundChoice[];
+  compositions?: readonly BoundStringComposition[];
 } & FormulateOptions<Input, Output>): ChoiceFormRuntime<Input, Output> {
   const choiceStore = useMemo(() => createChoiceStore(), []);
   const choices = useMemo<ChoiceController>(() => ({
@@ -48,7 +51,7 @@ export function useChoiceForm<Input extends FieldValues, Output extends FieldVal
 
     return parseResult.success ? parseResult.data : z.NEVER;
   }), [schema, choiceStore, getChoiceBindings]);
-  const form = useFormulate<Input, Output>(validationSchema as unknown as z.ZodType<Output, Input>, {
+  const form = useFormulate<Input, Output>({ schema: validationSchema as unknown as z.ZodType<Output, Input>, defaultValues: {} as DefaultValues<Input>, compositions }, {
     shouldFocusError: false,
     ...formOptions,
   });

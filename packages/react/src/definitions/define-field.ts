@@ -4,6 +4,7 @@ import type { z } from "zod";
 import type { ChoiceRule } from "../choices/definition.js";
 import type { FieldRootProps } from "../fields/field.js";
 import type { ControlSelection, FieldComponentMap } from "./create-formulate.js";
+import type { StringComposition } from "../fields/string-composition.js";
 
 /** Value/form semantics, independent of schemas' representations and UI controls. */
 export const primitiveFieldTypes = [
@@ -23,6 +24,8 @@ export type FieldDefinition = FieldPresentation & {
   component: string;
   componentProps?: object;
   choices?: ChoiceRule<any, any, any, any>;
+  /** String construction semantics; segments never become form members. */
+  composition?: StringComposition;
 };
 
 /** Declare once at module scope. Schemas own validation; definitions own no live state. */

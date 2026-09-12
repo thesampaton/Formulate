@@ -23,12 +23,16 @@ import { useChoiceForm as useChoiceFormRuntime } from "../choices/use-choice-for
 import type { ChoiceFormRuntime } from "../choices/use-choice-form.js";
 import { ChoiceRuntimeContext } from "../choices/context.js";
 import type { BoundChoice, ChoiceRule, ChoiceView } from "../choices/definition.js";
+import { bindStringCompositions } from "../fields/string-composition.js";
+import type { BoundStringComposition, StringComposition } from "../fields/string-composition.js";
 
 export type FormDefinition<Input extends FieldValues, Output extends FieldValues = Input> = {
   /** Validates editing values and parses the accepted submission output. */
   schema: z.ZodType<Output, Input>;
   /** Initial editing values; definitions never own live form state. */
   defaultValues: DefaultValues<NoInfer<Input>>;
+  /** Bound scalar compositions stay active independently of mounted editors. */
+  compositions?: readonly BoundStringComposition[];
 };
 
 const sectionRuntime = Symbol("section-definition");
@@ -39,13 +43,14 @@ type SectionDefinitionToken = {
   defaultValues: FieldValues;
   fieldPaths: readonly string[];
   bindChoices: (options: any) => BoundChoice[];
+  compositions: readonly BoundStringComposition[];
   [sectionRuntime]: {
     identity: symbol;
     title?: ReactNode;
     renderSection: (props: { scope: DefinitionScope } & SectionUsePresentation) => ReactElement;
   };
 };
-type FieldSchemaDeclaration = { schema: z.ZodType; choices?: ChoiceRule<any, any, any, any> };
+type FieldSchemaDeclaration = { schema: z.ZodType; choices?: ChoiceRule<any, any, any, any>; composition?: StringComposition };
 type UnionToIntersection<Union> = (Union extends unknown ? (value: Union) => void : never) extends (value: infer Result) => void ? Result : never;
 type MemberServices<Member> = Member extends { choices: ChoiceRule<any, any, infer Services, any> }
   ? Services
@@ -80,6 +85,7 @@ type CheckedMembers<Members extends Declarations, Components extends FieldCompon
     ? Members[Key]
     : FieldDeclaration<Members[Key]["schema"], Components> & {
       choices?: ChoiceRule<Inputs<Members>, z.input<Members[Key]["schema"]>, any, any>;
+      composition?: [z.input<Members[Key]["schema"]>] extends [string] ? StringComposition<Inputs<Members>> : never;
     };
 };
 type DefaultControlProps<Member, Components extends FieldComponentMap> = Member extends { component: infer Key extends keyof Components }
@@ -105,6 +111,7 @@ type DefinitionOptions<Members extends Declarations, Schema extends z.ZodType<Fi
 export type DefinedForm<Members extends Declarations, Components extends FieldComponentMap, Schema extends z.ZodType<FieldValues, FieldValues> = FormSchema<Members>> = {
   schema: Schema;
   defaultValues: Defaults<Members>;
+  compositions: readonly BoundStringComposition[];
   /** Bind dependency rules without mounting editors. IDs identify uses; bindings locate editing values. */
   bindChoices: <Values extends FieldValues = Inputs<Members>>(options: {
     values: Values;
@@ -163,6 +170,7 @@ export type DefinedSection<Members extends Declarations, Components extends Fiel
 export type BoundSectionUse<Values extends FieldValues, Name extends string, LocalValues extends FieldValues = FieldValues> = FormScope<Values> & {
   readonly name: Name;
   readonly focusPaths: readonly FieldPath<Values>[];
+  readonly compositions: readonly BoundStringComposition[];
   /** Renders the already-bound section; the enclosing definition Form supplies its runtime. */
   Section: (props: BoundSectionProps) => ReactElement;
   /** Resolves a local editor name to this use's host path. */
@@ -178,6 +186,7 @@ export type BoundSectionBinding<LocalValues extends FieldValues, Values extends 
   readonly id: string;
   readonly bindings: SectionPathMap<LocalValues, Values>;
   readonly focusPaths: readonly FieldPath<Values>[];
+  readonly compositions: readonly BoundStringComposition[];
   /** Resolves a local editor name to this use's current host path. */
   resolveFieldPath: <LocalName extends FieldPath<LocalValues>>(name: LocalName) => FieldPath<Values>;
   /** Resolves the stable choice-store ID carried by a local dependent field. */
@@ -253,6 +262,9 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
       return [name];
     });
     const boundSections = new Map<string, BoundSectionUse<any, string>>();
+    const compositions = entries.flatMap(([name, member]) => isSection(member)
+      ? bindStringCompositions(member.compositions, (path) => `${name}.${path}`)
+      : member.composition ? [{ name, composition: member.composition }] : []);
 
     function bindChoices({ values, services, id = "", bindings }: { values: FieldValues; services: unknown; id?: string; bindings?: Record<string, string> }): BoundChoice[] {
       const localValues = bindings
@@ -286,7 +298,7 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
       if (!Object.hasOwn(members, name) || isSection(members[name]!)) {
         throw new Error(`Unknown defined field: "${name}".`);
       }
-      const { schema: _schema, defaultValue: _defaultValue, choices: _choices, primitive: _primitive, ...presentation } = members[name] as any;
+      const { schema: _schema, defaultValue: _defaultValue, choices: _choices, primitive: _primitive, composition: _composition, ...presentation } = members[name] as any;
       const selection = children !== undefined
         ? { component: undefined, componentProps: undefined, children }
         : { componentProps: { ...(presentation.componentProps ?? {}), ...componentProps } };
@@ -335,6 +347,7 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
         name,
         errorPaths: [name],
         focusPaths,
+        compositions: bindStringCompositions(member.compositions, (path) => `${name}.${path}`),
         Section: BoundSection,
         resolveFieldPath: (localPath) => `${name}.${localPath}`,
         resolveChoiceId: (localPath) => `${name}.${localPath}`,
@@ -412,6 +425,7 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
         bindings,
         errorPaths: resolvedFieldPaths,
         focusPaths: resolvedFieldPaths,
+        compositions: bindStringCompositions(compositions, resolveFieldPath),
         resolveFieldPath,
         resolveChoiceId: (localPath: string) => `${id}.${localPath}`,
         bindChoices: ({ values, services }: { values: FieldValues; services: unknown }) => (
@@ -449,7 +463,7 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
       });
     }
     function useDefinedForm(formOptions?: FormulateOptions<FieldValues, FieldValues>) {
-      return useFormulate({ schema, defaultValues }, formOptions);
+      return useFormulate({ schema, defaultValues, compositions }, formOptions);
     }
     function useDefinedChoiceForm({ services, ...formOptions }: { services: unknown } & FormulateOptions<FieldValues, FieldValues>) {
       const stableServices = useShallowStable(services);
@@ -459,7 +473,7 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
       );
       const { defaultValues: overrides, ...runtimeOptions } = formOptions;
       const initialValues = typeof overrides === "function" ? overrides : { ...defaultValues, ...overrides };
-      return useChoiceFormRuntime({ schema, getChoiceBindings, defaultValues: initialValues, ...runtimeOptions });
+      return useChoiceFormRuntime({ schema, compositions, getChoiceBindings, defaultValues: initialValues, ...runtimeOptions });
     }
     function FormView({ layout = options.layout, bodyClassName = options.bodyClassName, ...props }: FormProps<FieldValues, FieldValues>) {
       return <FormShell {...props} layout={layout} bodyClassName={bodyClassName} />;
@@ -467,6 +481,7 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
     return {
       schema,
       defaultValues,
+      compositions,
       fieldPaths,
       bindChoices,
       bindSection,

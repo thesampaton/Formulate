@@ -14,6 +14,9 @@ export { InputControl, NumberControl, CheckboxControl, defineFieldControl } from
 export type { FieldControlComponent, InputControlProps, NumberControlProps, CheckboxControlProps } from "./fields/controls.js";
 export { useFieldBinding } from "./fields/field-context.js";
 export type { FieldControlBinding } from "./fields/field-context.js";
+export { useComposedFieldBinding } from "./fields/use-composed-field-binding.js";
+export { bindStringCompositions } from "./fields/string-composition.js";
+export type { ValueSegment, ResolvedValueSegment, StringComposition, BoundStringComposition } from "./fields/string-composition.js";
 export { Section } from "./presentation/section.js";
 export type { SectionProps } from "./presentation/section.js";
 export { Page } from "./presentation/page.js";

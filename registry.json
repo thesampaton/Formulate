@@ -124,6 +124,16 @@
           "path": "packages/react/src/presentation/heading.tsx",
           "type": "registry:lib",
           "target": "@lib/formulate/presentation/heading.tsx"
+        },
+        {
+          "path": "packages/react/src/fields/string-composition.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/fields/string-composition.ts"
+        },
+        {
+          "path": "packages/react/src/fields/use-composed-field-binding.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/fields/use-composed-field-binding.ts"
         }
       ],
       "categories": [
