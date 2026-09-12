@@ -34,7 +34,7 @@ Create a local configuration module. Extend `defaultComponents` when you want to
 import { createFormulate, defaultComponents } from "@formulate/react";
 import { LocalInputControl } from "./local-input-control";
 
-export const { Field, defineForm, defineSection } = createFormulate({
+export const { Field, field, defineForm, defineSection } = createFormulate({
   components: { ...defaultComponents, input: LocalInputControl },
 });
 ```

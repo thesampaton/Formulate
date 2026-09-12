@@ -2,7 +2,7 @@ import { StrictMode, useCallback } from "react";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { expect, it, vi } from "vitest";
 import { z } from "zod";
-import { Form, Page, defineChoice, defineForm, defineSection } from "@formulate/react";
+import { Form, Page, defineChoice, defineField, defineForm, defineSection, field } from "@formulate/react";
 import { useChoiceForm } from "@formulate/react";
 import type { ChoiceLoader } from "@formulate/react";
 
@@ -99,7 +99,7 @@ it("carries one local membership rule through nested reused sections even withou
   });
   const target = defineSection({
     account: { schema: z.string(), defaultValue: "A", label: "Account", component: "input" },
-    region: { schema: z.string(), defaultValue: "restricted", label: "Region", component: "input", choices: rule },
+    region: field(defineField({ primitive: "choice", schema: z.string(), defaultValue: "restricted", label: "Region", component: "input", choices: rule })),
   });
   const group = defineSection({ first: target, second: target });
   const definition = defineForm({ deployment: group });

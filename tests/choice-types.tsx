@@ -1,4 +1,4 @@
-import { defineChoice, defineForm, defineSection } from "@formulate/react";
+import { defineChoice, defineField, defineForm, defineSection, field } from "@formulate/react";
 import type { ChoiceLoader } from "@formulate/react";
 import { z } from "zod";
 
@@ -11,7 +11,7 @@ const rule = defineChoice({
 });
 const section = defineSection({
   account: { schema: z.string(), defaultValue: "", label: "Account", component: "input" },
-  selection: { schema: z.number(), defaultValue: 0, label: "Selection", component: "number", choices: rule },
+  selection: field(defineField({ primitive: "choice", schema: z.number(), defaultValue: 0, label: "Selection", component: "number", choices: rule })),
 });
 const root = defineForm({ first: section, second: section });
 const load: ChoiceLoader<string, number> = async () => [1];

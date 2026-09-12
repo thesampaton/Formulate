@@ -45,6 +45,8 @@ Source address, release, exported symbol, and compatibility requirements belong 
 
 ## Field: one value contract
 
+The current implementation provides a deliberately smaller `defineField({ primitive, schema, defaultValue, label, component, componentProps })` and configured `field(Definition, overrides)`. Definitions and resolved uses remain ordinary declarations accepted by existing forms and sections; Zod carries validation and schema metadata, while the control map checks and resolves UI. See the [implemented field contract](../packages/react/docs/fields-and-sections.md#reuse-a-semantic-field). The records below remain proposals for richer value contracts, presence adaptation and runtime inspection.
+
 ```ts
 type FieldDefinition<Editing, Accepted> = Definition<"field", {
   value: ValueContract<Editing, Accepted>

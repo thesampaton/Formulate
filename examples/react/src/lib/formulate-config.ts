@@ -4,11 +4,12 @@ import { CheckboxControl, InputControl, NumberControl, SelectControl } from "@/c
 
 // Map declaration keys to bindings over this project's local shadcn components.
 // The shadcn CLI resolves import paths at install time using components.json.
-export const { Field, defineForm, defineSection } = createFormulate({
+export const { Field, field, defineForm, defineSection } = createFormulate({
   fieldPresentation: ShadcnField,
   components: {
     input: InputControl,
     number: NumberControl,
+    currencyInput: NumberControl,
     checkbox: CheckboxControl,
     select: SelectControl,
   },

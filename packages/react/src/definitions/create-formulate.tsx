@@ -4,6 +4,7 @@ import { createElement } from "react";
 import type { ComponentProps, ComponentType, ReactNode } from "react";
 import type { FieldPath, FieldPathValue, FieldValues } from "react-hook-form";
 import { createDefinitionFactories } from "./define-form.js";
+import { createFieldFactory } from "./define-field.js";
 import { FieldRoot } from "../fields/field.js";
 import type { FieldRootProps, FieldPresentationProps } from "../fields/field.js";
 import { CheckboxControl, InputControl, NumberControl } from "../fields/controls.js";
@@ -62,10 +63,10 @@ export function createFormulate<const Components extends FieldComponentMap>({ co
       </FieldRoot>
     );
   }
-  return { Field, ...createDefinitionFactories<Components>(Field) };
+  return { Field, field: createFieldFactory<Components>(), ...createDefinitionFactories<Components>(Field) };
 }
 
 export const defaultComponents = { input: InputControl, number: NumberControl, checkbox: CheckboxControl };
-export const { Field, defineForm, defineSection } = createFormulate({ components: defaultComponents });
+export const { Field, field, defineForm, defineSection } = createFormulate({ components: defaultComponents });
 export type FieldProps<Values extends FieldValues, Name extends FieldPath<Values>, Output = Values> =
   ConfiguredFieldProps<Values, Name, Output, typeof defaultComponents>;

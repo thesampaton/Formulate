@@ -38,7 +38,7 @@ import customerDeclaration from "./declarations/customer.ts?raw";
 import profileDeclaration from "./declarations/profile.ts?raw";
 import multiPageDeclaration from "./declarations/multi-page-profile.ts?raw";
 import address from "./declarations/address.tsx?raw";
-import email from "./declarations/email.ts?raw";
+import commonFields from "./declarations/common-fields.ts?raw";
 import name from "./declarations/name.tsx?raw";
 import layouts from "./components/formulate/layouts.tsx?raw";
 import formTabs from "./components/formulate/form-tabs.tsx?raw";
@@ -87,7 +87,7 @@ function source(category: CodeCategory, label: string, filename: string, code: s
 const sample = (example: ExampleName) => source("form", "Sample data", `data/example-data.ts → ${example}`, JSON.stringify(exampleData[example], null, 2), "Shared example values consumed by the demo, source panel and tests.");
 const declaration = (filename: string, code: string) => source("form", "Declaration", filename, code, "Declares this form's members, validation and editing defaults.");
 const composition = (filename: string, code: string) => source("form", "Composition", filename, code, "Places declared fields, sections and pages into this form's rendered experience.");
-const emailField = source("fields", "Email", "declarations/email.ts", email, "One reusable field declaration; each use supplies its own binding.");
+const emailField = source("fields", "Common fields", "declarations/common-fields.ts", commonFields, "Semantic field definitions nominate control names; each use supplies its own binding and overrides.", "@formulate/common-fields");
 const nameSection = source("fields", "Name", "declarations/name.tsx", name, "First and last name with local bindings and a default responsive row.", "@formulate/name");
 const addressSection = source("fields", "Address", "declarations/address.tsx", address, "Address fields with country/postcode validation and local revalidation.");
 const notificationSection = source("fields", "Notifications", "declarations/notifications.tsx", notifications, "Notification preference fields with a conditional mobile-number requirement.");

@@ -4,42 +4,42 @@
 
 **A library is a collection of reusable definitions built with Formulate's primitives.** Start with source exports that work in an application. A registry can distribute those exports individually or in useful groups.
 
-The examples below are proposed authoring notation. A narrower executable defineForm/defineSection API now supports recursive members, local bindings, presentation components, and schema customization; see the [package guide](../packages/react/README.md#reuse-a-section). The sketches here also include future references, requirements, and publication contracts.
+The first two steps below use the implemented field and section API. Later sketches include proposed page references, requirements, and publication contracts; see the [package guide](../packages/react/README.md#reuse-a-section) for the executable scope.
 
 ## 1. Define a field
 
-`defineField` packages a value contract, presentation defaults, and metadata. Here `emailValue` is a validation adapter and `emailRenderer` is a compatible control integration supplied by the library.
+`defineField` packages primitive semantics, a Zod schema, an editing default and presentation defaults. The control name is portable; consuming forms resolve it through their local map. Metadata can use the existing Zod schema metadata API.
 
 ```ts
+import { defineField } from "@/lib/formulate";
+import { z } from "zod";
+
 export const Email = defineField({
-  title: "Email",
-  description: "An email address for contacting this person.",
-  value: emailValue,
-  renderer: emailRenderer,
-  defaults: { label: "Email" },
-})
+  primitive: "text",
+  schema: z.email().meta({ description: "A contact email address." }),
+  defaultValue: "",
+  label: "Email",
+  component: "input",
+  componentProps: { type: "email", autoComplete: "email" },
+});
 ```
 
-The value contract defines editing values, emptiness, and validation. A caller can make an Email use required or add a domain restriction. Changing its label or renderer preserves those rules. Metadata describes the same contract to developers, tooling, and consumers inspecting a running form.
+The schema defines editing values, emptiness and validation; this Email starts empty but requires a valid email for submission. Derive a new `defineField({ ...Email, schema: ... })` to change validation. Instance label/control overrides preserve those rules. Automatic presence adaptation and runtime metadata inspection remain proposed. The source-owned [common fields](registry-development.md#common-fields) and application-authored fields use the same helper.
 
 ## 2. Compose a section
 
-`defineSection` creates a reusable group with local members. `field` below declares a member use, accepting either an existing field definition or inline field options.
+`defineSection` creates a reusable group with local members. Use `field` from the same configured control map to instantiate a reusable definition; existing inline declarations remain valid.
 
 ```ts
+import { defineSection, field } from "@/lib/formulate-config";
+
 export const ContactDetails = defineSection({
-  title: "Contact details",
-  members: {
-    name: field({
-      value: textValue,
-      renderer: inputRenderer,
-      label: "Name",
-      presence: "required",
-    }),
-    email: field(Email, { presence: "required" }),
+  name: {
+    primitive: "text", schema: z.string().min(1), defaultValue: "",
+    label: "Name", component: "input",
   },
-  expose: ["name", "email"],
-})
+  email: field(Email, { label: "Work email" }),
+}, { title: "Contact details" });
 ```
 
 Each member key supplies its default local binding and reference. Declaration order supplies default presentation order. The caller can arrange those references differently while preserving membership and rules.

@@ -50,6 +50,8 @@ Fields validate on blur by default. Submitting checks the whole form and calls `
 
 The configured `input` uses your local shadcn Input and field markup. `Stack` supplies the layout, and `FormSubmitButton` shows pending state while the form validates and saves. These components remain editable application source.
 
+For reuse, `defineField({ primitive: "text", schema: z.email(), defaultValue: "", label: "Email", component: "input", componentProps: { type: "email" } })` creates an `Email` definition. Then declare `email: field(Email)` using `field` from your local control-map configuration. Reusable fields work in both `defineForm` and `defineSection`; presentation and control overrides do not replace their schemas. The optional `@formulate/common-fields` source item supplies eight starting definitions. See [semantic fields, primitive types and overrides](docs/fields-and-sections.md#reuse-a-semantic-field).
+
 ## Arrange and customise fields
 
 Replace `<Contact.Fields />` with individual fields when you want to choose their order, layout, or presentation:

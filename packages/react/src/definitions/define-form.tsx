@@ -6,6 +6,7 @@ import { get, useWatch } from "react-hook-form";
 import type { Control, DefaultValues, FieldPath, FieldPathValue, FieldValues, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import type { ConfiguredFieldProps, ControlSelection, FieldComponentMap } from "./create-formulate.js";
+import type { FieldPresentation, PrimitiveFieldType } from "./define-field.js";
 import type { FieldRootProps } from "../fields/field.js";
 import type { SectionProps } from "../presentation/section.js";
 import { Section as SectionShell } from "../presentation/section.js";
@@ -68,8 +69,9 @@ type FieldKeys<Members extends Declarations> = { [Key in keyof Members]: Members
 type SectionKeys<Members extends Declarations> = { [Key in keyof Members]: Members[Key] extends SectionDefinitionToken ? Key : never }[keyof Members] & string;
 type ChoiceKeys<Members extends Declarations> = { [Key in keyof Members]: Members[Key] extends { choices: ChoiceRule<any, any, any, any> } ? Key : never }[keyof Members] & string;
 type ChoiceOption<Member> = Member extends { choices: ChoiceRule<any, any, any, infer Option> } ? Option : never;
-type FieldPresentation = Pick<FieldRootProps<FieldValues, string>, "label" | "description" | "className" | "style" | "orientation" | "presentation" | "classNames">;
 type FieldDeclaration<Schema extends z.ZodType, Components extends FieldComponentMap> = FieldPresentation & {
+  /** Optional for existing inline declarations; required by defineField. */
+  primitive?: PrimitiveFieldType;
   schema: Schema;
   defaultValue: NoInfer<z.input<Schema>>;
 } & ControlSelection<NoInfer<z.input<Schema>>, Components>;
@@ -284,7 +286,7 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
       if (!Object.hasOwn(members, name) || isSection(members[name]!)) {
         throw new Error(`Unknown defined field: "${name}".`);
       }
-      const { schema: _schema, defaultValue: _defaultValue, choices: _choices, ...presentation } = members[name] as any;
+      const { schema: _schema, defaultValue: _defaultValue, choices: _choices, primitive: _primitive, ...presentation } = members[name] as any;
       const selection = children !== undefined
         ? { component: undefined, componentProps: undefined, children }
         : { componentProps: { ...(presentation.componentProps ?? {}), ...componentProps } };

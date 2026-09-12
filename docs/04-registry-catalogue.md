@@ -4,6 +4,8 @@
 
 **The Formulate registry begins with the primitives used to build a library.** Each item should provide its authoring contract, integration source, documentation, and a small usage example. Addresses and helper names below are proposed.
 
+The implemented source registry currently distributes `defineField`, `field`, and the primitive field taxonomy within `@formulate/core`, with reusable semantics in the separate `@formulate/common-fields` item. It does not introduce an item or package per primitive type. See the [current items and common-field policies](registry-development.md#common-fields).
+
 The [current taxonomy](04-building-blocks.md) and [buildable registry](registry-development.md) supersede these candidate packaging names. Categories are responsibilities; separate npm packages or registry items are justified by practical installation boundaries. The current core is acquired through `@formulate/core`.
 
 ## Core entries

@@ -46,6 +46,11 @@
           "target": "@lib/formulate/definitions/create-formulate.tsx"
         },
         {
+          "path": "packages/react/src/definitions/define-field.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/definitions/define-field.ts"
+        },
+        {
           "path": "packages/react/src/definitions/define-form.tsx",
           "type": "registry:lib",
           "target": "@lib/formulate/definitions/define-form.tsx"
@@ -123,6 +128,28 @@
       ],
       "categories": [
         "core"
+      ]
+    },
+    {
+      "name": "common-fields",
+      "type": "registry:lib",
+      "title": "Common semantic fields",
+      "description": "Reusable email, password, URL, phone, currency, percentage, country and date-range definitions. Bind their nominated controls through your local control map.",
+      "dependencies": [
+        "zod@^4.0.0"
+      ],
+      "registryDependencies": [
+        "@formulate/core"
+      ],
+      "categories": [
+        "fields"
+      ],
+      "files": [
+        {
+          "path": "examples/react/src/declarations/common-fields.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate-fields/common-fields.ts"
+        }
       ]
     },
     {

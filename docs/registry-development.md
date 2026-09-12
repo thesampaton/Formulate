@@ -39,6 +39,7 @@ The build writes ignored artifacts into `examples/react/public/r`; Vite serves t
 | Item | Installs |
 | --- | --- |
 | `@formulate/core` | Core runtime source under `@/lib/formulate`, including dependent-choice definitions, the hook and private request/store modules, requiring React 19.2+, RHF, resolver and Zod. |
+| `@formulate/common-fields` | Eight portable `defineField` definitions under `@/lib/formulate-fields/common-fields`; depends only on core and Zod. Controls remain locally bound. |
 | `@formulate/layouts` | Stack, Row and ActionRow, built on the consumer's local shadcn FieldGroup. |
 | `@formulate/shadcn-bindings` | Bindings over local shadcn controls, field presentation, pending editor boundary and the declaration control map; UI source comes through standard shadcn registry dependencies. |
 | `@formulate/pickers` | Optional date-range and multiple-selection bindings; depends on core, the field presentation and locally installed shadcn Calendar, Popover, Button, Checkbox and Label. Add its exports to your control map. |
@@ -81,6 +82,45 @@ export function ProfileForm() {
 The registry installs local source, so consumers do not need the private `@formulate/react` workspace package. This repository uses a small development facade at `examples/react/src/lib/formulate.ts` to exercise the same public API against workspace source. Registry items install the actual core files at that alias instead. All installed primitives resolve the same React contexts.
 
 Declare imported npm packages in `dependencies`, and installed source requirements in `registryDependencies`, including dependencies on the same namespace. Shared shadcn components remain the consumer's local components. This follows the [registry item contract](https://ui.shadcn.com/docs/registry/registry-item-json). Hosting, public release URLs and release compatibility policy remain future work.
+
+## Common fields
+
+Using the same local registry configuration, install `@formulate/common-fields`. It installs semantic source separately from `@formulate/shadcn-bindings`; it does not create another package, runtime registry, or UI backend.
+
+```sh
+pnpm dlx shadcn@latest add @formulate/common-fields @formulate/shadcn-bindings
+```
+
+```tsx
+import { defineForm, field } from "@/lib/formulate-config";
+import { Email, Currency, Country } from "@/lib/formulate-fields/common-fields";
+
+const Contact = defineForm({
+  email: field(Email, { label: "Work email" }),
+  budget: field(Currency),
+  country: field(Country, {
+    component: "select",
+    componentProps: { options: [{ value: "AU", label: "Australia" }, { value: "NZ", label: "New Zealand" }] },
+  }),
+});
+```
+
+The default local map binds `currencyInput` to its numeric Input adapter. Applications can replace that entry with a formatted currency control accepting numbers. No currency symbol or locale is assumed. The common Country nominates `combobox`; supply that local control or choose the existing `select` binding as above. Register `DateRangeControl` from `@formulate/pickers` as `dateRange` to use the common DateRange with that UI. None of these names resolves an implementation in core.
+
+| Export | Primitive / default control | Initial value and validation policy |
+| --- | --- | --- |
+| `Email` | `text` / `input` | Empty string; Zod email; email input and autocomplete. |
+| `Password` | `text` / `input` | Empty string; nonempty; password input with current-password autocomplete. Sign-up policy is a derived definition. |
+| `Url` | `text` / `input` | Empty string; Zod URL validation; no HTTP-only restriction. |
+| `Phone` | `text` / `input` | Empty string; permitted phone punctuation and at least seven digits. No country-specific validity or normalisation claim. |
+| `Currency` | `number` / `currencyInput` | Zero; finite number in major units, including negative credits. Step `0.01` is a UI hint, not a rounding rule. Currency, precision and storage policy stay with the application. |
+| `Percentage` | `number` / `number` | Zero; finite 0–100, including fractions. No conversion to a 0–1 ratio. |
+| `Country` | `choice` / `combobox` | Empty string; two uppercase letters. Apps supply options and membership validation; the schema alone does not certify a real or eligible country. |
+| `DateRange` | `object` / `dateRange` | `{ from: null, to: null }`; editing endpoints are nullable Dates. Validation requires both and rejects end-before-start at `to`; equal dates are allowed. Submission retains Dates unless explicitly derived. |
+
+Defaults can intentionally be invalid while editing. To change validation, derive with the public helper, for example `defineField({ ...Country, schema: z.enum(["", "AU", "NZ"]).refine(value => value !== "", "Choose a country.") })`. Keeping the empty editing state lets the form start unselected. Existing dependent-choice membership rules remain available without changes to their API.
+
+The common item imports only core and Zod, so it can be installed without shadcn. A domain item such as `@acme/project-code` uses the same `defineField`, files, targets and dependency conventions. The source browser identifies common fields as the actual `@formulate/common-fields` registry item.
 
 ## Form navigation
 

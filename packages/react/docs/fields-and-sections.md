@@ -2,26 +2,26 @@
 
 Start with the [README's first form](../README.md), then use this guide to reuse declarations, add form-wide rules, and arrange larger forms.
 
-## Reuse a field declaration
+## Reuse a semantic field
 
-A declaration is ordinary configuration. Keep it at module scope and create a new object when changing it for another use. Each member key gets its own value and binding.
+The field model has three separate concepts: **primitive → reusable definition → control**. A form's member key creates a use of the definition, with its own value and binding. `defineField` packages semantics once; the configured `field` helper applies per-use defaults and checks the selected local control.
 
 ```tsx
-import { defineForm } from "@formulate/react";
-import type { InputControlProps } from "@formulate/react";
+import { defineField, defineForm, field } from "@formulate/react";
 import { z } from "zod";
 
-const Email = {
+const Email = defineField({
+  primitive: "text",
   schema: z.email(),
   defaultValue: "",
   label: "Email",
-  component: "input" as const,
-  componentProps: { type: "email" } satisfies InputControlProps,
-};
+  component: "input",
+  componentProps: { type: "email", autoComplete: "email" },
+});
 
 const Confirmation = defineForm({
-  email: Email,
-  confirmEmail: { ...Email, label: "Confirm email" },
+  email: field(Email),
+  confirmEmail: field(Email, { label: "Confirm email", componentProps: { autoComplete: "off" } }),
 }, {
   schema: (schema) => schema.refine(
     (values) => values.email === values.confirmEmail,
@@ -30,7 +30,78 @@ const Confirmation = defineForm({
 });
 ```
 
-`as const` keeps the component name specific; `satisfies` checks the extracted props. The `schema` callback adds the matching-email rule to every use of `Confirmation.useForm()`, including when an editor is hidden or has never mounted.
+`defineField` preserves literal control names and props without `as const`. Its default value must match the schema's editing input. The schema callback adds the matching-email rule to every use of `Confirmation.useForm()`, including when an editor is hidden or has never mounted.
+
+Definitions are ordinary configuration, with no registry lookup or live state. Keep them at module scope and treat them as immutable. Passing `email: Email` directly still works, as do existing inline declarations. `field(Email)` returns a fresh declaration; it is useful when applying overrides. Both forms work inside the existing `defineSection` API.
+
+### Primitive types
+
+`PrimitiveFieldType` is the small vocabulary exported alongside `primitiveFieldTypes`:
+
+| Primitive | Meaning |
+| --- | --- |
+| `text` | Textual editing, including email, password, URL and phone. |
+| `number` | Numeric amounts, quantities and percentages. |
+| `boolean` | A true/false answer. |
+| `choice` | One selected value. |
+| `multiChoice` | Multiple selected values. |
+| `date`, `time`, `dateTime` | Calendar date, clock time, or combined date/time semantics. |
+| `file` | A file value. |
+| `object` | One structured value, such as a date range. |
+| `array` | One collection value, distinct from repeated section composition. |
+
+The primitive is an explicit semantic annotation, not another validation engine. It neither infers a schema nor chooses a renderer. The schema still specifies the actual editing representation, nullable/empty states and accepted output: a date may edit a string or a `Date`, and a text field may transform its submission to a number. Control compatibility is checked against **schema input**, not the primitive name. A structured object field remains one registered field; it does not become a section. Primitive information stays on the declaration and is not forwarded to DOM markup.
+
+`primitive` is required for `defineField` and optional for existing inline declarations. No migration of existing forms is required.
+
+### Instance overrides and local controls
+
+Use `field` from the same `createFormulate(...)` result as your local `defineForm`/`defineSection`; the package's default `field` checks only its default HTML control map. `defineField` itself is portable and imports no local control implementations. Its nominated control name and props are checked when `field`, `defineForm`, or `defineSection` consumes it.
+
+```tsx
+const { field, defineForm } = createFormulate({
+  components: { checkbox: CheckboxControl, switch: SwitchControl },
+});
+const Enabled = defineField({
+  primitive: "boolean", schema: z.boolean(), defaultValue: false,
+  label: "Enabled", component: "checkbox",
+});
+const Preferences = defineForm({
+  alerts: field(Enabled),
+  reminders: field(Enabled, { label: "Reminders", component: "switch" }),
+});
+```
+
+Here `SwitchControl` is an application-owned `defineFieldControl<boolean>()` binding. Choice definitions can similarly use `select`, `combobox`, or `radioGroup` when those local bindings accept their editing values. A missing control or incompatible editing contract is a TypeScript error.
+
+| Override | Behaviour |
+| --- | --- |
+| Label, description, orientation, presentation, class names, style | Replace that presentation value for the use. |
+| `defaultValue` | Replace the whole editing default, checked against schema input. Objects/arrays are not deep merged. It never changes a mounted form's current value. |
+| `componentProps`, without `component` | Shallow merge with definition props. This can supply required props omitted from a portable definition. The merged result must satisfy the local binding. Class strings and nested objects are replaced. |
+| Explicit `component` | Select a compatible local control and replace all control props; supply any required props. This also applies when explicitly selecting the same key. |
+| `children` | Replace the nominated control with existing connected-child composition. |
+| Schema or primitive | Derive a new definition explicitly with `defineField({ ...Email, schema: ... })`. They are not instance overrides. |
+
+Render-time `Definition.Field` overrides keep the existing presentation API. Definition and instance defaults apply before these render-time overrides. Zod remains the metadata mechanism: `schema.meta(...)` travels with the schema. There is no new field metadata registry or runtime interpretation of metadata. Existing `choices` declarations can travel with a reusable definition or be attached to the resulting declaration, and retain the existing dependent-choice APIs.
+
+### Common and domain fields
+
+The optional [`@formulate/common-fields` source item](../../../docs/registry-development.md#common-fields) exports `Email`, `Password`, `Url`, `Phone`, `Currency`, `Percentage`, `Country`, and `DateRange`. They use exactly the public `defineField` helper above. They are separate from the primitive runtime and install no UI components.
+
+Application definitions have the same status:
+
+```tsx
+const ProjectCode = defineField({
+  primitive: "text",
+  schema: z.string().regex(/^PRJ-\d+$/, "Use PRJ- followed by digits."),
+  defaultValue: "", label: "Project code", component: "input",
+  componentProps: { placeholder: "PRJ-123" },
+});
+const Project = defineForm({ projectCode: field(ProjectCode) });
+```
+
+`Supplier`, `CostCentre` and `CustomerId` work the same way. Distribute their source and dependencies through an ordinary registry item; they need no core registration or privileged runtime handling. Presence policy, schema adaptation and semantic validation remain explicit Zod definitions. Automatic required/optional adaptation, locale-aware money/phone validation and portable metadata inspection remain broader design work.
 
 ## Keep editing values separate from submission output
 

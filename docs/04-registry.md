@@ -30,7 +30,7 @@ Formulate is a dependency of a user's registry. That registry can also distribut
 
 ## Formulate's primitive registry
 
-The current runtime is installed as **`@formulate/core`**, exporting Form, Field, Section, Page and the implemented declaration/coordination helpers. `@formulate/shadcn-bindings`, `@formulate/layouts`, `@formulate/actions` and `@formulate/navigation` distribute connected UI and composition components. `@formulate/name` demonstrates a reusable domain section.
+The current runtime is installed as **`@formulate/core`**, exporting Form, Field, Section, Page and the implemented declaration/coordination helpers. `@formulate/common-fields` supplies reusable semantic fields through the public `defineField` API. `@formulate/shadcn-bindings`, `@formulate/layouts`, `@formulate/actions` and `@formulate/navigation` distribute connected UI and composition components. `@formulate/name` demonstrates a reusable domain section.
 
 See the [actual installable catalogue](registry-development.md) for source paths and dependencies. The [earlier primitive catalogue](04-registry-catalogue.md) records candidates for later design; its proposed per-primitive addresses and rule/workflow helpers are not current installable APIs.
 
@@ -40,7 +40,7 @@ A Formulate primitive describes interaction meaning. A shadcn Input or Select su
 
 The current authoring mechanism has three steps:
 
-1. **Declare and compose a reusable part** with `defineSection`, `defineForm`, ordinary field configuration and React components. `defineField` and `definePage` remain proposals.
+1. **Declare and compose a reusable part** with `defineField`/`field`, `defineSection`, `defineForm`, ordinary inline field configuration and React components. `definePage` remains a proposal.
 2. **Export the parts together** as an ordinary TypeScript library. Declare outside inputs and services at each reusable boundary.
 3. **Describe installable items** in a standard shadcn registry manifest when distribution is useful. Declare Formulate and other source/package dependencies there.
 

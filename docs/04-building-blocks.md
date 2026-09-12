@@ -10,7 +10,7 @@ Formulate has three distinct vocabularies: a building block's responsibility, th
 | --- | --- | --- |
 | Core | Form, Field, Section, Page, declaration helpers, binding contexts, navigation correction and action attempts in `packages/react`. | RHF remains the editing-value authority and Zod executes validation. Core coordinates their use; it imports no shadcn components. |
 | shadcn bindings | Connected controls, field presentation, control map and pending editor boundary. | Attach the core contract to local shadcn exports: value/events, refs, accessible IDs and pending state. |
-| Fields and sections | Email, Name, Address and Notifications. | Package domain values, rules, local relationships and default presentation. An Address is a section containing fields, even if it is acquired as one registry item. |
+| Fields and sections | Common `defineField` definitions (Email, Currency and others), Name, Address and Notifications. | Package domain values, rules, local relationships and default presentation. An Address is a section containing fields, even if it is acquired as one registry item. |
 | Layouts | Stack, Row, ActionRow and FormStepLayout. | Arrange content and slots. A page layout may supply a default action component; that component owns action selection. Layouts introduce no value bindings or requirements. |
 | Navigation | FormTabs, FormTabPanel, FormTabPage and page context. | Present and select pages, preserve panel semantics, and connect page composition to host navigation. |
 | Actions | Submit/Continue/Back buttons and page/review action sets. | Expose intents and reflect pending state. Form handles validation/attempts; navigation supplies destinations; the application supplies save handlers. |
@@ -26,7 +26,9 @@ A **declaration** supplies members, schemas, defaults and optional default prese
 
 A reusable section can legitimately carry a declaration, rendering component and local behaviour together. Splitting every concern into another file is unnecessary. Split when responsibilities can be independently used or changed, as with ActionRow and the action buttons.
 
-A **library** is a collection of reusable exports, with their documented contracts. It may contain fields, sections, layouts, actions, pages or complete forms. User libraries use the same existing `defineForm`, `defineSection`, field configuration and React composition mechanisms as the built-in examples.
+A **library** is a collection of reusable exports, with their documented contracts. It may contain fields, sections, layouts, actions, pages or complete forms. User libraries use the same existing `defineField`, `field`, `defineForm`, `defineSection` and React composition mechanisms as the built-in examples.
+
+A field's **primitive type** is a smaller vocabulary within the field model: `text`, `number`, `boolean`, `choice`, `multiChoice`, `date`, `time`, `dateTime`, `file`, `object`, `array`. These describe value/form semantics, not building-block responsibilities or components. A reusable Email definition has primitive `text` and nominates the `input` control name. A form's `field(Email)` use is checked against its local control map. See [field authoring and overrides](../packages/react/docs/fields-and-sections.md#reuse-a-semantic-field).
 
 ## Distribution units
 
@@ -36,13 +38,14 @@ A **package** and a **registry item** are delivery units. Neither introduces a F
 | --- | --- |
 | Private workspace package `@formulate/react` | Current core development boundary. Not published. |
 | `@formulate/core` | Registry source for the same core runtime, installed at the consumer's shared `@/lib/formulate` boundary. |
+| `@formulate/common-fields` | Portable semantic field definitions, dependent only on core and Zod; actual controls come from local bindings. |
 | `@formulate/shadcn-bindings` | Form bindings over local shadcn components and the declaration control map. |
 | `@formulate/layouts` | Stack, Row and ActionRow. |
 | `@formulate/actions` | Basic action buttons, installable without page navigation. |
 | `@formulate/navigation` | A useful page-composition bundle: navigation components, page action sets and a page layout; depends on layouts and actions. |
 | `@formulate/name` | A domain section with its own required dependencies. |
 
-Address, Email and Notifications are reusable local source today; they are not yet registry items. A future `@acme/address` can package a section and its presentation together. A larger `@acme/customer-form` can depend on it. These are examples of future author-owned items, not additional core primitives.
+Address and Notifications are reusable local source today; they are not yet registry items. Email is distributed with common fields. A future `@acme/address` can package a section and its presentation together. A larger `@acme/customer-form` can depend on it. These are examples of future author-owned items, not additional core primitives.
 
 The manifest's standard `categories` describe discovery tags and may include several responsibilities. Its `type` and file targets control source delivery. `registryDependencies` names source items; `dependencies` names npm packages. The dependency graph must remain complete and resolve core contexts to one shared implementation. See the [shadcn item contract](https://ui.shadcn.com/docs/registry/registry-item-json).
 

@@ -23,7 +23,7 @@ The sixth example, [multi-page form](examples/react/src/compositions/multi-page-
 
 Each source panel separates **Composition** (rendering), **Declaration** (fields, validation and defaults), and **Sample data** (reusable editing values). These are real modules in `src/compositions`, `src/declarations` and [`src/data/example-data.ts`](examples/react/src/data/example-data.ts). The source browser groups fields/sections, layouts, navigation, actions, shadcn bindings and form-specific behaviour by responsibility, and identifies actual registry items. See the [building-block taxonomy](docs/04-building-blocks.md). Demo wrappers own resizing controls and sample result displays; the code panel shows the entire composition module, including its imports.
 
-The third example, [email confirmation](examples/react/src/email-confirmation.tsx), tests reusable field configuration and cross-field validation, with flat and explicitly nested bindings.
+The third example, [email confirmation](examples/react/src/email-confirmation.tsx), tests `defineField`/`field` reuse and cross-field validation, with flat and explicitly nested bindings. [Common fields](examples/react/src/declarations/common-fields.ts) separate primitive semantics, reusable schemas/defaults, and nominated control names; local control maps still supply their UI. Install them as the optional `@formulate/common-fields` source item.
 
 ```sh
 pnpm check # TypeScript, interaction tests, package build, example build
