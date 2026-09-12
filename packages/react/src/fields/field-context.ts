@@ -15,13 +15,25 @@ export type FieldControlBinding<Value> = {
   "aria-describedby": string | undefined;
 };
 
-export const FieldContext = createContext<FieldControlBinding<unknown> | null>(null);
+/** Shared field scope. Keep runtime metadata separate from spreadable control props. */
+export type FieldContextValue<Value> = {
+  binding: FieldControlBinding<Value>;
+  /** Identity of the resolved RHF owner, including an explicit control override. */
+  control: object;
+};
 
-/** For connected control authors. The adapter declares its accepted editing value. */
-export function useFieldBinding<Value>(): FieldControlBinding<Value> {
+export const FieldContext = createContext<FieldContextValue<unknown> | null>(null);
+
+/** Feature bindings extend this shared scope without adding a provider per feature. */
+export function useFieldContext<Value>(): FieldContextValue<Value> {
   const field = useContext(FieldContext);
   if (!field) {
     throw new Error("A Formulate control must be rendered inside a Field.");
   }
-  return field as FieldControlBinding<Value>;
+  return field as FieldContextValue<Value>;
+}
+
+/** For connected control authors. The adapter declares its accepted editing value. */
+export function useFieldBinding<Value>(): FieldControlBinding<Value> {
+  return useFieldContext<Value>().binding;
 }

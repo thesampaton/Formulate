@@ -92,7 +92,10 @@ export function FieldRoot<Values extends FieldValues, Name extends FieldPath<Val
     <Presentation {...props} controlId={controlId} label={label} description={description}
       descriptionId={descriptionId} error={errorMessage(fieldState.error)} errorId={errorId}
       invalid={fieldState.invalid} orientation={orientation}>
-      <FieldContext value={{ ...field, id: controlId, "aria-invalid": fieldState.invalid || undefined, "aria-describedby": describedBy }}>
+      <FieldContext value={{
+        binding: { ...field, id: controlId, "aria-invalid": fieldState.invalid || undefined, "aria-describedby": describedBy },
+        control: resolvedControl,
+      }}>
         {children}
       </FieldContext>
     </Presentation>
