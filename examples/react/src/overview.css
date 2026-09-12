@@ -1,0 +1,166 @@
+.overview {
+  container-type: inline-size;
+  width: 100%;
+  max-width: 1160px;
+  margin-inline: auto;
+  padding-block: 28px 16px;
+}
+
+.overview p { line-height: 1.7; }
+.overview .overview-eyebrow {
+  margin: 0 0 13px;
+  color: var(--muted-foreground);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.15em;
+  line-height: 1.4;
+}
+
+.overview-intro { max-width: 840px; padding: 15px 0 56px; }
+.overview-intro h1 { margin: 0 0 20px; font-size: clamp(2.2rem, 3.6vw, 3.6rem); font-weight: 550; letter-spacing: -0.055em; line-height: 1.12; }
+.overview-intro h1 span { color: var(--muted-foreground); }
+.overview-lead { max-width: 610px; margin: 0; color: var(--muted-foreground); font-size: 16px; }
+.overview-intro-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px 24px; margin-top: 26px; }
+.overview-intro-actions [data-slot="button"] { height: 39px; padding-inline: 14px; font-size: 12px; }
+.overview-text-link { display: inline-flex; align-items: center; gap: 7px; color: var(--foreground); font-size: 12px; font-weight: 550; text-decoration: none; }
+.overview-text-link svg { width: 14px; height: 14px; }
+.overview-text-link:hover { color: var(--primary); text-decoration: underline; text-underline-offset: 4px; }
+.overview a:focus-visible, .overview-anatomy-scroll:focus-visible { outline: 2px solid var(--ring); outline-offset: 5px; border-radius: 4px; }
+
+.overview h2 { margin: 0; font-size: clamp(1.3rem, 2vw, 1.65rem); font-weight: 550; letter-spacing: -0.035em; line-height: 1.3; }
+.overview-section-heading { display: flex; justify-content: space-between; align-items: end; gap: 20px; }
+.overview-figure-number { color: var(--muted-foreground); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; letter-spacing: 0.06em; white-space: nowrap; padding-bottom: 3px; }
+.overview-section-intro { max-width: 730px; margin: 11px 0 22px; color: var(--muted-foreground); font-size: 13px; }
+.overview-anatomy { margin: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 13px; background: var(--secondary); }
+.overview-anatomy-scroll { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+.overview .overview-diagram-hint { display: none; align-items: center; gap: 7px; margin: 0; padding: 12px 18px 0; color: var(--muted-foreground); font-size: 11px; }
+.overview-diagram-hint svg { width: 13px; height: 13px; flex-shrink: 0; }
+@container (max-width: 960px) {
+  .overview .overview-diagram-hint { display: flex; }
+}
+.overview-anatomy figcaption { display: flex; align-items: baseline; gap: 10px; border-top: 1px solid var(--border); background: color-mix(in srgb, var(--card) 62%, var(--secondary)); padding: 14px 23px; color: var(--muted-foreground); font-size: 11px; line-height: 1.65; }
+.overview-caption-mark { width: 6px; height: 6px; flex: 0 0 6px; border-radius: 50%; background: #729383; }
+
+.form-anatomy {
+  --diagram-surface: #fffefa;
+  --diagram-ink: #354b40;
+  --diagram-muted: #737f77;
+  --diagram-stroke: #cbd5cb;
+  --diagram-page: #f8faf5;
+  --diagram-section: #edf3e9;
+  --diagram-callout: #55776a;
+  display: block;
+  width: 100%;
+  min-width: 960px;
+  height: auto;
+  font-family: inherit;
+  fill: var(--diagram-ink);
+}
+.dark .form-anatomy {
+  --diagram-surface: #24382b;
+  --diagram-ink: #e1eade;
+  --diagram-muted: #b1c0b0;
+  --diagram-stroke: #526b57;
+  --diagram-page: #243128;
+  --diagram-section: #2f4032;
+  --diagram-callout: #acd1b5;
+}
+.anatomy-form-shadow { fill: color-mix(in srgb, var(--diagram-stroke) 23%, transparent); }
+.anatomy-form { fill: var(--diagram-surface); stroke: var(--diagram-stroke); }
+.anatomy-form-heading { font-size: 19px; font-weight: 650; letter-spacing: -0.6px; }
+.anatomy-small { font-size: 11px; }
+.anatomy-muted { fill: var(--diagram-muted); }
+.anatomy-navigation { fill: var(--diagram-section); }
+.anatomy-tab-active { fill: var(--diagram-surface); stroke: var(--diagram-stroke); }
+.anatomy-tab { font-size: 11px; fill: var(--diagram-muted); }
+.anatomy-tab-selected { font-weight: 600; fill: var(--diagram-ink); }
+.anatomy-page { fill: var(--diagram-page); stroke: #a9bca7; stroke-dasharray: 5 4; }
+.anatomy-page-heading { font-size: 16px; font-weight: 600; letter-spacing: -0.35px; }
+.anatomy-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; }
+.anatomy-section { fill: var(--diagram-section); stroke: var(--diagram-stroke); }
+.anatomy-section-heading { font-size: 13px; font-weight: 600; }
+.anatomy-row { fill: none; stroke: var(--diagram-stroke); stroke-dasharray: 3 4; }
+.anatomy-field-label { font-size: 11px; font-weight: 550; }
+.anatomy-input { fill: var(--diagram-surface); stroke: var(--diagram-stroke); }
+.anatomy-value { font-size: 12px; }
+.anatomy-field-outline { fill: none; stroke: var(--diagram-stroke); stroke-dasharray: 3 4; }
+.anatomy-help { font-size: 10px; fill: var(--diagram-muted); }
+.anatomy-action { fill: #315d46; }
+.anatomy-action-label { fill: #ffffff; font-size: 11px; font-weight: 550; }
+.anatomy-action-arrow { stroke: #ffffff; fill: none; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.anatomy-callouts { fill: var(--diagram-callout); }
+.anatomy-callouts path { fill: none; stroke: var(--diagram-callout); stroke-width: 1; stroke-opacity: 0.7; }
+.anatomy-callout-label { font-size: 15px; font-weight: 500; }
+.anatomy-callout-detail { font-size: 10.5px; fill: var(--diagram-muted); }
+
+.overview-flow-section { margin-top: 58px; }
+.overview-workflow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 25px; padding: 0; margin: 27px 0 0; list-style: none; }
+.overview-workflow li { display: flex; flex-direction: column; border-top: 1px solid var(--border); padding-top: 16px; }
+.overview-step-top { display: flex; align-items: center; justify-content: space-between; color: var(--primary); font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.overview-step-top svg { width: 15px; height: 15px; color: var(--muted-foreground); }
+.overview-workflow li:last-child .overview-step-top svg { visibility: hidden; }
+.overview-workflow h3 { margin: 20px 0 8px; font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
+.overview-workflow p { margin: 0 0 18px; color: var(--muted-foreground); font-size: 12px; }
+.overview-workflow code { margin-top: auto; font-size: 9px; line-height: 1.6; color: var(--primary); overflow-wrap: anywhere; }
+
+.overview-model-section { display: grid; grid-template-columns: 0.9fr 1.15fr; gap: 65px; margin-top: 62px; padding-top: 46px; border-top: 1px solid var(--border); }
+.overview-model-intro > p:not(.overview-eyebrow) { margin: 16px 0 0; color: var(--muted-foreground); font-size: 13px; }
+.overview-path-example { margin-top: 23px; padding: 19px 20px; border: 1px solid var(--border); border-radius: 8px; background: color-mix(in srgb, var(--secondary) 70%, transparent); }
+.overview-path-example > span { display: block; color: var(--muted-foreground); font-size: 10px; }
+.overview-path-example > code { display: block; margin-top: 6px; color: var(--primary); font-size: 19px; letter-spacing: -0.06em; }
+.overview-path-example > code span { color: var(--muted-foreground); padding-inline: 3px; }
+.overview-path-example p { margin: 7px 0 0; color: var(--muted-foreground); font-size: 11px; }
+.overview-path-example strong { color: var(--foreground); font-weight: 500; }
+.overview-model-intro > p.overview-model-note { font-size: 11px; }
+.overview .overview-concepts { margin: 0; }
+.overview .overview-concepts > div { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 15px; border-top: 1px solid var(--border); padding: 17px 0; font-size: 12px; }
+.overview .overview-concepts > div:first-child { padding-top: 0; border-top: 0; }
+.overview .overview-concepts dt { color: var(--foreground); font-weight: 600; }
+.overview .overview-concepts dd { margin: 0; color: var(--muted-foreground); font-weight: 400; line-height: 1.7; }
+
+.overview-application { display: flex; align-items: flex-start; gap: 18px; margin-top: 37px; padding: 24px 27px; border-left: 2px solid #85a983; background: var(--secondary); border-radius: 0 8px 8px 0; }
+.overview-application-symbol { color: var(--primary); font-size: 22px; line-height: 1; }
+.overview-application h2 { font-size: 13px; letter-spacing: -0.01em; font-weight: 600; }
+.overview-application p { max-width: 850px; margin: 7px 0 0; color: var(--muted-foreground); font-size: 12px; }
+
+.overview-next-section { margin-top: 57px; }
+.overview-next-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.overview-next-link { display: block; padding: 20px; border: 1px solid var(--border); border-radius: 9px; background: var(--card); color: var(--foreground); text-decoration: none; transition: border-color 150ms ease, background-color 150ms ease; }
+.overview-next-link:hover { border-color: var(--ring); background: color-mix(in srgb, var(--card) 85%, var(--accent)); }
+.overview-next-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--muted-foreground); font-size: 10px; }
+.overview-next-meta svg { width: 15px; height: 15px; }
+.overview-next-link h3 { margin: 25px 0 8px; font-size: 14px; font-weight: 550; letter-spacing: -0.02em; }
+.overview-next-link p { margin: 0; color: var(--muted-foreground); font-size: 12px; }
+
+@media (max-width: 1100px) {
+  .overview-workflow { gap: 18px; }
+  .overview-model-section { gap: 35px; }
+}
+
+@media (max-width: 850px) {
+  .overview { padding-top: 10px; }
+  .overview-intro { padding-bottom: 42px; }
+  .overview-intro h1 { font-size: 2.5rem; }
+  .overview-workflow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 27px 22px; }
+  .overview-model-section { grid-template-columns: 1fr; gap: 29px; }
+  .overview-model-intro { max-width: 570px; }
+  .overview-next-grid { grid-template-columns: 1fr; }
+  .overview-next-link h3 { margin-top: 17px; }
+}
+
+@media (max-width: 480px) {
+  .overview-intro h1 { font-size: 2.1rem; }
+  .overview-lead { font-size: 14px; }
+  .overview-intro-actions { gap: 16px; }
+  .overview-workflow { grid-template-columns: 1fr; }
+  .overview-workflow h3 { margin-top: 14px; }
+  .overview-workflow p { margin-bottom: 11px; }
+  .overview-anatomy figcaption { padding: 12px 15px; }
+  .overview-application { padding: 20px 17px; gap: 12px; }
+  .overview .overview-concepts > div { grid-template-columns: 60px minmax(0, 1fr); gap: 12px; }
+  .overview-flow-section, .overview-model-section, .overview-next-section { margin-top: 43px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overview-next-link { transition: none; }
+}

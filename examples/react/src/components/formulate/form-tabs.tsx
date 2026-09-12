@@ -57,7 +57,7 @@ export function FormTabs<Id extends string>({ pages, value, onValueChange, onNav
   }} className={cn("min-w-0 gap-6", className)}>
     <FormTabsContext value={{ value, pages, pageLayout, navigate }}>
       <div className="overflow-x-auto pb-1">
-        <TabsList activateOnFocus={false} aria-label={label} className="w-full min-w-max justify-start group-data-horizontal/tabs:h-auto">
+        <TabsList activateOnFocus={false} aria-label={label} className="w-full min-w-max justify-start group-data-[orientation=horizontal]/tabs:h-auto">
           {pages.map(({ id, label, status, disabled }) => {
             const Icon = status === "complete" ? CheckCircle2 : Circle;
             return <TabsTrigger key={id} value={id} disabled={disabled || isPending}

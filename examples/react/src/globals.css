@@ -22,6 +22,14 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -48,9 +56,19 @@
   --border: #d2dacf;
   --input: #d2dacf;
   --ring: #85a983;
+  --sidebar: #f0f2eb;
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: #e0e8da;
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
 }
 
 .dark {
+  --sidebar: #1e2b23;
+  --sidebar-accent: #354d3e;
   --background: #18241d;
   --foreground: #edf3e9;
   --card: #213027;
@@ -79,22 +97,19 @@
 /* Scaffold styles share shadcn's tokens and Tailwind's spacing/type scale.
    Utilities remain later in the cascade for per-use overrides. */
 @layer components {
-  main { @apply mx-auto max-w-6xl px-6 py-8 md:px-12; }
-  .masthead { @apply flex items-center justify-between border-b pb-6; }
-  .masthead > span { @apply text-xs text-muted-foreground; }
   .wordmark { @apply text-2xl font-extrabold tracking-tight no-underline; }
-  .wordmark span { @apply text-primary; }
-  .intro { @apply pb-10 pt-14; }
+  .site-header { @apply sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between gap-3 border-b bg-background/95 px-5 backdrop-blur-sm md:px-8; }
+  .site-content { @apply mx-auto w-full max-w-6xl px-5 pb-6 pt-10 md:px-10 md:pt-12 xl:px-14; }
+  .site-nav-link { @apply my-0.5 h-auto min-h-9 gap-2.5 py-2 text-[13px] text-muted-foreground; }
+  .site-nav-link > span:last-child { @apply whitespace-normal; overflow: visible; }
+  .site-nav-link[data-active] { @apply text-sidebar-accent-foreground; }
+  .skip-link { @apply fixed left-4 top-4 z-[100] -translate-y-24 rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground focus:translate-y-0; }
+  .example-intro { @apply pb-8; }
+  .example-intro h1 { @apply mb-3 text-3xl md:text-4xl; }
+  .example-intro > p:last-child { @apply max-w-xl text-sm leading-relaxed text-muted-foreground; }
   .eyebrow { @apply mb-3 text-xs font-bold tracking-widest text-muted-foreground; }
   h1 { @apply mb-5 text-4xl font-semibold tracking-tight md:text-5xl; }
   h1 span { @apply text-muted-foreground; }
-  .intro > p:last-child { @apply max-w-lg text-sm text-muted-foreground; }
-  .workspace { @apply grid items-start gap-8 md:grid-cols-[14rem_minmax(0,1fr)]; }
-  .workspace > nav { @apply flex flex-wrap gap-2 pt-2 md:block; }
-  .example-link { @apply mb-1 flex w-full justify-start gap-3 whitespace-normal px-4 py-3 text-left text-sm text-muted-foreground; }
-  .example-link span { @apply text-xs text-muted-foreground; }
-  .example-link:hover, .example-link.selected { @apply bg-accent text-accent-foreground; }
-  .nav-note { @apply hidden max-w-52 p-4 text-xs text-muted-foreground md:block; }
   .example-card { @apply rounded-xl border bg-card p-6 text-card-foreground shadow-sm md:p-8; }
   .card-heading { @apply mb-8 flex flex-wrap items-center justify-between gap-2; }
   .card-heading .eyebrow { @apply m-0 text-xs; }
@@ -121,8 +136,8 @@
   [role='status'] { @apply text-sm text-primary; }
   .result { @apply rounded-md bg-secondary p-4; }
   pre { @apply overflow-x-auto text-xs; }
-  footer { @apply mt-14 border-t py-5 text-xs text-muted-foreground; }
-  footer span { @apply mx-1; }
+  .site-footer { @apply mt-14 border-t py-5 text-xs text-muted-foreground; }
+  .site-footer span { @apply mx-1; }
   .example-content { @apply grid min-w-0 gap-6; }
   .code-panel { @apply min-w-0 overflow-hidden rounded-xl border bg-card; }
   .code-heading { @apply flex items-center justify-between gap-3 px-6 pt-5; }

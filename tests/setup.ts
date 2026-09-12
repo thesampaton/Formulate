@@ -9,6 +9,19 @@ globalThis.ResizeObserver = class ResizeObserver {
   unobserve() {}
   disconnect() {}
 };
+// jsdom has no media-query engine. Default to its desktop viewport while allowing
+// responsive components to subscribe and unsubscribe from query changes.
+window.matchMedia = (query) => ({
+  matches: false,
+  media: query,
+  onchange: null,
+  addListener() {},
+  removeListener() {},
+  addEventListener() {},
+  removeEventListener() {},
+  dispatchEvent() { return true; },
+});
+window.scrollTo = () => {};
 Element.prototype.hasPointerCapture = () => false;
 Element.prototype.setPointerCapture = () => {};
 Element.prototype.releasePointerCapture = () => {};

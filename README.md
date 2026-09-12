@@ -15,7 +15,9 @@ pnpm install
 pnpm dev
 ```
 
-Open the local URL printed by Vite. The examples cover [simple sign-in](examples/react/src/simple-form.tsx) and [advanced options](examples/react/src/advanced-options.tsx), including disclosure, scoped Settings → Destination → Review navigation, and application-owned submission. Demo handlers perform no network requests or persistence.
+Open the local URL printed by Vite. The site starts with an [overview](examples/react/src/overview.tsx) of declaration, composition, navigation and submission, including an annotated SVG of the form’s pages, sections and fields. The shadcn sidebar groups all examples; links such as `#/overview` and `#/examples/multiPage` support bookmarks and browser history.
+
+The examples cover [simple sign-in](examples/react/src/simple-form.tsx) and [advanced options](examples/react/src/advanced-options.tsx), including disclosure, scoped Settings → Destination → Review navigation, and application-owned submission. Demo handlers perform no network requests or persistence.
 
 The fifth example, [reusable layouts](examples/react/src/responsive-layout.tsx), demonstrates a shared Name group with first and last name in a responsive row. Form, Page and Section accept reusable layout components; form and section definitions can supply defaults.
 
