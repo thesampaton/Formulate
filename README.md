@@ -25,6 +25,8 @@ Each source panel separates **Composition** (rendering), **Declaration** (fields
 
 The third example, [email confirmation](examples/react/src/email-confirmation.tsx), tests `defineField`/`field` reuse and cross-field validation, with flat and explicitly nested bindings. [Common fields](examples/react/src/declarations/common-fields.ts) separate primitive semantics, reusable schemas/defaults, and nominated control names; local control maps still supply their UI. Install them as the optional `@formulate/common-fields` source item.
 
+Example 11, the [control gallery](examples/react/src/compositions/control-gallery.tsx), covers Input, Textarea, Checkbox, Switch, Select, RadioGroup, Combobox, Command, single/multiple ToggleGroup, Slider, Calendar, DatePicker and InputOTP. The [binding catalogue](packages/react/docs/control-catalogue.md) documents value types, empty states, configuration and interaction behavior.
+
 ```sh
 pnpm check # TypeScript, interaction tests, package build, example build
 ```

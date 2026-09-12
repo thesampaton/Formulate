@@ -1,4 +1,9 @@
 /// <reference types="vite/client" />
+import controlGallery from "./compositions/control-gallery.tsx?raw";
+import controlGalleryDeclaration from "./declarations/control-gallery.ts?raw";
+import groupControls from "./components/formulate/group-controls.tsx?raw";
+import choiceControls from "./components/formulate/choice-controls.tsx?raw";
+import calendarControls from "./components/formulate/calendar-controls.tsx?raw";
 import structured from "./structured-editing.tsx?raw";
 import structuredDeclaration from "./declarations/structured-editing.ts?raw";
 import pickerControls from "./components/formulate/picker-controls.tsx?raw";
@@ -121,6 +126,14 @@ const dependentChoices = [
 ];
 
 export const exampleCode = {
+  controls: [
+    composition("compositions/control-gallery.tsx", controlGallery), declaration("declarations/control-gallery.ts", controlGalleryDeclaration), sample("controls"),
+    emailField,
+    source("controls", "Groups & slider", "components/formulate/group-controls.tsx", groupControls, "Typed radio, single/multiple toggle and numeric slider bindings.", "@formulate/shadcn-bindings"),
+    source("controls", "Searchable choices", "components/formulate/choice-controls.tsx", choiceControls, "Combobox and Command commit selected values independently from search/highlight state.", "@formulate/shadcn-bindings"),
+    source("controls", "Calendar & date picker", "components/formulate/calendar-controls.tsx", calendarControls, "One nullable Date field with an inline or popup calendar.", "@formulate/shadcn-bindings"),
+    bodyLayouts, buttons, ...integration,
+  ],
   structured: [
     composition("structured-editing.tsx", structured), declaration("declarations/structured-editing.ts", structuredDeclaration), sample("structured"),
     source("controls", "Picker adapters", "components/formulate/picker-controls.tsx", pickerControls, "Date ranges and arrays over local shadcn Calendar, Popover, Button and Checkbox.", "@formulate/pickers"),

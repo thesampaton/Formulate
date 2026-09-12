@@ -14,6 +14,8 @@ const InfrastructureExample = lazy(() => import("./infrastructure").then((module
 
 const StructuredEditingExample = lazy(() => import("./structured-editing").then((module) => ({ default: module.StructuredEditingExample })));
 
+const ControlGalleryExample = lazy(() => import("./control-gallery").then((module) => ({ default: module.ControlGalleryExample })));
+
 const CodePanel = lazy(() => import("./code-panel"));
 
 export function App() {
@@ -38,12 +40,13 @@ export function App() {
           <Button variant="ghost" className={example === "cloud" ? "example-link selected" : "example-link"} aria-current={example === "cloud" ? "page" : undefined} onClick={() => setExample("cloud")}><span>08</span> Cloud deployment</Button>
           <Button variant="ghost" className={example === "infrastructure" ? "example-link selected" : "example-link"} aria-current={example === "infrastructure" ? "page" : undefined} onClick={() => setExample("infrastructure")}><span>09</span> Infrastructure drafts</Button>
           <Button variant="ghost" className={example === "structured" ? "example-link selected" : "example-link"} aria-current={example === "structured" ? "page" : undefined} onClick={() => setExample("structured")}><span>10</span> Structured pickers</Button>
+          <Button variant="ghost" className={example === "controls" ? "example-link selected" : "example-link"} aria-current={example === "controls" ? "page" : undefined} onClick={() => setExample("controls")}><span>11</span> Control gallery</Button>
           <p className="nav-note">Examples use local demo handlers. Switching examples starts a fresh form.</p>
         </nav>
         <div className="example-content">
           <article className="example-card">
             <div className="card-heading"><p className="eyebrow">{example === "advanced" || example === "customer" || example === "multiPage" || example === "employment" || example === "cloud" || example === "infrastructure" ? "FORM + FIELD + SECTION + PAGE" : example === "layout" ? "FORM + SECTION + LAYOUT" : "FORM + FIELD"}</p><span className="badge">Interactive example</span></div>
-            {example === "structured" ? <Suspense fallback={<p>Loading pickers…</p>}><StructuredEditingExample /></Suspense> : example === "simple" ? <><h2>Welcome back</h2><p className="card-description">Two fields and one submit action. Everything a simple form needs.</p><SimpleForm onSignIn={() => undefined} /></> : example === "advanced" ? <AdvancedOptions onSave={() => undefined} /> : example === "confirmation" ? <EmailConfirmationExample /> : example === "customer" ? <CustomerOnboarding onCreate={() => undefined} /> : example === "layout" ? <ResponsiveLayout /> : example === "employment" ? <Suspense fallback={<p>Loading employment forms…</p>}><EmployeeWorkflowsExample /></Suspense> : example === "cloud" ? <Suspense fallback={<p>Loading deployment…</p>}><CloudDeploymentExample /></Suspense> : example === "infrastructure" ? <Suspense fallback={<p>Loading infrastructure…</p>}><InfrastructureExample /></Suspense> : <MultiPageExample />}
+            {example === "controls" ? <Suspense fallback={<p>Loading controls…</p>}><ControlGalleryExample /></Suspense> : example === "structured" ? <Suspense fallback={<p>Loading pickers…</p>}><StructuredEditingExample /></Suspense> : example === "simple" ? <><h2>Welcome back</h2><p className="card-description">Two fields and one submit action. Everything a simple form needs.</p><SimpleForm onSignIn={() => undefined} /></> : example === "advanced" ? <AdvancedOptions onSave={() => undefined} /> : example === "confirmation" ? <EmailConfirmationExample /> : example === "customer" ? <CustomerOnboarding onCreate={() => undefined} /> : example === "layout" ? <ResponsiveLayout /> : example === "employment" ? <Suspense fallback={<p>Loading employment forms…</p>}><EmployeeWorkflowsExample /></Suspense> : example === "cloud" ? <Suspense fallback={<p>Loading deployment…</p>}><CloudDeploymentExample /></Suspense> : example === "infrastructure" ? <Suspense fallback={<p>Loading infrastructure…</p>}><InfrastructureExample /></Suspense> : <MultiPageExample />}
           </article>
           <Suspense fallback={<section className="code-panel code-loading" aria-label="Code"><p>Loading code…</p></section>}>
             <CodePanel key={example} example={example} />

@@ -67,3 +67,15 @@ it("separates responsibilities and installation metadata while preserving the li
   expect(screen.getByText("Local source · no registry item yet")).toBeInTheDocument();
   expect(screen.getByLabelText("First name")).toHaveValue("Ada");
 });
+it("opens the control gallery and shows typed sample submission with its actual declaration source", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  await user.click(screen.getByRole("button", { name: "11 Control gallery" }));
+  expect(await screen.findByRole("heading", { name: "Control gallery" })).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Load sample" }));
+  expect(screen.getByRole("textbox", { name: "InputOTP" })).toHaveValue("012345");
+  await user.click(screen.getByRole("button", { name: "Save values" }));
+  expect(await screen.findByRole("status", { name: "Saved control values" })).toHaveTextContent('"inputOTP": "012345"');
+  await user.click(screen.getByRole("button", { name: "Declaration" }));
+  expect(screen.getByRole("region", { name: "Declaration source code" })).toHaveTextContent("field(CountryChoice");
+});

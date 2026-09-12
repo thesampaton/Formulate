@@ -1,4 +1,5 @@
 import type { Booking } from "@/declarations/structured-editing";
+import type { ControlGalleryValues } from "@/declarations/control-gallery";
 import type { z } from "zod";
 import type { SignIn } from "@/declarations/sign-in";
 import type { RequestSettings } from "@/declarations/request-settings";
@@ -16,6 +17,11 @@ const sampleName = { firstName: " Ada ", lastName: "Lovelace" };
 const sampleAddress = { street: "1 Example Street", countryCode: "AU", postcode: "2000" };
 
 export const exampleData = {
+  controls: {
+    input: "person@example.com", textarea: "Please send updates by email.", checkbox: true, switch: true,
+    select: "AU", radioGroup: "NZ", combobox: "AU", command: "NZ", toggleGroup: "AU", multiToggleGroup: ["AU", "NZ"],
+    slider: 65, calendar: new Date(2026, 8, 14), datePicker: new Date(2026, 8, 18), inputOTP: "012345",
+  } satisfies ControlGalleryValues,
   structured: { dates: { from: new Date(2026, 8, 14), to: new Date(2026, 8, 18) }, activities: ["walking", "museum"] } satisfies z.input<typeof Booking.schema>,
   infrastructure: { regionId: "east", resources: [
     { resourceId: "resource-1", name: " Web ", machineSize: "small" },

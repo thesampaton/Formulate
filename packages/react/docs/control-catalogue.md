@@ -65,3 +65,5 @@ All UI source comes from shadcn's Base UI catalogue. Its [Command](https://ui.sh
 Radix and React Aria implementations are future work. A future local binding can keep the same editing types and control keys while translating its own change events, focus refs, disabled semantics, popup lifecycle and portal API. The compound hook exposes `canRestoreFocus()` as a plain policy; this Base UI adapter passes it to `finalFocus`. No UI event object is required by core. Base UI's array-shaped single ToggleGroup value is also translated locally to the field's scalar string.
 
 Configure the registry consumer with a `base-*` shadcn style for the current bindings. Changing `components.json` to a different backend does not automatically make its prop APIs compatible. There is no runtime backend selector or speculative shared widget interface.
+
+The [control gallery](../../../examples/react/src/compositions/control-gallery.tsx) demonstrates every key, loading sample data, reset and typed submission. Interaction/type tests cover validation focus, keyboard changes, grouped blur, disabled editors and retained popup state.
