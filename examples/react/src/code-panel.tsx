@@ -18,13 +18,15 @@ export default function CodePanel({ example }: { example: ExampleName }) {
   const id = useId();
   const [selected, setSelected] = useState("Composition");
   const snippets = exampleCode[example];
+  const singleSource = snippets.length === 1;
   const snippet = snippets.find(({ label }) => label === selected) ?? snippets[0];
   return <section className="code-panel" aria-labelledby={`${id}-heading`}>
     <div className="code-heading">
-      <h2 id={`${id}-heading`}><span aria-hidden="true">{"</>"}</span> Code</h2>
+      <h2 id={`${id}-heading`}><span aria-hidden="true">{"</>"}</span> {singleSource ? snippet.label : "Code"}</h2>
       <span className="code-language">{snippet.filename.endsWith(".json") ? "JSON" : "TSX"} · Read only</span>
     </div>
-    <p className="code-description">Explore this form and the building blocks it uses. Each category describes a responsibility; registry items describe how the code is installed.</p>
+    <p className="code-description">{singleSource ? snippet.description : "Explore this form and the building blocks it uses. Each category describes a responsibility; registry items describe how the code is installed."}</p>
+    {singleSource ? null : <>
     <div className="code-views" role="group" aria-label="Code categories">
       {(Object.keys(codeCategories) as CodeCategory[]).filter((category) => snippets.some((item) => item.category === category)).map((category) =>
         <Button variant="ghost" key={category} type="button" aria-pressed={snippet.category === category}
@@ -42,6 +44,7 @@ export default function CodePanel({ example }: { example: ExampleName }) {
       <p>{snippet.description}</p>
       <p>{snippet.provenance ?? (snippet.registryItem ? <>Source registry item: <code>{snippet.registryItem}</code></> : "Local source · no registry item yet")}</p>
     </div>
+    </>}
     <div className="code-file"><span>{snippet.filename}</span><span>{snippet.code.split("\n").length} lines</span></div>
     <pre key={`${example}-${snippet.label}`} id={`${id}-source`} className="code-source" role="region" tabIndex={0}
       aria-label={`${snippet.label} source code`}>

@@ -13,10 +13,12 @@ const InfrastructureExample = lazy(() => import("./infrastructure").then((module
 const StructuredEditingExample = lazy(() => import("./structured-editing").then((module) => ({ default: module.StructuredEditingExample })));
 const ControlGalleryExample = lazy(() => import("./control-gallery").then((module) => ({ default: module.ControlGalleryExample })));
 const ComposedValuesExample = lazy(() => import("./composed-values").then((module) => ({ default: module.ComposedValuesExample })));
+const SchemaCompositionExample = lazy(() => import("./schema-composition").then((module) => ({ default: module.SchemaCompositionExample })));
 const CodePanel = lazy(() => import("./code-panel"));
 
 function ExampleForm({ example }: { example: ExampleName }) {
   switch (example) {
+    case "schema": return <SchemaCompositionExample />;
     case "simple": return <><h2>Welcome back</h2><p className="card-description">Two fields and one submit action. Everything a simple form needs.</p><SimpleForm onSignIn={() => undefined} /></>;
     case "advanced": return <AdvancedOptions onSave={() => undefined} />;
     case "confirmation": return <EmailConfirmationExample />;
@@ -39,11 +41,11 @@ export default function ExamplePage({ example, title }: { example: ExampleName; 
       <div className="example-intro">
         <p className="eyebrow">LEARN BY EXAMPLE</p>
         <h1>{title}</h1>
-        <p>Edit the form, then explore the declaration, composition, and reusable pieces behind it.</p>
+        <p>{example === "schema" ? "Define the whole form in one schema, then render its fields with a single component. The complete source is shown alongside it." : "Edit the form, then explore the declaration, composition, and reusable pieces behind it."}</p>
       </div>
       <div className="example-content">
         <article className="example-card">
-          <div className="card-heading"><p className="eyebrow">{hasPages ? "FORM + FIELD + SECTION + PAGE" : example === "layout" ? "FORM + SECTION + LAYOUT" : "FORM + FIELD"}</p><span className="badge">Interactive example</span></div>
+          <div className="card-heading"><p className="eyebrow">{hasPages ? "FORM + FIELD + SECTION + PAGE" : example === "schema" ? "ONE SCHEMA · WHOLE FORM" : example === "layout" ? "FORM + SECTION + LAYOUT" : "FORM + FIELD"}</p><span className="badge">Interactive example</span></div>
           <Suspense fallback={<p role="status">Loading form…</p>}><ExampleForm example={example} /></Suspense>
         </article>
         <Suspense fallback={<section className="code-panel code-loading" aria-label="Code"><p>Loading code…</p></section>}>

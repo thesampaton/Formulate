@@ -2,10 +2,16 @@ import type { ExampleName } from "./example-code";
 
 type ExampleLink = { id: ExampleName; number: string; title: string };
 
+export const guidePages = [
+  { id: "overview", title: "Overview", href: "#/overview" },
+  { id: "schema-driven", title: "Schema-driven forms", href: "#/schema-driven" },
+] as const;
+
 export const exampleGroups: { label: string; examples: ExampleLink[] }[] = [
   {
     label: "Examples · Foundations",
     examples: [
+      { id: "schema", number: "00", title: "Schema composition" },
       { id: "simple", number: "01", title: "Simple form" },
       { id: "advanced", number: "02", title: "Advanced options" },
       { id: "confirmation", number: "03", title: "Email confirmation" },
@@ -32,9 +38,11 @@ export const exampleGroups: { label: string; examples: ExampleLink[] }[] = [
   },
 ];
 
-export type SitePage = { id: "overview" | ExampleName; title: string };
+export type SitePage = { id: (typeof guidePages)[number]["id"] | ExampleName; title: string };
 
 export function getPage(hash: string): SitePage {
+  const guide = guidePages.find((item) => hash === item.href);
+  if (guide) return guide;
   const example = exampleGroups.flatMap((group) => group.examples)
     .find((item) => hash === `#/examples/${item.id}`);
   return example ?? { id: "overview", title: "Overview" };

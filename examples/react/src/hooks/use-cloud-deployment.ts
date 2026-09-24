@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { useFormNavigation } from "@formulate/react";
-import { CloudDeployment } from "@/declarations/cloud-deployment";
+import { CloudDeployment, createCloudGraph } from "@/declarations/cloud-deployment";
 import type { CloudPayload, CloudValues } from "@/declarations/cloud-deployment";
 import type { ChoiceLoader } from "@formulate/react";
 
@@ -13,8 +13,11 @@ export type CloudFormProps = {
 };
 
 export function useCloudDeployment({ listRegions, defaultValues }: CloudFormProps) {
-  const form = CloudDeployment.useChoiceForm({ services: { listRegions }, defaultValues });
+  const portable = useMemo(() => createCloudGraph(listRegions), [listRegions]);
+  const services = useMemo(() => ({ listRegions }), [listRegions]);
+  const form = CloudDeployment.useForm({ services, defaultValues });
   const values = useWatch({ control: form.control });
+  const productionApplicable = form.inspection.nodes.production?.applicable ?? false;
   const [notice, setNotice] = useState("");
   const reviewHeadingRef = useRef<HTMLDivElement>(null);
   const targetsHeadingRef = useRef<HTMLDivElement>(null);
@@ -34,7 +37,7 @@ export function useCloudDeployment({ listRegions, defaultValues }: CloudFormProp
 
   function goToPage(requestedPage: CloudPage) {
     setNotice("");
-    const requiresProduction = form.getValues("environment") === "production";
+    const requiresProduction = form.graphRuntime.inspect().nodes.production?.applicable ?? false;
     const page = requestedPage === "production" && !requiresProduction ? "targets" : requestedPage;
     navigation.goToPage(page, () => {
       if (page === "review") {
@@ -47,21 +50,21 @@ export function useCloudDeployment({ listRegions, defaultValues }: CloudFormProp
     });
   }
   useEffect(() => {
-    if (navigation.page === "production" && values.environment !== "production") {
+    if (navigation.page === "production" && !productionApplicable) {
       setNotice("Production is no longer required. Your draft is retained; continue from Targets.");
       navigation.goToPage("targets", () => form.setFocus("environment"));
-    } else if (values.environment === "production") {
+    } else if (productionApplicable) {
       setNotice("");
     }
-  }, [navigation.page, values.environment]);
+  }, [navigation.page, productionApplicable]);
 
   const scopedAction = navigation.page === "review" ? undefined : {
     id: navigation.revision,
     ...(navigation.page === "targets" ? { scope: targetScope } : { errorPaths: ["production"] as const }),
     onValid: () => {
-      const requiresProduction = navigation.page === "targets" && form.getValues("environment") === "production";
+      const requiresProduction = navigation.page === "targets" && form.graphRuntime.inspect().nodes.production?.applicable;
       goToPage(requiresProduction ? "production" : "review");
     },
   };
-  return { form, values, navigation, goToPage, notice, reviewHeadingRef, targetsHeadingRef, primary, recovery, scopedAction };
+  return { form, graph: portable.graph, values, productionApplicable, navigation, goToPage, notice, reviewHeadingRef, targetsHeadingRef, primary, recovery, scopedAction };
 }

@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { defineForm, defineSection } from "@/lib/formulate-config";
-
-import { defineChoice } from "@formulate/react";
+import { defineChoice, defineField } from "@formulate/react";
 import type { Choice, ChoiceLoader } from "@formulate/react";
+import { defineForm, defineSection, field } from "@/lib/formulate-config";
 
 export const regionChoices = defineChoice({
+  dependencies: ["accountId"],
   getInput: (target: { accountId: string }) => target.accountId || null,
   getRequestKey: (input: string) => input,
   getLoader: (services: { listRegions: ChoiceLoader }) => services.listRegions,
@@ -23,26 +23,45 @@ export const DeploymentTarget = defineSection({
     defaultValue: "", label: "Account", component: "select", componentProps: { options: accounts },
   },
   regionId: {
-    schema: z.string(), choices: regionChoices, defaultValue: "", label: "Region", component: "select", componentProps: { options: [] },
+    schema: z.string().min(1, "Choose an available option."), choices: regionChoices,
+    defaultValue: "", label: "Region", component: "select", componentProps: { options: [] },
   },
-}, { title: "Deployment target" });
+}, { title: "Deployment target", definitionId: "cloud.deployment-target" });
+
+// Reusing this definition carries its value contract and composition with it.
+export const DeploymentName = defineField({
+  primitive: "text", definitionId: "cloud.deployment-name",
+  schema: z.string(), defaultValue: "", label: "Deployment name",
+  component: "input", componentProps: { readOnly: true },
+  composition: { segments: [{ binding: "environment" }, { literal: "-" }, { binding: "primary.accountId" }] },
+});
 
 export const CloudDeployment = defineForm({
-  environment: { schema: z.string().pipe(z.enum(["development", "production"])), defaultValue: "development", label: "Environment", component: "select",
-    componentProps: { options: [{ value: "development", label: "Development" }, { value: "production", label: "Production" }] } },
-  primary: DeploymentTarget,
-  recovery: DeploymentTarget,
+  environment: {
+    schema: z.string().pipe(z.enum(["development", "production"])),
+    defaultValue: "development", label: "Environment", component: "select",
+    componentProps: { options: [{ value: "development", label: "Development" }, { value: "production", label: "Production" }] },
+  },
+  primary: DeploymentTarget.use({ id: "primary", bind: "primary" }),
+  recovery: DeploymentTarget.use({ id: "recovery", bind: "recovery" }),
+  resourceName: field(DeploymentName, { id: "deployment-name", bind: "resourceName" }),
   production: {
-    schema: z.string(), defaultValue: "", label: "Production change reference", component: "input",
+    applicable: { binding: "environment", equals: "production" },
+    schema: z.string().trim().min(1, "Enter a production change reference."),
+    defaultValue: "", label: "Production change reference", component: "input",
   },
 }, {
-  schema: (schema) => schema.superRefine((values, context) => {
-    if (values.environment === "production" && !values.production.trim()) context.addIssue({
-      code: "custom", path: ["production"], message: "Enter a production change reference.",
-    });
-  }).transform(({ production, ...values }) => ({
-    ...values, ...(values.environment === "production" ? { production: production.trim() } : {}),
-  })),
+  id: "deployment", definitionId: "cloud.deployment",
+  children: [
+    "environment",
+    { id: "targets", role: "page", label: "Targets", children: ["primary", "recovery", "resourceName"] },
+    { id: "production-page", role: "page", label: "Production configuration", children: ["production"] },
+  ],
 });
 export type CloudValues = z.input<typeof CloudDeployment.schema>;
-export type CloudPayload = z.output<typeof CloudDeployment.schema>;
+export type CloudPayload = Omit<z.output<typeof CloudDeployment.schema>, "production"> & { production?: string };
+
+/** Export is a projection of the authored definition; no graph edits are needed. */
+export function createCloudGraph(listRegions: ChoiceLoader) {
+  return CloudDeployment.toPortable({ services: { listRegions } });
+}

@@ -32,7 +32,7 @@ export const exampleData = {
     { resourceId: "resource-1", name: " Web ", machineSize: "small" },
     { resourceId: "resource-2", name: "Worker", machineSize: "large" },
   ] } satisfies InfrastructureValues,
-  cloud: { environment: "production", primary: { accountId: "A", regionId: "A1" }, recovery: { accountId: "B", regionId: "B1" }, production: "CHANGE-123" } satisfies CloudValues,
+  cloud: { environment: "production", primary: { accountId: "A", regionId: "A1" }, recovery: { accountId: "B", regionId: "B1" }, production: "CHANGE-123", resourceName: "production-A" } satisfies CloudValues,
   simple: { email: "person@example.com", password: "demo-password" } satisfies z.input<typeof SignIn.schema>,
   advanced: { showAdvanced: false, retries: 3, timeoutSeconds: 30, endpoint: "https://api.example.com" } satisfies z.input<typeof RequestSettings.schema>,
   confirmation: { email: "person@example.com", confirmEmail: "person@example.com" } satisfies z.input<typeof EmailConfirmation.schema>,

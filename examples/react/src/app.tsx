@@ -1,4 +1,4 @@
-import { BookOpen, ChevronRight, Layers2, X } from "lucide-react";
+import { BookOpen, ChevronRight, FileCode2, Layers2, X } from "lucide-react";
 import { lazy, Suspense, useEffect, useRef, useSyncExternalStore, type CSSProperties } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -8,10 +8,11 @@ import {
   SidebarMenuItem, SidebarProvider, SidebarTrigger, useSidebar,
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { exampleGroups, getPage, type SitePage } from "./example-navigation";
+import { exampleGroups, guidePages, getPage, type SitePage } from "./example-navigation";
 import { Overview } from "./overview";
 
 const ExamplePage = lazy(() => import("./example-page"));
+const SchemaDrivenGuide = lazy(() => import("./schema-driven-guide"));
 
 function subscribeToLocation(onChange: () => void) {
   window.addEventListener("hashchange", onChange);
@@ -44,11 +45,13 @@ function AppSidebar({ page }: { page: SitePage }) {
             <SidebarGroupLabel>Start here</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton render={<a href="#/overview" />} isActive={page.id === "overview"} aria-current={page.id === "overview" ? "page" : undefined} className="site-nav-link" onClick={closeMobile}>
-                    <BookOpen /><span>Overview</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                {guidePages.map((guide) => (
+                  <SidebarMenuItem key={guide.id}>
+                    <SidebarMenuButton render={<a href={guide.href} />} isActive={page.id === guide.id} aria-current={page.id === guide.id ? "page" : undefined} className="site-nav-link" onClick={closeMobile}>
+                      {guide.id === "overview" ? <BookOpen /> : <FileCode2 />}<span>{guide.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -106,7 +109,7 @@ export function App() {
               <Separator orientation="vertical" className="h-4" />
               <nav aria-label="Breadcrumb" className="min-w-0">
                 <ol className="flex items-center gap-2 text-sm">
-                  <li className="hidden text-muted-foreground sm:block">{page.id === "overview" ? "Guide" : "Examples"}</li>
+                  <li className="hidden text-muted-foreground sm:block">{guidePages.some((guide) => guide.id === page.id) ? "Guide" : "Examples"}</li>
                   <li aria-hidden="true" className="hidden sm:block"><ChevronRight className="size-3 text-muted-foreground" /></li>
                   <li aria-current="page" className="truncate font-medium">{page.title}</li>
                 </ol>
@@ -115,7 +118,11 @@ export function App() {
             <span className="badge shrink-0">Prototype 01</span>
           </header>
           <div className="site-content">
-            {page.id === "overview" ? <Overview /> : (
+            {page.id === "overview" ? <Overview /> : page.id === "schema-driven" ? (
+              <Suspense fallback={<p className="py-12 text-sm text-muted-foreground" role="status">Loading guide…</p>}>
+                <SchemaDrivenGuide />
+              </Suspense>
+            ) : (
               <Suspense fallback={<p className="py-12 text-sm text-muted-foreground" role="status">Loading example…</p>}>
                 <ExamplePage key={page.id} example={page.id} title={page.title} />
               </Suspense>

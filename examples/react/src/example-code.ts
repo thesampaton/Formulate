@@ -14,6 +14,7 @@ import pickerControls from "./components/formulate/picker-controls.tsx?raw";
 import compoundBinding from "../../../packages/react/src/fields/compound-field.tsx?raw";
 import globals from "./globals.css?raw";
 import simple from "./compositions/sign-in.tsx?raw";
+import workshopRegistration from "./compositions/workshop-registration.tsx?raw";
 import advanced from "./compositions/request-settings.tsx?raw";
 import confirmation from "./compositions/email-confirmation.tsx?raw";
 import customer from "./compositions/customer.tsx?raw";
@@ -26,6 +27,10 @@ import employment from "./declarations/employment.ts?raw";
 import employmentSetup from "./components/formulate/employment-setup.tsx?raw";
 import cloud from "./compositions/cloud-deployment.tsx?raw";
 import cloudDeclaration from "./declarations/cloud-deployment.ts?raw";
+import { CloudDeployment } from "./declarations/cloud-deployment";
+import portableModel from "../../../packages/react/src/graph/model.ts?raw";
+import portableRuntime from "../../../packages/react/src/graph/runtime.ts?raw";
+import portableReact from "../../../packages/react/src/graph/react.tsx?raw";
 import cloudBehaviour from "./hooks/use-cloud-deployment.ts?raw";
 import cloudDemo from "./cloud-deployment.tsx?raw";
 import choiceDefinition from "../../../packages/react/src/choices/definition.ts?raw";
@@ -66,7 +71,7 @@ import localInput from "./components/ui/input.tsx?raw";
 import controlMap from "./lib/formulate-config.ts?raw";
 import { exampleData } from "./data/example-data";
 
-export type ExampleName = keyof typeof exampleData;
+export type ExampleName = keyof typeof exampleData | "schema";
 
 export const codeCategories = {
   form: { label: "This form", description: "The composition, declaration and data for this particular form." },
@@ -93,7 +98,7 @@ export type CodeExcerpt = {
 function source(category: CodeCategory, label: string, filename: string, code: string, description: string, registryItem?: string): CodeExcerpt {
   return { category, label, filename, code: code.trim(), description, registryItem };
 }
-const sample = (example: ExampleName) => source("form", "Sample data", `data/example-data.ts → ${example}`, JSON.stringify(exampleData[example], null, 2), "Shared example values consumed by the demo, source panel and tests.");
+const sample = (example: keyof typeof exampleData) => source("form", "Sample data", `data/example-data.ts → ${example}`, JSON.stringify(exampleData[example], null, 2), "Shared example values consumed by the demo, source panel and tests.");
 const declaration = (filename: string, code: string) => source("form", "Declaration", filename, code, "Declares this form's members, validation and editing defaults.");
 const composition = (filename: string, code: string) => source("form", "Composition", filename, code, "Places declared fields, sections and pages into this form's rendered experience.");
 const emailField = source("fields", "Common fields", "declarations/common-fields.ts", commonFields, "Semantic field definitions nominate control names; each use supplies its own binding and overrides.", "@formulate/common-fields");
@@ -133,6 +138,9 @@ const dependentChoices = [
 ];
 
 export const exampleCode = {
+  schema: [
+    source("form", "Whole form", "compositions/workshop-registration.tsx", workshopRegistration, "The complete form in one module: nested schema, rules, defaults and React rendering. Fields renders the schema's members automatically."),
+  ],
   composed: [
     composition("compositions/composed-values.tsx", composedValues), declaration("declarations/composed-values.ts", composedValuesDeclaration), sample("composed"),
     source("controls", "Composed input", "components/formulate/composed-input-control.tsx", composedInput, "InputGroup prefixes and suffixes, interleaved editors and one canonical named input.", "@formulate/shadcn-bindings"),
@@ -161,8 +169,13 @@ export const exampleCode = {
     bodyLayouts, buttons, ...integration,
   ],
   cloud: [
-    composition("compositions/cloud-deployment.tsx", cloud), declaration("declarations/cloud-deployment.ts", cloudDeclaration), sample("cloud"),
+    source("form", "Schema composition", "declarations/cloud-deployment.ts", cloudDeclaration, "Composes reusable field and section schemas with scoped bindings, validation, dependencies and derived values."),
+    source("form", "Generated graph", "CloudDeployment.toPortable().graph", JSON.stringify(CloudDeployment.toPortable().graph, null, 2), "The normalized view of the composed interaction schema above, preserving the same rules and bindings."),
+    composition("compositions/cloud-deployment.tsx", cloud), sample("cloud"),
     source("behaviour", "Deployment coordination", "hooks/use-cloud-deployment.ts", cloudBehaviour, "Application-supplied requests, shared membership requirements, branch fallback and current action checks."),
+    source("behaviour", "Interaction graph model", "packages/react/src/graph/model.ts", portableModel, "The schema model for node identity, bindings, conditions, contracts, choices and composition."),
+    source("behaviour", "Shared graph runtime", "packages/react/src/graph/runtime.ts", portableRuntime, "The same evaluator derives completion and payloads for React and headless updates."),
+    source("behaviour", "React graph projection", "packages/react/src/graph/react.tsx", portableReact, "Connects graph evaluation and containment to existing form controls."),
     ...dependentChoices,
     source("behaviour", "Demo region service", "cloud-deployment.tsx", cloudDemo, "The application supplies delayed region choices and controllable failures; services remain outside the coordinator."),
     bodyLayouts, buttons, ...integration,

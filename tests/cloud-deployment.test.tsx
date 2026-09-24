@@ -14,7 +14,7 @@ function controlledChoices() {
 }
 const options = (value: string) => [{ value, label: value }];
 const defaults = (): CloudValues => ({
-  environment: "production", primary: { accountId: "A", regionId: "A1" }, recovery: { accountId: "B", regionId: "B1" }, production: "CHANGE-123",
+  environment: "production", primary: { accountId: "A", regionId: "A1" }, recovery: { accountId: "B", regionId: "B1" }, production: "CHANGE-123", resourceName: "production-A",
 });
 async function choose(user: ReturnType<typeof userEvent.setup>, label: string, option: string) {
   await user.click(screen.getByRole("combobox", { name: label }));
@@ -45,10 +45,10 @@ it("combines out-of-order Regions, removal of the current page, retained drafts,
   expect(screen.getByLabelText("Production change reference")).toHaveValue("CHANGE-123");
   await choose(user, "Environment", "Development");
   await waitFor(() => expect(screen.getByRole("combobox", { name: "Environment" })).toHaveFocus());
-  expect(screen.getByLabelText("Production change reference")).not.toBeVisible();
+  expect(screen.queryByLabelText("Production change reference")).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Production" })).toBeDisabled();
   await user.click(screen.getByRole("button", { name: "Production" }));
-  expect(screen.getByLabelText("Production change reference")).not.toBeVisible();
+  expect(screen.queryByLabelText("Production change reference")).not.toBeInTheDocument();
   await choose(user, "Primary account", "Account A");
   await choose(user, "Environment", "Production");
   expect(screen.queryByText(/Production is no longer required/)).toBeNull();
@@ -71,7 +71,7 @@ it("combines out-of-order Regions, removal of the current page, retained drafts,
   await user.click(screen.getByRole("button", { name: "Deploy" }));
   await waitFor(() => expect(onDeploy).toHaveBeenCalledTimes(2));
   const { production: _draft, ...expected } = defaults();
-  expect(onDeploy.mock.calls[1]![0]).toEqual({ ...expected, environment: "development", primary: { accountId: "A", regionId: "A2" } });
+  expect(onDeploy.mock.calls[1]![0]).toEqual({ ...expected, environment: "development", resourceName: "development-A", primary: { accountId: "A", regionId: "A2" } });
 });
 
 it("rejects old success/failure for A → B → A and disposed uses even if abort is ignored", async () => {
