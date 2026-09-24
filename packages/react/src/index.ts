@@ -37,3 +37,11 @@ export type { ChoiceController } from "./choices/context.js";
 export { useCompoundFieldBinding, FormulatePortalProvider, useFormulatePortalContainer } from "./fields/compound-field.js";
 
 export type { HeadingLevel, HeadingProps } from "./presentation/heading.js";
+
+export { normalizeGraph } from "./graph/normalize.js";
+export type { AuthorNode, NodeDefinition, DefinitionLibrary, NormalizedGraph, PortableNode, NodeRole, GraphRelation, Condition, JsonValue, CapabilityRef, ValueContract, PortableChoices, PortableAction, PortableStringComposition, PortableValueSegment } from "./graph/model.js";
+export { createGraphRuntime, flattenGraphValues, expandGraphValues } from "./graph/runtime.js";
+export type { GraphCapabilities, GraphRuntime, GraphRuntimeOptions, GraphStatus, GraphValidationIssue, GraphActionInspection, GraphNodeInspection, InteractionState, GraphSnapshot } from "./graph/runtime.js";
+export type { DefinitionSemantics, DefinitionLayout, PortableExport, PortableExportOptions } from "./graph/definition.js";
+export { useGraphForm, GraphRenderer } from "./graph/react.js";
+export type { GraphFormOptions, GraphFormRuntime, GraphRendererProps } from "./graph/react.js";

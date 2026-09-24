@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useContext, useMemo } from "react";
+import { useContext, useMemo, useRef } from "react";
 import type { ComponentProps, ComponentType, ReactElement, ReactNode } from "react";
 import { get, useWatch } from "react-hook-form";
 import type { Control, DefaultValues, FieldPath, FieldPathValue, FieldValues, UseFormReturn } from "react-hook-form";
@@ -9,6 +9,8 @@ import type { ConfiguredFieldProps, ControlSelection, FieldComponentMap } from "
 import type { FieldPresentation, PrimitiveFieldType } from "./define-field.js";
 import type { FieldRootProps } from "../fields/field.js";
 import type { SectionProps } from "../presentation/section.js";
+import { Page as PageShell } from "../presentation/page.js";
+import { conditionMatches } from "../graph/conditions.js";
 import { Section as SectionShell } from "../presentation/section.js";
 import { Form as FormShell } from "../form/form.js";
 import type { FormProps, FormScope } from "../form/form.js";
@@ -16,11 +18,14 @@ import { LayoutBody } from "../presentation/layout.js";
 import type { LayoutProps } from "../presentation/layout.js";
 import { DefinitionScopeContext, useDefinitionScope } from "./definition-scope.js";
 import type { DefinitionScope, SectionPathMap } from "./definition-scope.js";
+import { exportPortableDefinition, portableDefinition, validateDefinitionLayout } from "../graph/definition.js";
+import type { PortableDefinitionSource, PortableExport, PortableExportOptions, DefinitionSemantics, DefinitionLayout } from "../graph/definition.js";
+import { createDefinitionSchema } from "./schema.js";
+import { useGraphForm } from "../graph/react.js";
+import type { GraphFormRuntime } from "../graph/react.js";
 import { useFormulate } from "../form/use-formulate.js";
 import type { FormulateOptions } from "../form/use-formulate.js";
 
-import { useChoiceForm as useChoiceFormRuntime } from "../choices/use-choice-form.js";
-import type { ChoiceFormRuntime } from "../choices/use-choice-form.js";
 import { ChoiceRuntimeContext } from "../choices/context.js";
 import type { BoundChoice, ChoiceRule, ChoiceView } from "../choices/definition.js";
 import { bindStringCompositions } from "../fields/string-composition.js";
@@ -39,9 +44,11 @@ const sectionRuntime = Symbol("section-definition");
 export type SectionPresentationProps = SectionProps;
 type SectionUsePresentation = Omit<SectionProps, "title"> & { title?: ReactNode };
 type SectionDefinitionToken = {
+  [portableDefinition]: PortableDefinitionSource;
   schema: z.ZodType<FieldValues, FieldValues>;
   defaultValues: FieldValues;
   fieldPaths: readonly string[];
+  hasChoices: boolean;
   bindChoices: (options: any) => BoundChoice[];
   compositions: readonly BoundStringComposition[];
   [sectionRuntime]: {
@@ -50,7 +57,7 @@ type SectionDefinitionToken = {
     renderSection: (props: { scope: DefinitionScope } & SectionUsePresentation) => ReactElement;
   };
 };
-type FieldSchemaDeclaration = { schema: z.ZodType; choices?: ChoiceRule<any, any, any, any>; composition?: StringComposition };
+type FieldSchemaDeclaration = DefinitionSemantics & { id?: string; bind?: string; portable?: never; schema: z.ZodType; choices?: ChoiceRule<any, any, any, any>; composition?: StringComposition };
 type UnionToIntersection<Union> = (Union extends unknown ? (value: Union) => void : never) extends (value: infer Result) => void ? Result : never;
 type MemberServices<Member> = Member extends { choices: ChoiceRule<any, any, infer Services, any> }
   ? Services
@@ -60,16 +67,22 @@ type MemberServices<Member> = Member extends { choices: ChoiceRule<any, any, inf
       : {}
     : {};
 type RequiredServices<Members> = UnionToIntersection<{ [Key in keyof Members]: MemberServices<Members[Key]> }[keyof Members]>;
+type HasChoices<Members> = true extends { [Key in keyof Members]: Members[Key] extends { choices: ChoiceRule<any, any, any, any> } ? true : Members[Key] extends { hasChoices: infer Has } ? Has : false }[keyof Members] ? true : false;
 
 type Declarations = Record<string, FieldSchemaDeclaration | SectionDefinitionToken>;
-type Shape<Members extends Declarations> = { [Key in keyof Members]: Members[Key]["schema"] };
+type MemberBinding<Member, Key extends string> = Member extends { valueBinding: infer Binding extends string } ? Binding : Member extends { bind: infer Binding extends string } ? Binding : Key;
+type BoundShape<Path extends string, Schema extends z.ZodType> = Path extends `${infer Head}.${infer Rest}`
+  ? { [Key in Head]: z.ZodObject<BoundShape<Rest, Schema>> } : { [Key in Path]: Schema };
+type MemberSchema<Member extends { schema: z.ZodType }> = Member extends { applicable: unknown }
+  ? z.ZodType<z.output<Member["schema"]> | undefined, z.input<Member["schema"]>> : Member["schema"];
+type Shape<Members extends Declarations> = UnionToIntersection<{ [Key in keyof Members & string]: BoundShape<MemberBinding<Members[Key], Key>, MemberSchema<Members[Key]>> }[keyof Members & string]> extends infer Result extends z.ZodRawShape ? Result : never;
 type FormSchema<Members extends Declarations> = z.ZodObject<Shape<Members>>;
 type Inputs<Members extends Declarations> = z.input<FormSchema<Members>>;
 type SectionInputs<Members extends Declarations, Name extends SectionKeys<Members>> =
   Members[Name] extends SectionDefinitionToken
     ? z.input<Members[Name]["schema"]> extends FieldValues ? z.input<Members[Name]["schema"]> : never
     : never;
-type Defaults<Members extends Declarations> = { [Key in keyof Members]: z.input<Members[Key]["schema"]> };
+type Defaults<Members extends Declarations> = z.input<FormSchema<Members>>;
 type FieldKeys<Members extends Declarations> = { [Key in keyof Members]: Members[Key] extends SectionDefinitionToken ? never : Key }[keyof Members] & string;
 type SectionKeys<Members extends Declarations> = { [Key in keyof Members]: Members[Key] extends SectionDefinitionToken ? Key : never }[keyof Members] & string;
 type ChoiceKeys<Members extends Declarations> = { [Key in keyof Members]: Members[Key] extends { choices: ChoiceRule<any, any, any, any> } ? Key : never }[keyof Members] & string;
@@ -79,6 +92,13 @@ type FieldDeclaration<Schema extends z.ZodType, Components extends FieldComponen
   primitive?: PrimitiveFieldType;
   schema: Schema;
   defaultValue: NoInfer<z.input<Schema>>;
+  portable?: never;
+  id?: string;
+  bind?: string;
+  definitionId?: string;
+  applicable?: DefinitionSemantics["applicable"];
+  dependsOn?: DefinitionSemantics["dependsOn"];
+  actions?: DefinitionSemantics["actions"];
 } & ControlSelection<NoInfer<z.input<Schema>>, Components>;
 type CheckedMembers<Members extends Declarations, Components extends FieldComponentMap> = {
   [Key in keyof Members]: Members[Key] extends SectionDefinitionToken
@@ -101,7 +121,10 @@ type BoundSectionProps = Omit<SectionUseProps<string>, "name">;
 type FieldRenderer<Components extends FieldComponentMap> =
   <Values extends FieldValues, Name extends FieldPath<Values>, Output = Values>(props: ConfiguredFieldProps<Values, Name, Output, Components>) => ReactNode;
 
-type DefinitionOptions<Members extends Declarations, Schema extends z.ZodType<FieldValues, FieldValues>> = LayoutProps & {
+type DefinitionOptions<Members extends Declarations, Schema extends z.ZodType<FieldValues, FieldValues>> = LayoutProps & DefinitionSemantics & {
+  id?: string;
+  /** Nested containment references existing members; it never changes their bindings. */
+  children?: readonly DefinitionLayout[];
   /** Customize validation/output while preserving the complete declared editing shape. */
   schema?: (schema: FormSchema<Members>) => Schema & (
     [z.input<Schema>] extends [Inputs<Members>] ? [Inputs<Members>] extends [z.input<Schema>] ? unknown : never : never
@@ -110,7 +133,11 @@ type DefinitionOptions<Members extends Declarations, Schema extends z.ZodType<Fi
 
 export type DefinedForm<Members extends Declarations, Components extends FieldComponentMap, Schema extends z.ZodType<FieldValues, FieldValues> = FormSchema<Members>> = {
   schema: Schema;
+  /** Compile through hierarchical authoring into a JSON graph and separate host capabilities. */
+  toPortable: (options?: PortableExportOptions) => PortableExport;
+  [portableDefinition]: PortableDefinitionSource;
   defaultValues: Defaults<Members>;
+  readonly hasChoices: HasChoices<Members>;
   compositions: readonly BoundStringComposition[];
   /** Bind dependency rules without mounting editors. IDs identify uses; bindings locate editing values. */
   bindChoices: <Values extends FieldValues = Inputs<Members>>(options: {
@@ -120,9 +147,9 @@ export type DefinedForm<Members extends Declarations, Components extends FieldCo
   } & (Values extends Inputs<Members> ? { bindings?: SectionPathMap<Inputs<Members>, Values> } : { bindings: SectionPathMap<Inputs<Members>, Values> })) => BoundChoice[];
   /** All declared leaf field paths, including section descendants, in declaration order. */
   fieldPaths: readonly FieldPath<Inputs<Members>>[];
-  useForm: (options?: FormulateOptions<Inputs<Members>, z.output<Schema>>) => UseFormReturn<Inputs<Members>, unknown, z.output<Schema>>;
+  useForm: (options?: FormulateOptions<Inputs<Members>, z.output<Schema>> & { services?: RequiredServices<Members> }) => HasChoices<Members> extends true ? GraphFormRuntime<Inputs<Members>, z.output<Schema>> : UseFormReturn<Inputs<Members>, unknown, z.output<Schema>>;
   /** Installs this definition's dependent choices without a separate binder callback. */
-  useChoiceForm: (options: { services: RequiredServices<Members> } & FormulateOptions<Inputs<Members>, z.output<Schema>>) => ChoiceFormRuntime<Inputs<Members>, z.output<Schema>>;
+  useChoiceForm: (options: { services: RequiredServices<Members> } & FormulateOptions<Inputs<Members>, z.output<Schema>>) => GraphFormRuntime<Inputs<Members>, z.output<Schema>>;
   /** Form shell with this definition's default layout. An explicit layout replaces it. */
   Form: (props: FormProps<Inputs<Members>, z.output<Schema>>) => ReactElement;
   /** Renders a local field, inheriting the form runtime and any section binding. */
@@ -143,6 +170,8 @@ export type DefinedForm<Members extends Declarations, Components extends FieldCo
 
 export type DefinedSection<Members extends Declarations, Components extends FieldComponentMap, Schema extends z.ZodType<FieldValues, FieldValues> = FormSchema<Members>> =
   Omit<DefinedForm<Members, Components, Schema>, "useForm" | "useChoiceForm" | "Form" | "Field" | "Fields" | "bindSection"> & Pick<SectionDefinitionToken, typeof sectionRuntime> & {
+    /** Declare an independently identified and bound use before rendering or export. */
+    use: <const Instance extends { id?: string; bind?: string; applicable?: DefinitionSemantics["applicable"] }>(instance: Instance) => DefinedSection<Members, Components, Schema> & (Instance extends { bind: infer Binding extends string } ? { valueBinding: Binding } : {}) & Pick<Instance, Extract<keyof Instance, "applicable">>;
     /** Renders a local field using the runtime and binding supplied by this section use. */
     Field: <Name extends FieldKeys<Members>>(props: WithoutControl<DefinedFieldProps<Members, Name, z.output<Schema>, Components>>) => ReactElement;
     /** Renders local members in order, using the current section binding. */
@@ -200,6 +229,10 @@ export type BoundSectionBinding<LocalValues extends FieldValues, Values extends 
 export interface DefineForm<Components extends FieldComponentMap> {
   <const Members extends Declarations, Schema extends z.ZodType<FieldValues, FieldValues> = FormSchema<Members>>(
     members: Members & CheckedMembers<Members, Components>,
+    options: DefinitionOptions<Members, Schema> & { applicable: NonNullable<DefinitionSemantics["applicable"]> },
+  ): DefinedForm<Members, Components, z.ZodType<Partial<z.output<Schema>>, z.input<Schema>>>;
+  <const Members extends Declarations, Schema extends z.ZodType<FieldValues, FieldValues> = FormSchema<Members>>(
+    members: Members & CheckedMembers<Members, Components>,
     options?: DefinitionOptions<Members, Schema>,
   ): DefinedForm<Members, Components, Schema>;
 }
@@ -215,13 +248,13 @@ export interface DefineSection<Components extends FieldComponentMap> {
 }
 
 function useShallowStable<Value>(value: Value): Value {
-  const isStructured = value !== null && typeof value === "object";
-  const entries = isStructured ? Object.entries(value) : [];
-  const keys = entries.map(([key]) => key).join("\0");
-  const dependencies = isStructured
-    ? [keys, ...entries.map(([, item]) => item)]
-    : [value];
-  return useMemo(() => value, dependencies);
+  const previous = useRef(value);
+  const isRecord = (candidate: unknown): candidate is Record<string, unknown> => candidate !== null && typeof candidate === "object" && Object.getPrototypeOf(candidate) === Object.prototype;
+  const before = previous.current;
+  if (!isRecord(before) || !isRecord(value) || Object.keys(before).length !== Object.keys(value).length || Object.entries(value).some(([key, item]) => !Object.hasOwn(before, key) || !Object.is(before[key], item))) {
+    previous.current = value;
+  }
+  return previous.current;
 }
 
 /** Replace the mapped local member while retaining any descendant path. */
@@ -234,48 +267,47 @@ function createFieldPathResolver(bindings: Record<string, string>) {
 
 /** Both factories use the same recursive member model and connected control catalogue. */
 export function createDefinitionFactories<Components extends FieldComponentMap>(RenderField: FieldRenderer<Components>) {
-  function buildDefinition(members: Declarations, kind: "form" | "section", options: {
+  function buildDefinition(members: Declarations, kind: "form" | "section", options: DefinitionSemantics & {
     schema?: (schema: z.ZodObject<any>) => z.ZodType<FieldValues, FieldValues>;
     title?: ReactNode;
+    children?: readonly DefinitionLayout[];
     presentation?: ComponentType<SectionPresentationProps>;
   } & LayoutProps = {}) {
     const identity = Symbol(kind);
     const entries = Object.entries(members);
+    if ("portable" in options || entries.some(([, member]) => "portable" in member)) throw new Error("Declare semantics directly on the definition; portable annotations are no longer supported.");
     for (const [name] of entries) {
       if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name) || ["__proto__", "constructor", "prototype"].includes(name)) {
         throw new Error(`Unsupported field key "${name}". Definitions accept flat identifier keys; declare a section for nested bindings.`);
       }
     }
     const isSection = (member: FieldSchemaDeclaration | SectionDefinitionToken): member is SectionDefinitionToken => sectionRuntime in member;
-    const objectSchema = z.object(Object.fromEntries(entries.map(([name, member]) => [name, member.schema])));
-    const schema = options.schema?.(objectSchema) ?? objectSchema;
-    const defaultValues = Object.fromEntries(entries.map(([name, member]) => {
-      const defaultValue = isSection(member)
-        ? member.defaultValues
-        : (member as FieldSchemaDeclaration & { defaultValue: unknown }).defaultValue;
-      return [name, defaultValue];
-    }));
-    const fieldPaths = entries.flatMap(([name, member]) => {
-      if (isSection(member)) {
-        return member.fieldPaths.map((childPath) => `${name}.${childPath}`);
-      }
-      return [name];
-    });
+    const rootApplicability = kind === "form" ? options.applicable : undefined;
+    const compiled = createDefinitionSchema(members, options.schema, options.children, rootApplicability);
+    const schema = compiled.schema as z.ZodType<FieldValues, FieldValues>;
+    const { defaultValues, fieldPaths, resolvePath } = compiled;
+    const instanceId = (name: string) => {
+      const member = members[name]!;
+      return isSection(member) ? member[portableDefinition].instanceId ?? name : member.id ?? name;
+    };
+    const hasChoices = entries.some(([, member]) => isSection(member) ? member.hasChoices : Boolean(member.choices));
     const boundSections = new Map<string, BoundSectionUse<any, string>>();
     const compositions = entries.flatMap(([name, member]) => isSection(member)
-      ? bindStringCompositions(member.compositions, (path) => `${name}.${path}`)
-      : member.composition ? [{ name, composition: member.composition }] : []);
+      ? bindStringCompositions(member.compositions, (path) => `${resolvePath(name)}.${path}`)
+      : member.composition ? [{ name: resolvePath(name), composition: member.composition }] : []);
 
     function bindChoices({ values, services, id = "", bindings }: { values: FieldValues; services: unknown; id?: string; bindings?: Record<string, string> }): BoundChoice[] {
       const localValues = bindings
-        ? Object.fromEntries(entries.map(([name]) => [name, get(values, bindings[name]!)]))
+        ? Object.fromEntries(Object.entries(bindings).map(([name, hostPath]) => [name, get(values, hostPath)]))
         : values;
       return entries.flatMap(([name, member]) => {
-        const fieldPath = bindings?.[name] ?? name;
-        const choiceId = id ? `${id}.${name}` : name;
+        const metadata = isSection(member) ? member[portableDefinition] : member;
+        if (metadata.applicable && !conditionMatches(metadata.applicable, localValues)) return [];
+        const fieldPath = bindings?.[resolvePath(name)] ?? resolvePath(name);
+        const choiceId = id ? `${id}.${instanceId(name)}` : instanceId(name);
         if (isSection(member)) {
           const childBindings = member.bindChoices({
-            values: localValues[name],
+            values: get(localValues, resolvePath(name)),
             services,
             id: choiceId,
           });
@@ -286,7 +318,7 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
         }
         if (!member.choices) return [];
         return [{
-          ...member.choices.resolve(localValues, localValues[name], services),
+          ...member.choices.resolve(localValues, get(localValues, resolvePath(name)), services),
           choiceId,
           fieldPath,
         }];
@@ -298,7 +330,12 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
       if (!Object.hasOwn(members, name) || isSection(members[name]!)) {
         throw new Error(`Unknown defined field: "${name}".`);
       }
-      const { schema: _schema, defaultValue: _defaultValue, choices: _choices, primitive: _primitive, composition: _composition, ...presentation } = members[name] as any;
+      const member = members[name] as FieldSchemaDeclaration;
+      const observed = useWatch({ control: scope.control, disabled: !member.applicable && !rootApplicability });
+      const localValues = Object.fromEntries(Object.keys(defaultValues).map((key) => [key, get(observed, scope.resolveFieldPath(key))]));
+      if (rootApplicability && !conditionMatches(rootApplicability, observed)) return null;
+      if (member.applicable && !conditionMatches(member.applicable, localValues)) return null;
+      const { schema: _schema, defaultValue: _defaultValue, choices: _choices, primitive: _primitive, composition: _composition, id: _id, bind: _bind, definitionId: _definitionId, applicable: _applicable, dependsOn: _dependsOn, actions: _actions, ...presentation } = members[name] as any;
       const selection = children !== undefined
         ? { component: undefined, componentProps: undefined, children }
         : { componentProps: { ...(presentation.componentProps ?? {}), ...componentProps } };
@@ -306,7 +343,7 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
         <RenderField
           {...presentation}
           {...overrides}
-          name={scope.resolveFieldPath(name)}
+          name={scope.resolveFieldPath(resolvePath(name))}
           control={scope.control}
           {...selection}
         />
@@ -318,13 +355,18 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
       if (!member || !isSection(member)) {
         throw new Error(`Unknown defined section: "${name}".`);
       }
+      const applicability = member[portableDefinition].applicable;
+      const observed = useWatch({ control: parent.control, disabled: !applicability && !rootApplicability });
+      const localValues = Object.fromEntries(Object.keys(defaultValues).map((key) => [key, get(observed, parent.resolveFieldPath(key))]));
+      if (rootApplicability && !conditionMatches(rootApplicability, observed)) return null;
+      if (applicability && !conditionMatches(applicability, localValues)) return null;
       return member[sectionRuntime].renderSection({
         scope: {
           identity: member[sectionRuntime].identity,
           control: parent.control,
           parent: parent.parent,
-          resolveFieldPath: (localPath) => parent.resolveFieldPath(`${name}.${localPath}`),
-          resolveChoiceId: (localPath) => parent.resolveChoiceId(`${name}.${localPath}`),
+          resolveFieldPath: (localPath) => parent.resolveFieldPath(`${resolvePath(name)}.${localPath}`),
+          resolveChoiceId: (localPath) => parent.resolveChoiceId(`${instanceId(name)}.${localPath}`),
         },
         title: title ?? member[sectionRuntime].title ?? name,
         children,
@@ -339,18 +381,18 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
       if (!member || !isSection(member)) {
         throw new Error(`Unknown defined section: "${name}".`);
       }
-      const focusPaths = member.fieldPaths.map((childPath) => `${name}.${childPath}`);
+      const focusPaths = member.fieldPaths.map((childPath) => `${resolvePath(name)}.${childPath}`);
       function BoundSection(props: BoundSectionProps) {
         return <SectionView {...props} name={name} />;
       }
       const bound: BoundSectionUse<any, string> = {
         name,
-        errorPaths: [name],
+        errorPaths: [resolvePath(name)],
         focusPaths,
-        compositions: bindStringCompositions(member.compositions, (path) => `${name}.${path}`),
+        compositions: bindStringCompositions(member.compositions, (path) => `${resolvePath(name)}.${path}`),
         Section: BoundSection,
-        resolveFieldPath: (localPath) => `${name}.${localPath}`,
-        resolveChoiceId: (localPath) => `${name}.${localPath}`,
+        resolveFieldPath: (localPath) => `${resolvePath(name)}.${localPath}`,
+        resolveChoiceId: (localPath) => `${instanceId(name)}.${localPath}`,
         focusFirstField: (form) => {
           const firstFieldPath = focusPaths[0];
           if (firstFieldPath) form.setFocus(firstFieldPath);
@@ -359,10 +401,22 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
       boundSections.set(name, bound);
       return bound;
     }
+    const layout = options.children ?? entries.map(([name]) => name);
+    validateDefinitionLayout(entries.map(([name]) => name), layout, options.id ?? kind);
     function FieldsView({ control }: { control?: Control<any, unknown, any> }) {
-      return entries.map(([name, member]) => isSection(member)
-        ? <SectionView key={name} name={name} control={control} />
-        : <Field key={name} name={name} control={control} />);
+      const scope = useDefinitionScope(identity, kind, control);
+      const observed = useWatch({ control: scope.control, disabled: !rootApplicability });
+      if (rootApplicability && !conditionMatches(rootApplicability, observed)) return [];
+      function renderItem(item: DefinitionLayout): ReactElement {
+        if (typeof item === "string") return isSection(members[item]!)
+          ? <SectionView key={instanceId(item)} name={item} control={control} />
+          : <Field key={instanceId(item)} name={item} control={control} />;
+        const descendants = item.children.map(renderItem);
+        return item.role === "page"
+          ? <PageShell key={item.id} pageId={item.id} title={item.label ?? item.id}>{descendants}</PageShell>
+          : <SectionShell key={item.id} title={item.label ?? item.id}>{descendants}</SectionShell>;
+      }
+      return layout.map(renderItem);
     }
     function useDefinedWatch(name: string) {
       const scope = useDefinitionScope(identity, kind);
@@ -381,7 +435,7 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
       if (!choiceRuntime || choiceRuntime.control !== scope.control) {
         throw new Error("Dependent choice presentation needs a choice form runtime.");
       }
-      return choiceRuntime.choices.get(scope.resolveChoiceId(name), member.choices);
+      return choiceRuntime.choices.get(scope.resolveChoiceId(instanceId(name)), member.choices);
     }
     function useDefinedTrigger() {
       const scope = useDefinitionScope(identity, kind);
@@ -409,7 +463,7 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
       return <DefinitionScopeContext value={scope}>{content}</DefinitionScopeContext>;
     }
     function assertMemberBindings(bindings: Record<string, string>) {
-      for (const [name] of entries) {
+      for (const name of Object.keys(defaultValues)) {
         if (!Object.hasOwn(bindings, name) || !bindings[name]) {
           throw new Error(`Missing section binding: "${name}".`);
         }
@@ -462,24 +516,35 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
         ...shellProps,
       });
     }
-    function useDefinedForm(formOptions?: FormulateOptions<FieldValues, FieldValues>) {
-      return useFormulate({ schema, defaultValues, compositions }, formOptions);
-    }
-    function useDefinedChoiceForm({ services, ...formOptions }: { services: unknown } & FormulateOptions<FieldValues, FieldValues>) {
+    const definitionSource: PortableDefinitionSource = {
+      role: kind, members, schema, customized: Boolean(options.schema),
+      ...(options.id ? { id: options.id } : {}),
+      ...(options.definitionId ? { definitionId: options.definitionId } : {}),
+      ...(options.applicable ? { applicable: options.applicable } : {}),
+      ...(options.dependsOn ? { dependsOn: options.dependsOn } : {}),
+      ...(options.actions ? { actions: options.actions } : {}),
+      ...(options.children ? { children: options.children } : {}),
+    };
+    function useDefinedChoiceForm({ services, ...formOptions }: { services?: unknown } & FormulateOptions<FieldValues, FieldValues> = {}) {
       const stableServices = useShallowStable(services);
-      const getChoiceBindings = useCallback(
-        (values: FieldValues) => bindChoices({ values, services: stableServices }),
-        [stableServices],
-      );
-      const { defaultValues: overrides, ...runtimeOptions } = formOptions;
-      const initialValues = typeof overrides === "function" ? overrides : { ...defaultValues, ...overrides };
-      return useChoiceFormRuntime({ schema, compositions, getChoiceBindings, defaultValues: initialValues, ...runtimeOptions });
+      const compiledGraph = useMemo(() => exportPortableDefinition(definitionSource, { services: stableServices }), [stableServices]);
+      return useGraphForm(compiledGraph.graph, { ...formOptions, capabilities: compiledGraph.capabilities });
+    }
+    function useDefinedForm({ services, ...formOptions }: { services?: unknown } & FormulateOptions<FieldValues, FieldValues> = {}) {
+      // The declaration decides this once; hook order is stable for its lifetime.
+      // Choice evidence has one runtime in React and headless use. Native-only
+      // schemas keep RHF's Date/file and async-value support using the same schema.
+      return hasChoices ? useDefinedChoiceForm({ services, ...formOptions })
+        : useFormulate({ schema, defaultValues, compositions }, formOptions);
     }
     function FormView({ layout = options.layout, bodyClassName = options.bodyClassName, ...props }: FormProps<FieldValues, FieldValues>) {
       return <FormShell {...props} layout={layout} bodyClassName={bodyClassName} />;
     }
-    return {
+    const definition = {
       schema,
+      toPortable: (exportOptions?: PortableExportOptions) => exportPortableDefinition(definitionSource, exportOptions),
+      [portableDefinition]: definitionSource,
+      hasChoices,
       defaultValues,
       compositions,
       fieldPaths,
@@ -498,6 +563,23 @@ export function createDefinitionFactories<Components extends FieldComponentMap>(
       bind,
       [sectionRuntime]: { identity, title: options.title, renderSection },
     };
+    function instantiate(instance: { id?: string; bind?: string; applicable?: DefinitionSemantics["applicable"] }, source = definitionSource): any {
+      const instanceSource = {
+        ...source,
+        ...(instance.id ? { instanceId: instance.id } : {}),
+        ...(instance.bind ? { bind: instance.bind } : {}),
+        ...(instance.applicable ? { applicable: instance.applicable } : {}),
+      };
+      return {
+        ...definition,
+        ...(instanceSource.bind ? { valueBinding: instanceSource.bind } : {}),
+        ...(instanceSource.applicable ? { applicable: instanceSource.applicable } : {}),
+        [portableDefinition]: instanceSource,
+        toPortable: (exportOptions?: PortableExportOptions) => exportPortableDefinition(instanceSource, exportOptions),
+        use: (next: Parameters<typeof instantiate>[0]) => instantiate(next, instanceSource),
+      };
+    }
+    return Object.assign(definition, { use: instantiate });
   }
   // The public mapped types retain declaration/schema/name relationships; the
   // dynamic recursive renderer above erases them only at this implementation boundary.

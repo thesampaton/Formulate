@@ -1,8 +1,16 @@
-import { get } from "react-hook-form";
 import type { FieldPath, FieldValues } from "react-hook-form";
 
 type FixedOptions = { readonly?: true };
 type Transform = { transform?: (value: unknown) => string };
+
+/** Keep composition independent of React while retaining existing field-path reads. */
+function readValue(object: unknown, path: string): unknown {
+  if (!path || object === null || typeof object !== "object" || Array.isArray(object) || object instanceof Date) return undefined;
+  const keys = path.split(/[.[\]'"]/).filter(Boolean);
+  if (keys.some((key) => ["__proto__", "constructor", "prototype"].includes(key))) return undefined;
+  const result = keys.reduce<unknown>((value, key) => value == null ? undefined : (value as Record<string, unknown>)[key], object);
+  return result === undefined || result === object ? (object as Record<string, unknown>)[path] : result;
+}
 
 /** Sources are read-only here. Only input segments are authored by this editor. */
 export type ValueSegment<Values extends FieldValues = FieldValues> =
@@ -50,7 +58,7 @@ function resolveSegments(composition: StringComposition, values: FieldValues, co
   return composition.segments.map((segment) => {
     if (segment.input) return { kind: "input", value: "", label: segment.label, placeholder: segment.placeholder };
     if (segment.literal !== undefined) return { kind: "literal", value: segment.literal };
-    const value: unknown = segment.binding !== undefined ? get(values, segment.binding) : get(context, segment.context!);
+    const value: unknown = segment.binding !== undefined ? readValue(values, segment.binding) : readValue(context, segment.context!);
     const text = segment.transform ? segment.transform(value) : scalarText(value);
     if (typeof text !== "string") throw new Error("A composed binding transform must return a string.");
     return { kind: segment.binding !== undefined ? "binding" : "context", value: text };
@@ -143,7 +151,7 @@ export function createStringComposer(compositions: readonly BoundStringCompositi
     let next = values;
     const changes: { name: string; value: string }[] = [];
     for (const { name, composition } of ordered) {
-      const value: unknown = get(next, name);
+      const value: unknown = readValue(next, name);
       if (typeof value !== "string") throw new Error(`Field "${name}": composition requires a string editing value.`);
       const resolved = resolveSegments(composition, next, context);
       const previous = snapshots.get(name);

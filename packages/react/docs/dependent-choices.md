@@ -19,6 +19,7 @@ import { FormSubmitButton } from "@/components/formulate/form-actions";
 import { z } from "zod";
 
 const regionChoices = defineChoice({
+  dependencies: ["accountId"],
   getInput: (target: { accountId: string }) => target.accountId || null,
   getRequestKey: (accountId: string) => accountId,
   getLoader: (services: { listRegions: ChoiceLoader }) => services.listRegions,
@@ -98,7 +99,7 @@ export function DeploymentForm({ listRegions, onDeploy }: {
 }
 ```
 
-Supply your `listRegions` service and `onDeploy` handler when rendering `DeploymentForm`. `Deployment.useChoiceForm({ services })` enables loading and membership validation. `Deployment.useForm()` applies only the schema; adding `choices` to a declaration does not start requests by itself.
+Supply your `listRegions` service and `onDeploy` handler when rendering `DeploymentForm`. Both `Deployment.useForm({ services })` and `Deployment.useChoiceForm({ services })` enforce the declared loading and membership rules. The `dependencies` list also exposes prerequisite bindings to graph inspection; neither path requires a separate portable annotation.
 
 Both sections share the controls, spacing, loading feedback, and selection rule. Each reads its own account and validates its own region. Required services are inferred through nested sections, and loading works even when their editors are unmounted.
 

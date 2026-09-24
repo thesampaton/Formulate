@@ -5,6 +5,7 @@ import { expect, it, vi } from "vitest";
 import { z } from "zod";
 import { createFormulate, defaultComponents, defineFieldControl, Form, useComposedFieldBinding, useFormulate } from "@formulate/react";
 import type { BoundStringComposition, StringComposition } from "@formulate/react";
+import { createStringComposer } from "../packages/react/src/fields/string-composition";
 
 // Exercise the core contract independently of any installed presentation library.
 const SegmentEditor = defineFieldControl<string>()(function SegmentEditor() {
@@ -334,4 +335,16 @@ it("rejects feedback loops, duplicate targets, and ambiguous or invalid parsers"
   expect(() => check([{ name: "first", composition: { segments: [{ input: true }, { input: true }], parse: () => ["one"] } }])).toThrow("one string per input segment");
   const invalidTransform = { segments: [{ binding: "second", transform: () => 42 }] } as unknown as StringComposition;
   expect(() => check([{ name: "first", composition: invalidTransform }])).toThrow("transform must return a string");
+});
+
+
+it("reads bracket indices and dotted context keys without a React path-reader dependency", () => {
+  const composer = createStringComposer([{ name: "result", composition: { segments: [
+    { binding: "regions[0].code" }, { literal: "-" },
+    { context: "settings['deployment'].suffix" }, { literal: "-" }, { context: "literal.key" },
+    { context: "__proto__.toString" },
+  ] } }]);
+  const values = { result: "", regions: [{ code: "AU" }] };
+  expect(composer.compose(values, { settings: { deployment: { suffix: "prod" } }, "literal.key": "fallback" }).values.result).toBe("AU-prod-fallback");
+  expect(composer.compose(values, { settings: { deployment: { suffix: "test" } }, literal: { key: "nested" }, "literal.key": "fallback" }).values.result).toBe("AU-test-nested");
 });

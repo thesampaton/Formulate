@@ -134,6 +134,56 @@
           "path": "packages/react/src/fields/use-composed-field-binding.ts",
           "type": "registry:lib",
           "target": "@lib/formulate/fields/use-composed-field-binding.ts"
+        },
+        {
+          "path": "packages/react/src/graph/model.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/graph/model.ts"
+        },
+        {
+          "path": "packages/react/src/graph/normalize.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/graph/normalize.ts"
+        },
+        {
+          "path": "packages/react/src/graph/runtime.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/graph/runtime.ts"
+        },
+        {
+          "path": "packages/react/src/graph/definition.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/graph/definition.ts"
+        },
+        {
+          "path": "packages/react/src/graph/react.tsx",
+          "type": "registry:lib",
+          "target": "@lib/formulate/graph/react.tsx"
+        },
+        {
+          "path": "packages/react/src/graph/index.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/graph/index.ts"
+        },
+        {
+          "path": "packages/react/src/graph/schema.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/graph/schema.ts"
+        },
+        {
+          "path": "packages/react/src/graph/conditions.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/graph/conditions.ts"
+        },
+        {
+          "path": "packages/react/src/definitions/schema.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/definitions/schema.ts"
+        },
+        {
+          "path": "packages/react/src/definitions/schema-parse.ts",
+          "type": "registry:lib",
+          "target": "@lib/formulate/definitions/schema-parse.ts"
         }
       ],
       "categories": [

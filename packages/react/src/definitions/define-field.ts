@@ -4,6 +4,7 @@ import type { z } from "zod";
 import type { ChoiceRule } from "../choices/definition.js";
 import type { FieldRootProps } from "../fields/field.js";
 import type { ControlSelection, FieldComponentMap } from "./create-formulate.js";
+import type { DefinitionSemantics } from "../graph/definition.js";
 import type { StringComposition } from "../fields/string-composition.js";
 
 /** Value/form semantics, independent of schemas' representations and UI controls. */
@@ -17,7 +18,11 @@ export type FieldPresentation = Pick<FieldRootProps<FieldValues, string>,
 >;
 
 /** Portable source configuration. A consuming control map checks the nominated UI. */
-export type FieldDefinition = FieldPresentation & {
+export type FieldDefinition = FieldPresentation & DefinitionSemantics & {
+  /** Stable instance identity and value address are independent of presentation. */
+  id?: string;
+  bind?: string;
+  portable?: never;
   primitive: PrimitiveFieldType;
   schema: z.ZodType;
   defaultValue: unknown;
@@ -32,10 +37,13 @@ export type FieldDefinition = FieldPresentation & {
 export function defineField<const Definition extends FieldDefinition>(
   definition: Definition & { defaultValue: NoInfer<z.input<Definition["schema"]>> },
 ): Definition {
+  if ("portable" in definition) throw new Error("Declare semantics directly on the definition; portable annotations are no longer supported.");
   return definition;
 }
 
 type FieldUseDefaults<Definition extends FieldDefinition> = Partial<FieldPresentation> & {
+  id?: string;
+  bind?: string;
   defaultValue?: z.input<Definition["schema"]>;
   /** Changing semantics is an explicit derived defineField, not an instance override. */
   schema?: never;

@@ -21,6 +21,8 @@ export type ResolvedChoice = {
 };
 export type BoundChoice = ResolvedChoice & { choiceId: string; fieldPath: string };
 export type ChoiceRule<Values, Selection, Services, Option = Choice> = {
+  /** Declared editing dependencies travel with every use of this rule. */
+  readonly dependencies?: readonly string[];
   resolve: (values: Values, selection: Selection, services: Services) => ResolvedChoice;
   /** Type witness used by the store's checked view lookup. */
   readonly optionType?: Option;
@@ -28,6 +30,7 @@ export type ChoiceRule<Values, Selection, Services, Option = Choice> = {
 
 /** A local dependency and selection policy. null disables loading but retains the selection. */
 export function defineChoice<Values, Selection, Services, Input, Option>(config: {
+  dependencies?: readonly string[];
   getInput: (values: Values, services: Services) => Input | null;
   /** Equal keys mean interchangeable request inputs. Include every service input. */
   getRequestKey: (input: Input) => string;
@@ -36,6 +39,7 @@ export function defineChoice<Values, Selection, Services, Input, Option>(config:
   messages: ResolvedChoice["messages"];
 }): ChoiceRule<Values, Selection, Services, Option> {
   const rule: ChoiceRule<Values, Selection, Services, Option> = {
+    ...(config.dependencies ? { dependencies: config.dependencies } : {}),
     resolve(values, selection, services) {
       const input = config.getInput(values, services);
       return {
