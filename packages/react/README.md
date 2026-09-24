@@ -6,7 +6,7 @@ Formulate aims to make complex forms easier to assemble and change by composing 
 
 A deployment-target section, for example, can bring together shadcn account and region controls, their layout, and the rule that loads regions when the account changes. Reuse that interaction in an application settings screen, an onboarding flow, or a branching provisioning form. You keep control of the component source, domain rules, and application services. React Hook Form and Zod provide the default state and validation engines.
 
-The current implementation provides reusable definitions and layouts, dependent choices, scoped actions, and error navigation. Automatic rules for which sections apply and when a workflow is complete are still being designed. Today, application code decides which branches to show, tracks completion, and saves drafts. The [product vision](../../docs/01-product-vision.md) describes the direction, and [current capabilities](../../docs/05-06-rendering-and-workflow.md) records what is implemented.
+The current implementation provides reusable definitions and layouts, structured applicability, dependent choices, scoped actions, and error navigation. [Schema composition](docs/schema-composition.md) combines these semantics into one interaction model, with React rendering and a JSON graph as projections. Reusable field and section schemas carry their validation and behaviour into each use. Normal form hooks and graph inspection share completion rules and payload construction. Application code owns navigation, persistence, and host capabilities. The [product vision](../../docs/01-product-vision.md) describes the direction, and [current capabilities](../../docs/05-06-rendering-and-workflow.md) records what is implemented.
 
 This is an experimental, private workspace package for React 19.2+, React Hook Form 7.87+, and Zod 4. To try it, [run the examples](../../README.md#run-the-examples). To use the source in another project, follow the [registry guide](../../docs/registry-development.md).
 
@@ -126,11 +126,17 @@ A section can also carry its own presentation and dependent-choice rules. Reusin
 
 For a single string built from editable text and fixed or bound segments, add `composition: { segments: [...] }` to the field and select `composedInput` from the local shadcn map. It keeps one canonical value, updates with sources even when unmounted, and validates through the field's normal schema. See [composed values](docs/composed-values.md) and the independent [string patterns](docs/string-patterns.md) guide.
 
+## Schema composition
+
+Compose reusable field and section schemas through the existing definition APIs. Each carries its validation, applicability, dependencies, choices and composed values into the containing form. Stable `id` and `bind` values, reusable `definitionId` and nested page `children` keep identity, value binding and presentation explicit. Section `.use({ id, bind })` creates an independently scoped use; `field(Definition, { id, bind })` places a reusable field. The composed schema governs normal React use before any export.
+
+React rendering and the JSON graph are projections of this model. `Definition.toPortable({ services })` exposes nested authoring data, an immutable normalized graph, and separate named host capabilities. Supported schema descriptions come from the original Zod schemas without repeating their validation rules. `useGraphForm` renders the graph through existing React controls; `createGraphRuntime` evaluates the same graph and accepts agent updates without mounting React. Named validators and parsers support synchronous and asynchronous behavior; composed-value transforms and parsers remain synchronous. Start with the [complete workshop registration form](docs/schema-composition.md#a-whole-form-in-one-schema), then explore the cloud example and its generated graph in the same guide.
+
 ## Dependent choices
 
 Reuse behaviour alongside the fields it governs. When one answer determines another field’s available options—for example, an account determines its regions—declare that relationship with `defineChoice`.
 
-Attach the rule to the field’s `choices` property, then create the form with `Definition.useChoiceForm({ services })`. The definition supplies the dependency and selection rules; your services load the options; your control displays them. Ordinary `Definition.useForm()` applies the schema without starting these requests.
+Attach the rule to the field’s `choices` property, then create the form with `Definition.useForm({ services })`. The definition supplies the dependency and selection rules; your services load the options; your control displays them. `Definition.useChoiceForm({ services })` remains available with the same declared behavior. Use `defineChoice({ dependencies: ["accountId"], ... })` to expose ordinary value dependencies for both React and graph inspection.
 
 The [dependent choices guide](docs/dependent-choices.md) walks through account and region fields, loading feedback, retry, and repeated sections.
 
