@@ -41,9 +41,10 @@ export const exampleGroups: { label: string; examples: ExampleLink[] }[] = [
 export type SitePage = { id: (typeof guidePages)[number]["id"] | ExampleName; title: string };
 
 export function getPage(hash: string): SitePage {
-  const guide = guidePages.find((item) => hash === item.href);
+  const route = hash.split("?")[0];
+  const guide = guidePages.find((item) => route === item.href);
   if (guide) return guide;
   const example = exampleGroups.flatMap((group) => group.examples)
-    .find((item) => hash === `#/examples/${item.id}`);
+    .find((item) => route === `#/examples/${item.id}`);
   return example ?? { id: "overview", title: "Overview" };
 }

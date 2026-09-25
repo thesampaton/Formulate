@@ -29,7 +29,7 @@ function SourceDisclosure({ source }: { source: FocusedGuide["completeSources"][
   </details>;
 }
 
-export function FocusedExample({ title, guide, children, wideDemo = false }: { title: string; guide: FocusedGuide; children: ReactNode; wideDemo?: boolean }) {
+export function FocusedExample({ title, guide, children, reference, wideDemo = false }: { title: string; guide: FocusedGuide; children: ReactNode; reference?: ReactNode; wideDemo?: boolean }) {
   const id = useId();
 
   return <div className="focused-example">
@@ -67,6 +67,8 @@ export function FocusedExample({ title, guide, children, wideDemo = false }: { t
         </li>)}
       </ol>
     </section>
+
+    {reference}
 
     <section className="focused-complete-sources" aria-labelledby={`${id}-sources`}>
       <h2 id={`${id}-sources`}>Complete source</h2>

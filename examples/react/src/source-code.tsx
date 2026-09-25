@@ -7,9 +7,10 @@ type SourceCodeProps = {
   code: string;
   label: string;
   complete?: boolean;
+  kind?: "Excerpt" | "Usage example";
 };
 
-export function SourceCode({ filename, code, label, complete = false }: SourceCodeProps) {
+export function SourceCode({ filename, code, label, complete = false, kind = "Excerpt" }: SourceCodeProps) {
   const language: SourceLanguage = filename.endsWith(".tsx") ? "tsx" : "typescript";
   const [highlighted, setHighlighted] = useState<HighlightedLines | null>(null);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
@@ -39,7 +40,7 @@ export function SourceCode({ filename, code, label, complete = false }: SourceCo
     <div className="source-code-heading">
       <span className="source-code-filename">{filename}</span>
       <div className="source-code-actions">
-        <span>{language === "tsx" ? "TSX" : "TS"} · {complete ? "Complete source" : "Excerpt"}</span>
+        <span>{language === "tsx" ? "TSX" : "TS"} · {complete ? "Complete source" : kind}</span>
         <button type="button" className="source-code-copy" onClick={() => { void copyCode(); }} aria-label={`Copy ${label} code`}>
           {copyState === "copied" ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
           {copyState === "copied" ? "Copied" : copyState === "error" ? "Copy failed" : "Copy"}
