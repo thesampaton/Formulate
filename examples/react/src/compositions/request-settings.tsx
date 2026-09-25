@@ -4,8 +4,20 @@ import { Field, FieldGroup } from "@/components/ui/field";
 import { useRef } from "react";
 import { useWatch } from "react-hook-form";
 import { Page, Section, useFormNavigation } from "@formulate/react";
+import type { ScopedFormAction } from "@formulate/react";
 import { NumberControl } from "@/components/formulate/controls";
 import { FormContinueButton, FormNavigationButton, FormSubmitButton } from "@/components/formulate/form-actions";
+
+function AdvancedSettingsFields() {
+  return <Section layout={FieldGroup} title="Advanced options" description="These settings still apply when this section is hidden.">
+    <FieldGroup className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,14rem),1fr))]">
+      <RequestSettings.Field name="retries" />
+      <RequestSettings.Field name="timeoutSeconds">
+        <NumberControl step="any" className="tabular-nums" />
+      </RequestSettings.Field>
+    </FieldGroup>
+  </Section>;
+}
 
 export function RequestSettingsForm({ onSave }: { onSave: (payload: RequestConfiguration) => Promise<void> | void }) {
   const form = RequestSettings.useForm({
@@ -27,17 +39,20 @@ export function RequestSettingsForm({ onSave }: { onSave: (payload: RequestConfi
     control: form.control,
     name: ["showAdvanced", "retries", "timeoutSeconds", "endpoint"],
   });
+  const scopedAction: ScopedFormAction<Settings> | undefined =
+    page === "review" ? undefined : {
+      id: navigation.revision,
+      errorPaths: page === "settings"
+        ? ["showAdvanced", "retries", "timeoutSeconds"]
+        : ["endpoint"],
+      onValid: () => {
+        if (page === "settings") navigation.goToField("endpoint");
+        else navigation.goToPage("review", () => reviewHeadingRef.current?.focus());
+      },
+    };
 
   return (
-    <RequestSettings.Form form={form}
-      scopedAction={page === "review" ? undefined : {
-        id: navigation.revision,
-        errorPaths: page === "settings" ? ["showAdvanced", "retries", "timeoutSeconds"] : ["endpoint"],
-        onValid: () => {
-          if (page === "settings") navigation.goToField("endpoint");
-          else navigation.goToPage("review", () => reviewHeadingRef.current?.focus());
-        },
-      }}
+    <RequestSettings.Form form={form} scopedAction={scopedAction}
       onInvalid={(errors) => {
         if (!navigation.goToFirstError(errors)) form.setError("root.submit", { message: "Review the form errors before continuing." });
       }}
@@ -46,22 +61,13 @@ export function RequestSettingsForm({ onSave }: { onSave: (payload: RequestConfi
         Step {page === "settings" ? "1" : page === "destination" ? "2" : "3"} of 3 · {page === "settings" ? "Settings" : page === "destination" ? "Destination" : "Review"}
       </p>
       <Page layout={FieldGroup} pageId="settings" title="Request settings" active={page === "settings"}>
-        <p>Start with the defaults, or adjust how requests retry and time out.</p>
+        <p>Only this step is checked when you continue. Show advanced options to edit retries and timeout; those values remain in the form when hidden.</p>
         <RequestSettings.Field name="showAdvanced" />
-        {showAdvanced ? (
-          <Section layout={FieldGroup} title="Advanced options" description="These settings still apply when this section is hidden.">
-            <FieldGroup className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,14rem),1fr))]">
-              <RequestSettings.Field name="retries" />
-              <RequestSettings.Field name="timeoutSeconds">
-                <NumberControl step="any" className="tabular-nums" />
-              </RequestSettings.Field>
-            </FieldGroup>
-          </Section>
-        ) : null}
+        {showAdvanced ? <AdvancedSettingsFields /> : null}
         <Field orientation="horizontal"><FormContinueButton>Next: destination</FormContinueButton></Field>
       </Page>
       <Page layout={FieldGroup} pageId="destination" title="Request destination" active={page === "destination"}>
-        <p>Choose where requests will go.</p>
+        <p>The destination is checked on this step. Enter a valid URL before continuing to Review.</p>
         <RequestSettings.Field name="endpoint" />
         <Field orientation="horizontal" className="flex-wrap">
           <FormNavigationButton onClick={() => navigation.goToField("showAdvanced")}>Back to settings</FormNavigationButton>
@@ -70,7 +76,7 @@ export function RequestSettingsForm({ onSave }: { onSave: (payload: RequestConfi
       </Page>
       <Page layout={FieldGroup} pageId="review" title="Review settings" active={page === "review"}>
         <div ref={reviewHeadingRef} tabIndex={-1} role="group" aria-label="Configuration summary" className="review-summary">
-          <p>These values will be used for every request.</p>
+          <p>Final submission checks the whole form and sends these values together.</p>
           <dl>
             <div><dt>Request URL</dt><dd className="break-all">{endpoint}</dd></div>
             <div><dt>Retries</dt><dd>{retries}</dd></div>

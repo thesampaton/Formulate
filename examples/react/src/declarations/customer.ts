@@ -21,7 +21,11 @@ export const Customer = defineForm({
   layout: FieldGroup,
   schema: (schema) => {
     // The inactive draft keeps its editing shape but suspends domain requirements.
-    const draft = z.object({ street: z.string(), countryCode: z.string(), postcode: z.string() });
+    const draft = z.object({
+      street: z.string(),
+      countryCode: z.string(),
+      postcode: z.string(),
+    });
     return z.discriminatedUnion("deliverySameAsBilling", [
       schema.extend({ deliverySameAsBilling: z.literal(true), deliveryAddress: draft }),
       schema.extend({ deliverySameAsBilling: z.literal(false) }),

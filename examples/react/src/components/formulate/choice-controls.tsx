@@ -37,7 +37,7 @@ export const CommandControl = defineFieldControl<string>()(function CommandContr
         </CommandItem>)}
       </CommandGroup>
     </CommandList>
-    <div className="flex items-center justify-between gap-2 border-t px-3 py-2">
+    <div className="flex flex-wrap items-center justify-between gap-2 border-t px-3 py-2">
       <p id={`${field.id}-selection`} aria-live="polite" className="text-sm text-muted-foreground">{selected ? `Selected: ${selected}` : "No selection"}</p>
       <Button type="button" variant="ghost" size="sm" disabled={field.disabled} onClick={() => onChange("")}>Clear selection</Button>
     </div>

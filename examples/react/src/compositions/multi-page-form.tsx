@@ -13,7 +13,7 @@ export function MultiPageForm(props: ProfileFormProps) {
   return <MultiPageProfile.Form form={form} scopedAction={scopedAction} onInvalid={handleInvalid} onSubmit={handleSubmit}>
     <header>
       <h2>Create your profile</h2>
-      <p className="text-sm text-muted-foreground">Move between tabs freely. Your answers stay with the form.</p>
+      <p className="text-sm text-muted-foreground">Page status follows the form's validation rules. If Save profile finds an issue on another tab, it opens that tab and focuses the field.</p>
     </header>
     <p role="status" className="text-sm text-primary">{completeCount} of 3 pages complete{savedCurrent ? " · Saved" : " · Not saved"}</p>
     <FormActionFieldset>

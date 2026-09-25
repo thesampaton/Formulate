@@ -13,6 +13,16 @@ export function ControlGalleryForm({ onSave }: { onSave: (values: ControlGallery
       <Button type="button" variant="outline" onClick={() => form.reset(exampleData.controls)}>Load sample</Button>
       <Button type="button" variant="outline" onClick={() => form.reset(ControlGallery.defaultValues)}>Reset</Button>
     </Field>
+    <Section title="Choices">
+      <FieldGroup className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,19rem),1fr))]">
+        <ControlGallery.Field name="select" />
+        <ControlGallery.Field name="radioGroup" />
+        <ControlGallery.Field name="combobox" />
+        <ControlGallery.Field name="command" />
+        <ControlGallery.Field name="toggleGroup" />
+        <ControlGallery.Field name="multiToggleGroup" />
+      </FieldGroup>
+    </Section>
     <Section title="Text">
       <FieldGroup className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,14rem),1fr))]">
         <ControlGallery.Field name="input" />
@@ -24,16 +34,6 @@ export function ControlGalleryForm({ onSave }: { onSave: (values: ControlGallery
       <FieldGroup className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,14rem),1fr))]">
         <ControlGallery.Field name="checkbox" orientation="horizontal" />
         <ControlGallery.Field name="switch" orientation="horizontal" />
-      </FieldGroup>
-    </Section>
-    <Section title="Choices">
-      <FieldGroup className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,14rem),1fr))]">
-        <ControlGallery.Field name="select" />
-        <ControlGallery.Field name="radioGroup" />
-        <ControlGallery.Field name="combobox" />
-        <ControlGallery.Field name="command" />
-        <ControlGallery.Field name="toggleGroup" />
-        <ControlGallery.Field name="multiToggleGroup" />
       </FieldGroup>
     </Section>
     <Section title="Numbers and dates">

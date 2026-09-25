@@ -7,9 +7,16 @@ export const profileSections = {
   notifications: MultiPageProfile.bindSection("notifications"),
 };
 export const profilePages = [
-  { id: "profile", title: "Profile", errorPaths: [...profileSections.name.errorPaths, "email"], focusPaths: [...profileSections.name.focusPaths, "email"] },
-  { id: "delivery", title: "Delivery", errorPaths: profileSections.address.errorPaths, focusPaths: profileSections.address.focusPaths },
-  { id: "notifications", title: "Notifications", errorPaths: profileSections.notifications.errorPaths, focusPaths: profileSections.notifications.focusPaths },
+  { id: "profile", title: "Profile",
+    errorPaths: [...profileSections.name.errorPaths, "email"],
+    focusPaths: [...profileSections.name.focusPaths, "email"],
+  },
+  { id: "delivery", title: "Delivery",
+    errorPaths: profileSections.address.errorPaths, focusPaths: profileSections.address.focusPaths,
+  },
+  { id: "notifications", title: "Notifications",
+    errorPaths: profileSections.notifications.errorPaths, focusPaths: profileSections.notifications.focusPaths,
+  },
 ] as const;
 export type ProfilePage = (typeof profilePages)[number]["id"] | "review";
 

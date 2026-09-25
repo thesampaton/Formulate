@@ -113,7 +113,7 @@ it.each([{ label: "FieldGroup", layout: FieldGroup }, { label: "null", layout: n
   expect(onSubmit.mock.calls[0]![0]).toEqual({ primary: { firstName: "Ada", lastName: "Lovelace" }, secondary: { firstName: "Grace", lastName: "Hopper" } });
 });
 
-it("retains edited controls while changing the example's available width", async () => {
+it("retains edited values while changing the example's width and section layout", async () => {
   render(<ResponsiveLayout />);
   const user = userEvent.setup();
   const first = screen.getByLabelText("First name");
@@ -123,4 +123,16 @@ it("retains edited controls while changing the example's available width", async
   expect(screen.getByRole("slider", { name: "Form width" })).toHaveValue("45");
   expect(screen.getByLabelText("First name")).toBe(first);
   expect(first).toHaveValue("Ada");
+
+  const layoutButton = screen.getByRole("button", { name: "Stack name fields" });
+  const nameLayout = () => screen.getByRole("group", { name: "Name" }).querySelector('[data-slot="field-group"]');
+  expect(nameLayout()).toHaveClass("grid");
+  await user.click(layoutButton);
+  expect(layoutButton).toHaveAttribute("aria-pressed", "true");
+  expect(nameLayout()).not.toHaveClass("grid");
+  expect(screen.getByLabelText("First name")).toHaveValue("Ada");
+  await user.click(layoutButton);
+  expect(layoutButton).toHaveAttribute("aria-pressed", "false");
+  expect(nameLayout()).toHaveClass("grid");
+  expect(screen.getByLabelText("First name")).toHaveValue("Ada");
 });

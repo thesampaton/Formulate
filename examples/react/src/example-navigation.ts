@@ -1,4 +1,4 @@
-import type { ExampleName } from "./example-code";
+import type { ExampleName } from "./example-types";
 
 type ExampleLink = { id: ExampleName; number: string; title: string };
 
@@ -11,28 +11,28 @@ export const exampleGroups: { label: string; examples: ExampleLink[] }[] = [
   {
     label: "Examples · Foundations",
     examples: [
-      { id: "schema", number: "00", title: "Schema composition" },
-      { id: "simple", number: "01", title: "Simple form" },
-      { id: "advanced", number: "02", title: "Advanced options" },
-      { id: "confirmation", number: "03", title: "Email confirmation" },
-      { id: "customer", number: "04", title: "Customer onboarding" },
+      { id: "simple", number: "00", title: "Form lifecycle" },
+      { id: "schema", number: "01", title: "Schema composition" },
+      { id: "advanced", number: "02", title: "Step validation" },
+      { id: "confirmation", number: "03", title: "Cross-field validation" },
+      { id: "customer", number: "04", title: "Retained drafts" },
       { id: "layout", number: "05", title: "Reusable layouts" },
     ],
   },
   {
     label: "Examples · Workflows",
     examples: [
-      { id: "multiPage", number: "06", title: "Multi-page form" },
-      { id: "employment", number: "07", title: "Reusable employment page" },
-      { id: "cloud", number: "08", title: "Cloud deployment" },
-      { id: "infrastructure", number: "09", title: "Infrastructure drafts" },
+      { id: "multiPage", number: "06", title: "Page completion" },
+      { id: "employment", number: "07", title: "Reusable pages" },
+      { id: "cloud", number: "08", title: "Dependent choices" },
+      { id: "infrastructure", number: "09", title: "Stable repeated sections" },
     ],
   },
   {
     label: "Examples · Controls",
     examples: [
-      { id: "structured", number: "10", title: "Structured pickers" },
-      { id: "controls", number: "11", title: "Control gallery" },
+      { id: "controls", number: "10", title: "Interchangeable controls" },
+      { id: "structured", number: "11", title: "Structured field values" },
       { id: "composed", number: "12", title: "Composed values" },
     ],
   },

@@ -13,10 +13,18 @@ export const regionChoices = defineChoice({
     const isAvailable = options.some((option) => option.value === selection);
     return isAvailable ? undefined : "The retained choice is unavailable. Choose another option.";
   },
-  messages: { missing: "Choose an account first.", pending: "Checking available choices…", failed: "Choices could not be loaded. Retry to continue." },
+  messages: {
+    missing: "Choose an account first.",
+    pending: "Checking available choices…",
+    failed: "Choices could not be loaded. Retry to continue.",
+  },
 });
 
-export const accounts = [{ value: "A", label: "Account A" }, { value: "B", label: "Account B" }, { value: "C", label: "Account C" }];
+export const accounts = [
+  { value: "A", label: "Account A" },
+  { value: "B", label: "Account B" },
+  { value: "C", label: "Account C" },
+];
 export const DeploymentTarget = defineSection({
   accountId: {
     schema: z.string().pipe(z.enum(["A", "B", "C"], { error: "Choose an account." })),

@@ -4,9 +4,13 @@ import { FieldGroup } from "@/components/ui/field";
 import { Address } from "./address";
 import { Name } from "./name";
 import { Email } from "./email";
-
 import { Notifications } from "./notifications";
 
-export const MultiPageProfile = defineForm({ name: Name, email: Email, address: Address, notifications: Notifications }, { layout: FieldGroup });
+export const MultiPageProfile = defineForm({
+  name: Name,
+  email: Email,
+  address: Address,
+  notifications: Notifications,
+}, { layout: FieldGroup });
 export type MultiPageProfileValues = z.input<typeof MultiPageProfile.schema>;
 export type MultiPageProfilePayload = z.output<typeof MultiPageProfile.schema>;

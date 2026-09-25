@@ -11,10 +11,17 @@ function RegionField({ title, statusMessage }: { title: string; statusMessage?: 
   const regionChoices = DeploymentTarget.useChoice("regionId");
 
   return <FieldGroup>
-    <DeploymentTarget.Field name="regionId" label={`${title} region`} componentProps={{ options: regionChoices?.options ?? [] }} />
-    {region ? <p>Retained selection: {region}</p> : null}
-    <p role="status">{title}: {statusMessage ?? regionChoices?.validationMessage ?? "Ready"}</p>
-    {regionChoices?.status === "failed" ? <Field orientation="horizontal"><Button type="button" variant="outline" onClick={regionChoices?.retry}>Retry {title.toLowerCase()} regions</Button></Field> : null}
+    <DeploymentTarget.Field name="regionId" label={`${title} region`}
+      componentProps={{ options: regionChoices?.options ?? [] }} />
+    {region ? <p>Saved Region value: {region}</p> : null}
+    <p role="status">
+      {title}: {statusMessage ?? regionChoices?.validationMessage ?? "Ready"}
+    </p>
+    {regionChoices?.status === "failed" ? <Field orientation="horizontal">
+      <Button type="button" variant="outline" onClick={regionChoices.retry}>
+        Retry {title.toLowerCase()} regions
+      </Button>
+    </Field> : null}
   </FieldGroup>;
 }
 
@@ -28,7 +35,7 @@ export function CloudDeploymentForm(props: CloudFormProps) {
   return <Form aria-label="Cloud deployment" form={flow.form} scopedAction={flow.scopedAction}
     onSubmit={props.onDeploy} onInvalid={flow.navigation.goToFirstError}>
     <h2>Cloud deployment</h2>
-    <p>Choose two deployment targets. Production details are kept when you switch to development.</p>
+    <p>Each Account narrows the Region choices for its target. Change one Account to see its Regions update while the other target keeps its own choices.</p>
     <CloudDeployment.Field name="environment" />
     <Field orientation="horizontal" className="flex-wrap">
       <FormNavigationButton onClick={() => flow.goToPage("targets")}>Targets</FormNavigationButton>

@@ -11,7 +11,10 @@ export const RequestSettings = defineForm({
     orientation: "horizontal",
   },
   retries: {
-    schema: z.number({ error: "Enter a retry count." }).int("Use a whole number.").min(0, "Use 0 to 10 retries.").max(10, "Use 0 to 10 retries."),
+    schema: z.number({ error: "Enter a retry count." })
+      .int("Use a whole number.")
+      .min(0, "Use 0 to 10 retries.")
+      .max(10, "Use 0 to 10 retries."),
     defaultValue: 3,
     label: "Retries",
     description: "A whole number from 0 to 10.",

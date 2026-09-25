@@ -18,7 +18,7 @@ Formulate has three distinct vocabularies: a building block's responsibility, th
 
 A Back button is an action control that requests navigation. A horizontal shadcn Field arranges action controls. FormStepLayout places an action slot after page content. These responsibilities connect without becoming synonyms.
 
-The code browser uses these responsibilities to group relevant source. Its **This form** category contains the composition, declaration, sample data and any form-specific summary. **Form behaviour** exposes the current example's coordination code. The browser names the actual registry item when one exists; local reusable source is not presented as already packaged.
+The [example pages](example-pages.md) now lead with one capability and the application source that demonstrates it. Complete application files remain available in disclosures; this responsibility table still explains how reusable library pieces and registry items relate to that source.
 
 ## Authoring artifacts
 
@@ -50,7 +50,7 @@ The manifest's standard `categories` describe discovery tags and may include sev
 
 This does not commit us to a separate npm package per category. The core/package release strategy can follow evidence; the current source registry already gives consumers independently installable pieces.
 
-Shadcn is the intended UI baseline. Its CLI owns install-time customisation: it reads the consumer's `components.json`, chooses source locations and rewrites imports. Formulate's installed bindings then import those local components directly. The control map selects bindings for declaration keys; it does not resolve installation paths or load UI backends at runtime. This keeps distribution choices separate from the form API. The example browser's **Installation** category shows the actual CLI configuration, separately from **shadcn bindings**. See the [installation boundary](registry-development.md#installation-config-and-runtime-bindings).
+Shadcn is the intended UI baseline. Its CLI owns install-time customisation: it reads the consumer's `components.json`, chooses source locations and rewrites imports. Formulate's installed bindings then import those local components directly. The control map selects bindings for declaration keys; it does not resolve installation paths or load UI backends at runtime. This keeps distribution choices separate from the form API. See the [installation boundary](registry-development.md#installation-config-and-runtime-bindings) for the CLI configuration and binding sources.
 
 ## v0 and other consumers
 

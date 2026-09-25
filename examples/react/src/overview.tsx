@@ -13,8 +13,8 @@ const workflow = [
   {
     number: "02",
     title: "Compose the experience",
-    api: "Form · Page · Section · Field",
-    description: "Create one form instance. Arrange its fields and sections with ordinary React, then add pages and layouts where the experience needs them.",
+    api: "Definition.Fields · Form · Page",
+    description: "Render the declared hierarchy with Fields. Use typed fields and sections in React when a page needs a different arrangement.",
   },
   {
     number: "03",
@@ -40,9 +40,9 @@ const concepts = [
 ] as const;
 
 const nextExamples = [
-  { href: "#/examples/simple", title: "Start with a sign-in form", description: "Two fields, one declaration and a submit action.", detail: "The essentials" },
-  { href: "#/examples/multiPage", title: "Walk through a profile", description: "Sections, page navigation, validation and review.", detail: "The complete composition" },
-  { href: "#/examples/employment", title: "Reuse a complete section", description: "One employment setup in two different forms.", detail: "Composition in practice" },
+  { href: "#/examples/simple", title: "Define and submit a form", description: "A sign-in shows how one definition supplies field rules and parsed submission.", detail: "Form lifecycle" },
+  { href: "#/examples/schema", title: "Render a nested schema", description: "A workshop form shows nested fields and conditions rendered from one definition.", detail: "Schema composition" },
+  { href: "#/examples/multiPage", title: "Derive page completion", description: "A profile shows page status and correction from one form schema.", detail: "Page completion" },
 ] as const;
 
 export function Overview() {
@@ -53,13 +53,13 @@ export function Overview() {
         <h1 id="overview-title">One form.<br /><span>Composed from familiar parts.</span></h1>
         <p className="overview-lead">
           Formulate brings field definitions, reusable sections and your shadcn components
-          together. Start with the values, then shape the experience around them.
+          together. Start with the values, render them from the schema, and shape the experience where needed.
         </p>
         <div className="overview-intro-actions">
           <a className={buttonVariants({ size: "lg" })} data-slot="button" href="#/examples/simple">
-            Start with a simple form <ArrowRight aria-hidden="true" />
+            Start with form basics <ArrowRight aria-hidden="true" />
           </a>
-          <a className="overview-text-link" href="#/examples/multiPage">Explore a multi-page form <ArrowUpRight aria-hidden="true" /></a>
+          <a className="overview-text-link" href="#/examples/multiPage">Explore page completion <ArrowUpRight aria-hidden="true" /></a>
         </div>
       </header>
 
@@ -132,7 +132,7 @@ export function Overview() {
       <section className="overview-next-section" aria-labelledby="next-heading">
         <p className="overview-eyebrow">SEE IT IN PRACTICE</p>
         <h2 id="next-heading">Follow the idea into the code.</h2>
-        <p className="overview-section-intro">Each example pairs a working form with its declarations, composition and local components.</p>
+        <p className="overview-section-intro">Each example adds one capability, pairs it with a working form, and shows the source that explains it.</p>
         <div className="overview-next-grid">
           {nextExamples.map((example) => (
             <a className="overview-next-link" href={example.href} key={example.href}>

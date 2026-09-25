@@ -9,7 +9,9 @@ export function SignInForm({ onSignIn }: { onSignIn: (values: SignInValues) => P
   return (
     <SignIn.Form form={form} onSubmit={onSignIn}>
       <SignIn.Fields />
-      <Field orientation="horizontal"><FormSubmitButton pendingLabel="Signing in…">Sign in</FormSubmitButton></Field>
+      <Field orientation="horizontal">
+        <FormSubmitButton pendingLabel="Signing in…">Sign in</FormSubmitButton>
+      </Field>
     </SignIn.Form>
   );
 }

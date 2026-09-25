@@ -20,8 +20,15 @@ export const machineSizeChoices = defineChoice({
 export const resourceBindings = (index: number) => ({ name: `resources.${index}.name` as const, machineSize: `resources.${index}.machineSize` as const });
 
 export const Resource = defineSection({
-  name: { schema: z.string().trim().min(1, "Name this resource."), defaultValue: "", label: "Resource name", component: "input" },
-  machineSize: { schema: z.string(), choices: machineSizeChoices, defaultValue: "", label: "Machine size", component: "select", componentProps: { options: [] } },
+  name: {
+    schema: z.string().trim().min(1, "Name this resource."),
+    defaultValue: "", label: "Resource name", component: "input",
+  },
+  machineSize: {
+    schema: z.string(), choices: machineSizeChoices,
+    defaultValue: "", label: "Machine size", component: "select",
+    componentProps: { options: [] },
+  },
 }, { title: "Resource" });
 
 // Drafts retain incomplete editing strings, not parsed submission output.
@@ -48,6 +55,11 @@ export const bindResource = (resourceId: string, index: number) => Resource.bind
   id: resourceId,
   bindings: resourceBindings(index),
 });
-export const draftSchema = z.object({ definition: z.literal("infrastructure-request"), version: z.literal(1), revision: z.string().min(1), values: infrastructureEditingSchema });
+export const draftSchema = z.object({
+  definition: z.literal("infrastructure-request"),
+  version: z.literal(1),
+  revision: z.string().min(1),
+  values: infrastructureEditingSchema,
+});
 export type InfrastructureDraft = z.output<typeof draftSchema>;
 export type DraftAdapter = { save: (draft: InfrastructureDraft) => Promise<void>; load: () => Promise<unknown> };

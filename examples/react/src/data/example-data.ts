@@ -13,7 +13,7 @@ import type { CloudValues } from "@/declarations/cloud-deployment";
 import type { InfrastructureValues } from "@/declarations/infrastructure";
 
 // Fictional, reusable editing values. Declarations own empty defaults and rules;
-// screens, source panels and tests consume this same sample data.
+// screens and tests consume this same sample data.
 const sampleName = { firstName: " Ada ", lastName: "Lovelace" };
 const sampleAddress = { street: "1 Example Street", countryCode: "AU", postcode: "2000" };
 

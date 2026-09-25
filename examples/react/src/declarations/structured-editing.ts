@@ -9,10 +9,17 @@ const { defineForm, field } = createFormulate({
   fieldPresentation: ShadcnField,
   components: { dateRange: DateRangeControl, multiSelect: MultiSelectControl },
 });
-const dateOnly = (date: Date | null) => date ? [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-") : "";
+function dateOnly(date: Date | null) {
+  if (!date) return "";
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
 const TravelDates = defineField({
   ...DateRange,
-  schema: DateRange.schema.transform(({ from, to }) => ({ from: dateOnly(from), to: dateOnly(to) })),
+  schema: DateRange.schema.transform(({ from, to }) => ({
+    from: dateOnly(from), to: dateOnly(to),
+  })),
 });
 
 export const Booking = defineForm({
@@ -25,7 +32,13 @@ export const Booking = defineForm({
     schema: z.array(z.enum(["walking", "museum", "food"])).min(1, "Choose at least one activity."),
     defaultValue: [], label: "Activities", component: "multiSelect",
     description: "Choose any activities you enjoy.",
-    componentProps: { options: [{ value: "walking", label: "Walking" }, { value: "museum", label: "Museums" }, { value: "food", label: "Food" }] },
+    componentProps: {
+      options: [
+        { value: "walking", label: "Walking" },
+        { value: "museum", label: "Museums" },
+        { value: "food", label: "Food" },
+      ],
+    },
   },
 }, { layout: FieldGroup });
 export type BookingOutput = z.output<typeof Booking.schema>;

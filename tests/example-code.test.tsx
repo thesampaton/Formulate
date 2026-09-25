@@ -2,89 +2,65 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, it } from "vitest";
 import { App } from "../examples/react/src/app";
-import CodePanel from "../examples/react/src/code-panel";
+import { exampleGroups } from "../examples/react/src/example-navigation";
 
 beforeEach(() => {
   window.history.replaceState(null, "", "/");
 });
 
-it("switches highlighted source excerpts without losing form edits and follows the selected example", async () => {
+const examples = exampleGroups.flatMap((group) => group.examples);
+
+it.each(examples)("teaches a focused capability on $title", async ({ id, title }) => {
+  window.history.replaceState(null, "", `/#/examples/${id}`);
+  render(<App />);
+
+  expect(await screen.findByRole("heading", { name: title, level: 1 }, { timeout: 10000 })).toBeInTheDocument();
+  expect(screen.getByText("New here")).toBeInTheDocument();
+  const demo = screen.getByRole("heading", { name: "Try it" }).closest("section")!;
+  await waitFor(() => expect(demo.querySelector("form")).not.toBeNull());
+  const walkthrough = screen.getByRole("heading", { name: "How it works" }).closest("section")!;
+  const steps = within(walkthrough).getAllByRole("listitem");
+  expect(steps.length).toBeGreaterThanOrEqual(2);
+  expect(steps.length).toBeLessThanOrEqual(4);
+  const firstCode = within(steps[0]!).getByRole("region", { name: /source code$/ });
+  expect(firstCode.querySelectorAll(".source-code-line").length).toBeLessThanOrEqual(24);
+  expect(screen.getByRole("heading", { name: "Complete source" })).toBeInTheDocument();
+  expect(screen.queryByRole("group", { name: "Code categories" })).not.toBeInTheDocument();
+});
+
+it("keeps the live form intact while inspecting and copying focused source", async () => {
   const user = userEvent.setup();
   render(<App />);
-  await user.click(screen.getByRole("link", { name: "01 Simple form" }));
+  await user.click(screen.getByRole("link", { name: "00 Form lifecycle" }));
   await user.type(await screen.findByLabelText("Email", {}, { timeout: 5000 }), "draft@example.com");
-  await user.click(await screen.findByRole("button", { name: "Declaration" }));
-  const definition = screen.getByRole("region", { name: "Declaration source code" });
-  expect(definition).toHaveTextContent("const SignIn = defineForm");
-  expect(definition.querySelector(".hljs-keyword")).not.toBeNull();
+  const firstCode = await screen.findByRole("region", { name: "Define the value contract source code" });
+  expect(firstCode).toHaveTextContent("const SignIn = defineForm");
+  await waitFor(() => expect(firstCode.querySelector(".source-code-token[style]")).not.toBeNull());
+  expect(firstCode.querySelector("code")?.textContent?.split("\n")).toHaveLength(firstCode.querySelectorAll(".source-code-line").length);
+  await user.click(screen.getByRole("button", { name: "Copy Define the value contract code" }));
+  expect(await navigator.clipboard.readText()).toContain("const SignIn = defineForm");
   expect(screen.getByLabelText("Email")).toHaveValue("draft@example.com");
-  const formButton = within(screen.getByRole("group", { name: "Code excerpts" })).getByRole("button", { name: "Composition" });
-  formButton.focus();
-  await user.keyboard("{Enter}");
+
+  await user.click(screen.getByText("Composition", { exact: true }));
   expect(screen.getByRole("region", { name: "Composition source code" })).toHaveTextContent("SignIn.useForm()");
   expect(screen.getByLabelText("Email")).toHaveValue("draft@example.com");
-  await user.click(screen.getByRole("link", { name: "03 Email confirmation" }));
-  await waitFor(() => expect(screen.getByRole("region", { name: "Composition source code" })).toHaveTextContent("EmailConfirmation.useForm()"));
-  await user.click(screen.getByRole("button", { name: "Declaration" }));
-  expect(screen.getByRole("region", { name: "Declaration source code" })).toHaveTextContent("values.email === values.confirmEmail");
 });
 
-it("shows reusable section authoring as inert code with accessible keyboard scrolling", async () => {
+it("shows the step validation example's short excerpts and complete files on demand", async () => {
   const user = userEvent.setup();
-  render(<CodePanel example="customer" />);
-  await user.click(screen.getByRole("button", { name: "Fields & sections" }));
-  await user.click(screen.getByRole("button", { name: "Address" }));
-  const source = screen.getByRole("region", { name: "Address source code" });
-  expect(source).toHaveAttribute("tabindex", "0");
-  expect(source).toHaveTextContent("defineSection");
-  expect(source).toHaveTextContent('<Address.Field name="street"');
-  expect(source.querySelector("input, select, [contenteditable], form")).toBeNull();
-  expect(screen.getByRole("button", { name: "Address" })).toHaveAttribute("aria-pressed", "true");
-});
+  render(<App />);
+  await user.click(screen.getByRole("link", { name: "02 Step validation" }));
 
-it("shows the actual responsive composition without demo resizing scaffolding", async () => {
-  const user = userEvent.setup();
-  render(<App />);
-  await user.click(screen.getByRole("link", { name: "05 Reusable layouts" }));
-  const source = await screen.findByRole("region", { name: "Composition source code" });
-  expect(source).toHaveTextContent('import { Profile } from "@/declarations/profile"');
-  expect(source).toHaveTextContent("<Profile.Fields />");
-  expect(source).not.toHaveTextContent(/Slider|setWidth|setSaved/);
-  expect(screen.getByRole("slider", { name: "Form width" })).toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: "Sample data" }));
-  expect(screen.getByRole("region", { name: "Sample data source code" })).toHaveTextContent('"firstName": " Ada "');
-});
+  const firstExcerpt = await screen.findByRole("region", { name: "Scope Continue to the current step source code" });
+  expect(firstExcerpt).toHaveTextContent("const scopedAction");
+  expect(firstExcerpt).toHaveTextContent("errorPaths");
+  expect(firstExcerpt).not.toHaveTextContent("import ");
+  expect(screen.getByRole("region", { name: "Use one form for Continue and Save source code" })).toHaveTextContent("scopedAction={scopedAction}");
+  expect(screen.getByRole("region", { name: "Return to fields across steps source code" })).toHaveTextContent("destinations");
 
-it("separates responsibilities and installation metadata while preserving the live form", async () => {
-  const user = userEvent.setup();
-  render(<App />);
-  await user.click(screen.getByRole("link", { name: "06 Multi-page form" }));
-  await user.type(await screen.findByLabelText("First name"), "Ada");
-  await user.click(await screen.findByRole("button", { name: "Actions" }));
-  expect(screen.getByRole("region", { name: "Action buttons source code" })).toHaveTextContent("FormContinueButton");
-  expect(screen.getByText("@formulate/actions")).toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: "Page actions" }));
-  expect(screen.getByText("@formulate/navigation")).toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: "Layouts" }));
-  expect(screen.getByRole("region", { name: "Field & groups source code" })).toHaveTextContent("function FieldGroup");
-  expect(screen.getByText("Installed from shadcn/ui · editable local source")).toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: "Page layout" }));
-  expect(screen.getByRole("region", { name: "Page layout source code" })).toHaveTextContent("FormStepLayout");
-  expect(screen.getByText("@formulate/navigation")).toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: "Fields & sections" }));
-  await user.click(screen.getByRole("button", { name: "Address" }));
-  expect(screen.getByText("Local source · no registry item yet")).toBeInTheDocument();
-  expect(screen.getByLabelText("First name")).toHaveValue("Ada");
-});
-it("opens the control gallery and shows typed sample submission with its actual declaration source", async () => {
-  const user = userEvent.setup();
-  render(<App />);
-  await user.click(screen.getByRole("link", { name: "11 Control gallery" }));
-  expect(await screen.findByRole("heading", { name: "Control gallery", level: 2 })).toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: "Load sample" }));
-  expect(screen.getByRole("textbox", { name: "InputOTP" })).toHaveValue("012345");
-  await user.click(screen.getByRole("button", { name: "Save values" }));
-  expect(await screen.findByRole("status", { name: "Saved control values" })).toHaveTextContent('"inputOTP": "012345"');
-  await user.click(screen.getByRole("button", { name: "Declaration" }));
-  expect(screen.getByRole("region", { name: "Declaration source code" })).toHaveTextContent("field(CountryChoice");
+  await user.click(screen.getByRole("checkbox", { name: "Show advanced options" }));
+  expect(screen.getByRole("checkbox", { name: "Show advanced options" })).toBeChecked();
+  await user.click(screen.getByText("Composition", { exact: true }));
+  expect(screen.getByRole("region", { name: "Composition source code" })).toHaveTextContent("import { RequestSettings }");
+  expect(screen.getByRole("checkbox", { name: "Show advanced options" })).toBeChecked();
 });

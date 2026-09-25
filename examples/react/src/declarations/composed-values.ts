@@ -13,9 +13,13 @@ export const ComposedValues = defineForm({
     componentProps: { options: [{ value: "aue1", label: "Australia East" }, { value: "nzn1", label: "New Zealand North" }] },
   },
   email: {
-    primitive: "text", schema: z.email("Enter a valid company email."), defaultValue: "", label: "Company email", component: "composedInput",
+    primitive: "text",
+    schema: z.email("Enter a valid company email."),
+    defaultValue: "", label: "Company email", component: "composedInput",
     description: "Choose a username. The company domain is fixed.",
-    composition: { segments: [{ input: true, placeholder: "username" }, { literal: "@company.com" }] },
+    composition: {
+      segments: [{ input: true, placeholder: "username" }, { literal: "@company.com" }],
+    },
   },
   url: {
     primitive: "text", schema: z.string().regex(/^https:\/\/example\.com\/[a-z0-9]+(?:-[a-z0-9]+)*$/, "Enter a lowercase slug with single hyphens."),
@@ -24,7 +28,11 @@ export const ComposedValues = defineForm({
     composition: { segments: [{ literal: "https://example.com/" }, { input: true, placeholder: "your-page" }] },
   },
   resourceName: {
-    primitive: "text", schema: z.string().regex(/^[a-z0-9]+-(?:prd|dev)-[a-z0-9]+(?:-[a-z0-9]+)*-(?:aue1|nzn1)$/, "Enter an app name using lowercase letters, digits and single hyphens."),
+    primitive: "text",
+    schema: z.string().regex(
+      /^[a-z0-9]+-(?:prd|dev)-[a-z0-9]+(?:-[a-z0-9]+)*-(?:aue1|nzn1)$/,
+      "Enter an app name using lowercase letters, digits and single hyphens.",
+    ),
     defaultValue: "", label: "Resource name", component: "composedInput",
     description: "Organization comes from context; environment and region come from the fields above.",
     composition: { segments: [
@@ -44,11 +52,20 @@ export const ComposedValues = defineForm({
     componentProps: { inputMode: "numeric" },
   },
   sku: {
-    primitive: "text", schema: z.string().regex(/^SKU-[A-Z]{2,8}-[A-Z0-9]{1,4}$/, "Enter an uppercase style (2–8 letters) and size (1–4 letters or digits)."),
+    primitive: "text",
+    schema: z.string().regex(
+      /^SKU-[A-Z]{2,8}-[A-Z0-9]{1,4}$/,
+      "Enter an uppercase style (2–8 letters) and size (1–4 letters or digits).",
+    ),
     defaultValue: "", label: "SKU", component: "composedInput",
     description: "Two editable parts share one value, one validation result and one field blur.",
     composition: {
-      segments: [{ literal: "SKU-" }, { input: true, label: "Style", placeholder: "TEE" }, { literal: "-" }, { input: true, label: "Size", placeholder: "XL" }],
+      segments: [
+        { literal: "SKU-" },
+        { input: true, label: "Style", placeholder: "TEE" },
+        { literal: "-" },
+        { input: true, label: "Size", placeholder: "XL" },
+      ],
       // Persisted strings split at the first separator after SKU-. The schema
       // excludes hyphens from styles, so accepted values rehydrate unambiguously.
       parse: (value: string) => {

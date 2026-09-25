@@ -103,6 +103,6 @@ The last code verification passed `pnpm check`: **100 tests**, TypeScript, regis
 
 The generated core, shadcn bindings and optional pickers also compiled together in an isolated consumer fixture, with application-owned shadcn UI supplied separately. The core item contains 21 source files; no Formulate registry item includes UI implementation files. The example build splits the optional calendar/picker code and reports no chunk-size warning. Browser verification covered invalid-submit focus, scoped dark-theme calendar rendering, Escape focus restoration and console diagnostics.
 
-The [example code panels](../examples/react/src/example-code.ts) display whole source modules by responsibility, including shared helpers and their `@formulate/core` delivery. That keeps the authoring cost inspectable.
+The [example pages](../examples/react/src/focused-example.tsx) now lead with one capability, a live task, and short excerpts from their checked-in source. Each page keeps the relevant complete application files in collapsed disclosures. This puts the code that explains the capability first while leaving its surrounding setup available on demand.
 
 When implementation changes, update the affected status, evidence link and remaining decision in place. Keep one current verification summary. Label proposals and local experiments explicitly, and update the affected scenario if its guarantee or policy changes. Detailed API instructions and installation steps stay in their linked guides.

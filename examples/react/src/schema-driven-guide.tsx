@@ -3,10 +3,12 @@ import { buttonVariants } from "@/components/ui/button";
 import workshopSource from "./compositions/workshop-registration.tsx?raw";
 import { fieldKeys, definitionKeys, relationshipKeys, conditionKeys } from "./data/schema-reference";
 import type { SchemaKeyReference } from "./data/schema-reference";
+import { SourceCode } from "./source-code";
+import { sourceExcerpt } from "./source-excerpt";
 import "./schema-driven-guide.css";
 
 const contents = [
-  ["whole-form", "Whole form"],
+  ["whole-form", "Schema walkthrough"],
   ["schema-structure", "Structure"],
   ["field-keys", "Field keys"],
   ["definition-options", "Form & section options"],
@@ -40,7 +42,7 @@ export default function SchemaDrivenGuide() {
       <p className="schema-guide-eyebrow">START HERE · AUTHORING</p>
       <h1 id="schema-guide-title">Schema-driven forms</h1>
       <p className="schema-guide-lead">Define the values, rules and structure together. Formulate uses that schema to render the form, validate answers and build the submitted payload.</p>
-      <a className={buttonVariants()} data-slot="button" href="#/examples/schema">Try the workshop form <ArrowRight aria-hidden="true" /></a>
+      <a className={buttonVariants()} data-slot="button" href="#/examples/schema">Try schema composition <ArrowRight aria-hidden="true" /></a>
     </header>
 
     <nav className="schema-guide-contents" aria-label="On this page">
@@ -48,14 +50,22 @@ export default function SchemaDrivenGuide() {
     </nav>
 
     <section aria-labelledby="whole-form">
-      <p className="schema-guide-eyebrow">01 · COMPLETE EXAMPLE</p>
+      <p className="schema-guide-eyebrow">01 · SCHEMA WALKTHROUGH</p>
       <h2 id="whole-form" tabIndex={-1}>One schema, one form</h2>
-      <p>Here is the whole workshop form. <code>defineForm</code> composes a contact section, an invoice checkbox and a conditional company field. <code>WorkshopRegistration.Fields</code> renders that hierarchy automatically.</p>
-      <figure className="schema-guide-code">
-        <figcaption>compositions/workshop-registration.tsx <span>Complete source · TSX</span></figcaption>
-        <pre tabIndex={0} role="region" aria-label="Whole form source code"><code>{workshopSource.trim()}</code></pre>
-      </figure>
-      <p className="schema-guide-note">This is the actual source of the working example. The imported control map connects names such as <code>input</code> and <code>checkbox</code> to this app’s React controls.</p>
+      <p><code>defineForm</code> composes a contact section with its fields and rules. The form renders that hierarchy through <code>WorkshopRegistration.Fields</code>.</p>
+      <div className="schema-guide-excerpts">
+        <div>
+          <h3>Describe the values</h3>
+          <p>The section supplies two fields and its own presentation.</p>
+          <SourceCode filename="compositions/workshop-registration.tsx" label="Contact section" code={sourceExcerpt(workshopSource, "export const WorkshopRegistration = defineForm({", "  needsInvoice: {")} />
+        </div>
+        <div>
+          <h3>Render the schema</h3>
+          <p>One form instance and one Fields component render the declared structure.</p>
+          <SourceCode filename="compositions/workshop-registration.tsx" label="Schema rendering" code={sourceExcerpt(workshopSource, "  const form = WorkshopRegistration.useForm();", "  );")} />
+        </div>
+      </div>
+      <p className="schema-guide-note">These excerpts come from the working example. <a href="#/examples/schema">Open the example</a> to try its conditional invoice field and inspect the complete source. The imported control map connects names such as <code>input</code> and <code>checkbox</code> to this app’s React controls.</p>
     </section>
 
     <section aria-labelledby="schema-structure">
@@ -117,7 +127,7 @@ export default function SchemaDrivenGuide() {
         </table>
       </div>
       <p>React renders this composed schema. The same definition can also produce a normalized graph for headless inspection and updates; both use the original validation and parsing rules.</p>
-      <div className="schema-guide-next"><a className={buttonVariants()} data-slot="button" href="#/examples/schema">Open the complete example <ArrowRight aria-hidden="true" /></a><a href="#/examples/cloud">Explore a larger schema: cloud deployment →</a></div>
+      <div className="schema-guide-next"><a className={buttonVariants()} data-slot="button" href="#/examples/schema">Open the complete example <ArrowRight aria-hidden="true" /></a><a href="#/examples/cloud">See dependent choices in a cloud deployment →</a></div>
     </section>
   </article>;
 }

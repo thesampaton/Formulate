@@ -37,7 +37,7 @@ export function InfrastructureForm(props: InfrastructureProps) {
   const flow = useInfrastructure(props);
   return <Form aria-label="Infrastructure request" form={flow.form} onSubmit={flow.previewOrProvision} onInvalid={flow.handleInvalid} getValidationRevision={flow.getValidationRevision}>
     <h2>Infrastructure request</h2>
-    <p>Account: {props.accountId}. Save an unfinished draft or preview a plan before provisioning.</p>
+    <p>Move a resource to see its machine-size choices and editing focus stay with it, even when its row number changes. Account: {props.accountId}.</p>
     <FieldContainer orientation="horizontal" className="flex-wrap">
       <Button type="button" variant="outline" disabled={flow.draftPending} onClick={() => void flow.saveDraft()}>Save draft</Button>
       <Button type="button" variant="outline" disabled={flow.draftPending} onClick={() => void flow.restoreDraft()}>Restore draft</Button>

@@ -23,12 +23,18 @@ export const DateRangeControl = defineFieldControl<DateRangeValue>()(function Da
   const label = field.value?.from
     ? `${field.value.from.toLocaleDateString()} – ${field.value.to?.toLocaleDateString() ?? "…"}`
     : placeholder;
+  const selectedRange = field.value?.from
+    ? { from: field.value.from, to: field.value.to ?? undefined }
+    : undefined;
   return <Popover open={field.open} onOpenChange={field.onOpenChange}>
-    <PopoverTrigger render={<Button variant="outline" type="button" />} {...field.triggerProps} aria-labelledby={`${field.triggerProps.id}-label ${valueId}`} className={cn("w-full justify-start font-normal", className)}>
-        <CalendarIcon aria-hidden="true" /><span id={valueId}>{label}</span>
+    <PopoverTrigger render={<Button variant="outline" type="button" />} {...field.triggerProps}
+      aria-labelledby={`${field.triggerProps.id}-label ${valueId}`}
+      className={cn("w-full justify-start font-normal", className)}>
+      <CalendarIcon aria-hidden="true" /><span id={valueId}>{label}</span>
     </PopoverTrigger>
-    <PickerContent container={field.portalContainer} {...field.contentProps} finalFocus={field.canRestoreFocus} align="start" className={cn("w-auto p-0", contentClassName)}>
-      <Calendar mode="range" selected={field.value.from ? { from: field.value.from, to: field.value.to ?? undefined } : undefined}
+    <PickerContent container={field.portalContainer} {...field.contentProps}
+      finalFocus={field.canRestoreFocus} align="start" className={cn("w-auto p-0", contentClassName)}>
+      <Calendar mode="range" selected={selectedRange}
         onSelect={(range) => field.onChange({ from: range?.from ?? null, to: range?.to ?? null })}
         defaultMonth={field.value.from ?? undefined} autoFocus disabled={field.disabled} />
       <div className="flex justify-between gap-2 border-t p-3">

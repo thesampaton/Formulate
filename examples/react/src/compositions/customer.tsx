@@ -35,13 +35,17 @@ export function CustomerForm({ onCreate, defaultValues = customerDefaults }: {
     onSubmit={onCreate}>
     <p className="step-indicator" aria-live="polite">Step {navigation.page === "details" ? "1 of 2 · Details" : "2 of 2 · Review"}</p>
     <Page layout={FieldGroup} pageId="customer-details" title="Customer details" active={navigation.page === "details"}>
-      <p>Choose billing and delivery addresses. This demo checks postcode formats for two countries.</p>
+      <p>The delivery switch decides whether a separate address is required and which address is submitted. That draft remains available if you switch back to billing.</p>
       <Customer.Field name="email" />
       <Customer.Section name="billingAddress" title="Billing address" />
-      <Customer.Field name="deliverySameAsBilling"
-        componentProps={{ onValueChange: () => { void form.trigger("deliveryAddress"); } }} />
-      {deliverySameAsBilling ? <p>Delivery uses your current billing address. Any separate delivery address is kept for later.</p> :
-        <Customer.Section name="deliveryAddress" title="Delivery address" />}
+      <Customer.Field name="deliverySameAsBilling" componentProps={{
+        onValueChange: () => { void form.trigger("deliveryAddress"); },
+      }} />
+      {deliverySameAsBilling ? (
+        <p>Billing is the active delivery address. Any separate delivery draft remains available if you switch back.</p>
+      ) : (
+        <Customer.Section name="deliveryAddress" title="Delivery address" />
+      )}
       <Field orientation="horizontal"><FormContinueButton>Review customer</FormContinueButton></Field>
     </Page>
     <Page layout={FieldGroup} pageId="customer-review" title="Review customer" active={navigation.page === "review"}>

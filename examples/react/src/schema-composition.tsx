@@ -6,7 +6,7 @@ export function SchemaCompositionExample() {
   const [registered, setRegistered] = useState<Registration>();
   return <>
     <h2>Workshop registration</h2>
-    <p className="card-description">One schema defines the contact section, validation, defaults and invoice condition. Select “I need an invoice” to reveal the required company field.</p>
+    <p className="card-description">The schema renders a nested contact section and applies the company field only when an invoice is needed. Select “I need an invoice” to see the condition take effect.</p>
     <WorkshopRegistrationForm onRegister={setRegistered} />
     {registered ? <pre role="status" aria-label="Registration payload" className="result">{JSON.stringify(registered, null, 2)}</pre> : null}
   </>;

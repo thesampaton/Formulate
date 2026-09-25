@@ -13,7 +13,9 @@ export function EmploymentSetup({ pageId, active, layout = FieldGroup }: {
   return <Page pageId={pageId} title="Employment details" active={active} layout={FieldGroup}>
     <p>Choose the employment arrangement, start date and manager.</p>
     <LayoutBody layout={layout}><Employment.Fields /></LayoutBody>
-    <Field orientation="horizontal" className="flex-wrap"><FormContinueButton>Continue</FormContinueButton></Field>
+    <Field orientation="horizontal" className="flex-wrap">
+      <FormContinueButton>Continue</FormContinueButton>
+    </Field>
   </Page>;
 }
 
