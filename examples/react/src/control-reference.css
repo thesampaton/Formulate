@@ -1,0 +1,242 @@
+.control-reference {
+  max-width: 64rem;
+  margin-bottom: 3rem;
+}
+
+#control-api,
+.control-api-entry {
+  scroll-margin-top: 6rem;
+}
+
+.control-reference-intro {
+  max-width: 48rem;
+  margin-bottom: 1.5rem;
+}
+
+.control-reference-intro h2 {
+  margin-bottom: 0.5rem;
+}
+
+.control-reference-intro > p:last-child,
+.control-api-principle > p,
+.control-api-entry-heading p,
+.control-api-source,
+.control-api-note {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+
+.control-reference code {
+  font-size: 0.9em;
+}
+
+.control-api-index {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+}
+
+.control-api-index h3 {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+}
+
+.control-api-index-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 1.25rem;
+}
+
+.control-api-index-groups h4 {
+  margin-bottom: 0.35rem;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.control-api-index-groups ul {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.control-api-index a,
+.control-api-entry-heading a,
+.control-api-back,
+.control-api-principle a,
+.control-gallery-reference-link a {
+  color: var(--primary);
+  text-underline-offset: 0.2em;
+}
+
+.control-api-index a:hover,
+.control-api-entry-heading a:hover,
+.control-api-back:hover,
+.control-api-principle a:hover,
+.control-gallery-reference-link a:hover {
+  text-decoration: underline;
+}
+
+.control-gallery-reference-link {
+  margin: 0 0 1.25rem;
+  font-size: 0.875rem;
+}
+
+.control-api-principle {
+  margin: 1.5rem 0 2.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--secondary);
+}
+
+.control-api-principle h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+}
+
+.control-api-principle > p {
+  margin: 0 0 1rem;
+}
+
+.control-api-principle > p:last-child {
+  margin: 1rem 0 0;
+}
+
+.control-api-group {
+  margin-top: 2.5rem;
+}
+
+.control-api-group > h3 {
+  margin: 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 1.25rem;
+}
+
+.control-api-entry {
+  padding: 1.75rem 0 2.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.control-api-entry-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.control-api-entry-heading h4 {
+  margin: 0 0 0.25rem;
+  font-size: 1.125rem;
+}
+
+.control-api-entry-heading p {
+  max-width: 43rem;
+  margin: 0;
+}
+
+.control-api-entry-heading a {
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+dl.control-api-contract {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: 0.75rem;
+  margin: 0 0 0.75rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--secondary);
+}
+
+dl.control-api-contract > div {
+  display: block;
+  padding: 0;
+  border: 0;
+}
+
+.control-api-contract dt {
+  margin-bottom: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.control-api-contract dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.control-api-source {
+  margin: 0 0 0.75rem;
+}
+
+.control-api-source code {
+  overflow-wrap: anywhere;
+}
+
+.control-api-table-wrap {
+  margin-bottom: 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.control-api-table-wrap table {
+  width: 100%;
+  min-width: 37rem;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.control-api-table-wrap :is(th, td) {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.control-api-table-wrap tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.control-api-table-wrap thead {
+  background: var(--secondary);
+}
+
+.control-api-table-wrap th {
+  font-weight: 600;
+}
+
+.control-api-table-wrap tbody td:last-child {
+  color: var(--muted-foreground);
+}
+
+.control-api-table-wrap code {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.control-api-entry .source-code {
+  max-width: 48rem;
+}
+
+.control-api-note {
+  max-width: 48rem;
+  margin: 0.75rem 0;
+}
+
+.control-api-back {
+  font-size: 0.8125rem;
+}

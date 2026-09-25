@@ -3,6 +3,10 @@ import commonFields from "../declarations/common-fields.ts?raw";
 import declaration from "../declarations/control-gallery.ts?raw";
 import composition from "../compositions/control-gallery.tsx?raw";
 import controlMap from "../lib/formulate-config.ts?raw";
+import textControls from "../components/formulate/controls.tsx?raw";
+import choiceControls from "../components/formulate/choice-controls.tsx?raw";
+import groupControls from "../components/formulate/group-controls.tsx?raw";
+import calendarControls from "../components/formulate/calendar-controls.tsx?raw";
 import type { FocusedGuide } from "../focused-example";
 import { sourceExcerpt } from "../source-excerpt";
 
@@ -38,5 +42,9 @@ export const controlsGuide = {
     { label: "Reusable field definitions", filename: "declarations/common-fields.ts", code: commonFields.trim() },
     { label: "Control map", filename: "lib/formulate-config.ts", code: controlMap.trim() },
     { label: "Composition", filename: "compositions/control-gallery.tsx", code: composition.trim() },
+    { label: "Input, checkbox, select, textarea, switch and OTP bindings", filename: "components/formulate/controls.tsx", code: textControls.trim() },
+    { label: "Combobox and Command bindings", filename: "components/formulate/choice-controls.tsx", code: choiceControls.trim() },
+    { label: "Radio, Toggle Group and Slider bindings", filename: "components/formulate/group-controls.tsx", code: groupControls.trim() },
+    { label: "Calendar and Date Picker bindings", filename: "components/formulate/calendar-controls.tsx", code: calendarControls.trim() },
   ],
 } satisfies FocusedGuide;

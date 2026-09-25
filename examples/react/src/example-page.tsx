@@ -2,7 +2,7 @@ import { useEffect, useState, type ComponentType } from "react";
 import type { ExampleName } from "./example-types";
 import { FocusedExample, type FocusedGuide } from "./focused-example";
 
-type ExampleContent = { guide: FocusedGuide; Demo: ComponentType };
+type ExampleContent = { guide: FocusedGuide; Demo: ComponentType; Reference?: ComponentType };
 
 // Loading the guide and its working form together keeps each route independent.
 const exampleLoaders: Record<ExampleName, () => Promise<ExampleContent>> = {
@@ -47,8 +47,10 @@ const exampleLoaders: Record<ExampleName, () => Promise<ExampleContent>> = {
     return { guide: infrastructureGuide, Demo: InfrastructureExample };
   },
   controls: async () => {
-    const [{ ControlGalleryExample }, { controlsGuide }] = await Promise.all([import("./control-gallery"), import("./guides/controls")]);
-    return { guide: controlsGuide, Demo: ControlGalleryExample };
+    const [{ ControlGalleryExample }, { controlsGuide }, { ControlReference }] = await Promise.all([
+      import("./control-gallery"), import("./guides/controls"), import("./control-reference"),
+    ]);
+    return { guide: controlsGuide, Demo: ControlGalleryExample, Reference: ControlReference };
   },
   structured: async () => {
     const [{ StructuredEditingExample }, { structuredGuide }] = await Promise.all([import("./structured-editing"), import("./guides/structured")]);
@@ -93,7 +95,7 @@ export default function ExamplePage({ example, title }: { example: ExampleName; 
 
   if (failed) return <p role="status">This example could not load. Reload the page to try again.</p>;
   if (!content) return <p role="status">Loading example…</p>;
-  const { Demo, guide } = content;
+  const { Demo, guide, Reference } = content;
   const wideDemo = ["customer", "multiPage", "employment", "cloud", "infrastructure", "controls", "structured", "composed"].includes(example);
-  return <FocusedExample title={title} guide={guide} wideDemo={wideDemo}><Demo /></FocusedExample>;
+  return <FocusedExample title={title} guide={guide} reference={Reference ? <Reference /> : null} wideDemo={wideDemo}><Demo /></FocusedExample>;
 }

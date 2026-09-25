@@ -26,6 +26,27 @@ it("opens a bookmarked example with its matching navigation state", async () => 
   expect(screen.getByRole("link", { name: "Overview" })).not.toHaveAttribute("aria-current");
 });
 
+it("keeps a control API deep link on the controls page", async () => {
+  window.history.replaceState(null, "", "/#/examples/controls?section=combobox");
+  const user = userEvent.setup();
+  render(<App />);
+
+  expect(await screen.findByRole("heading", { name: "Control binding API" }, { timeout: 10000 })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "10 Interchangeable controls", current: "page" })).toHaveAttribute("href", "#/examples/controls");
+
+  const reference = screen.getByRole("region", { name: "Control binding API" });
+  const innerNav = within(reference).getByRole("navigation", { name: "Controls on this page" });
+  expect(within(innerNav).getAllByRole("link")).toHaveLength(14);
+  expect(within(reference).getByRole("link", { name: "shadcn Combobox docs ↗" })).toHaveAttribute("href", "https://ui.shadcn.com/docs/components/base/combobox");
+  expect(within(reference).getByRole("region", { name: "Dependent choice binding source code" })).toHaveTextContent('componentProps={{ options: view?.options ?? [] }}');
+
+  await user.click(within(innerNav).getByRole("link", { name: "Select" }));
+  expect(window.location.hash).toBe("#/examples/controls?section=select");
+  const select = document.getElementById("control-select")!;
+  expect(within(select).getByText("readonly ControlOption[]")).toBeInTheDocument();
+  expect(within(select).getByRole("link", { name: "shadcn Select docs ↗" })).toBeInTheDocument();
+});
+
 it("supports keyboard navigation and starts a fresh form when returning to an example", async () => {
   const user = userEvent.setup();
   render(<App />);
